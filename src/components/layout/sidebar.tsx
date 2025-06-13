@@ -142,6 +142,22 @@ export function Sidebar() {
     return pathname.startsWith(href);
   };
 
+  // Extracted user role label logic
+  function getUserRoleLabel(role?: string) {
+    switch (role) {
+      case 'parent':
+        return 'Padre/Madre';
+      case 'teacher':
+        return 'Docente';
+      case 'specialist':
+        return 'Especialista';
+      case 'admin':
+        return 'Administrador';
+      default:
+        return 'Usuario';
+    }
+  }
+
   return (
     <>
       {/* Mobile menu button - Fixed position for better accessibility */}
@@ -202,12 +218,9 @@ export function Sidebar() {
             aria-label="Cerrar menú de navegación"
           >
             <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* User Info Card */}
-        <div className="p-4 lg:p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
+              <p className="text-xs text-gray-500 capitalize">
+                {getUserRoleLabel(user?.role)}
+              </p>
             <Avatar className="h-10 w-10 ring-2 ring-blue-100">
               <AvatarImage src={user?.avatar_url} alt={user?.full_name} />
               <AvatarFallback className="bg-gradient-to-br from-blue-100 to-purple-100 text-blue-700 font-semibold">
