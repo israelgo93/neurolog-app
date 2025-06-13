@@ -74,7 +74,7 @@ export default function ReportsPage() {
   const { user } = useAuth();
   const { children, loading: childrenLoading } = useChildren();
   const { logs, stats, loading: logsLoading } = useLogs();
-  
+
   const [selectedChild, setSelectedChild] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subMonths(new Date(), 3),
@@ -83,33 +83,42 @@ export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
-  // Filtrar logs según selecciones
-  const filteredLogs = logs.filter(log => {
-    if (selectedChild !== 'all' && log.child_id !== selectedChild) {
-      return false;
-    }
-    
-    if (dateRange?.from && new Date(log.created_at) < dateRange.from) {
-      return false;
-    }
-    
-    if (dateRange?.to && new Date(log.created_at) > dateRange.to) {
-      return false;
-    }
-    
-    return true;
-  });
+  function filterLogs(logs: any[]) {
+    return logs.filter(log => {
+      if (selectedChild !== 'all' && log.child_id !== selectedChild) return false;
+      if (dateRange?.from && new Date(log.created_at) < dateRange.from) return false;
+      if (dateRange?.to && new Date(log.created_at) > dateRange.to) return false;
+      return true;
+    });
+  }
 
-  // Calcular métricas
+  function getAverageMood(filteredLogs: any[]) {
+    const moodLogs = filteredLogs.filter(l => l.mood_score);
+    if (moodLogs.length === 0) return 0;
+    return moodLogs.reduce((sum, l) => sum + l.mood_score, 0) / moodLogs.length;
+  }
+
+  function getActiveCategories(filteredLogs: any[]) {
+    return new Set(filteredLogs.map(l => l.category_name).filter(Boolean)).size;
+  }
+
+  function getFollowUpsRequired(filteredLogs: any[]) {
+    return filteredLogs.filter(l => l.follow_up_required).length;
+  }
+
+  function getActiveDays(filteredLogs: any[]) {
+    return new Set(filteredLogs.map(l => new Date(l.created_at).toDateString())).size;
+  }
+
+  const filteredLogs = filterLogs(logs);
+
   const metrics = {
     totalLogs: filteredLogs.length,
-    averageMood: filteredLogs.filter(l => l.mood_score).length > 0 
-      ? (filteredLogs.filter(l => l.mood_score).reduce((sum, l) => sum + l.mood_score, 0) / filteredLogs.filter(l => l.mood_score).length)
-      : 0,
+    averageMood: getAverageMood(filteredLogs),
     improvementTrend: calculateImprovementTrend(filteredLogs),
-    activeCategories: new Set(filteredLogs.map(l => l.category_name).filter(Boolean)).size,
-    followUpsRequired: filteredLogs.filter(l => l.follow_up_required).length,
-    activeDays: new Set(filteredLogs.map(l => new Date(l.created_at).toDateString())).size
+    activeCategories: getActiveCategories(filteredLogs),
+    followUpsRequired: getFollowUpsRequired(filteredLogs),
+    activeDays: getActiveDays(filteredLogs)
   };
 
   if (childrenLoading || logsLoading) {
@@ -159,10 +168,10 @@ export default function ReportsPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <label htmlFor="date-range-picker" className="text-sm font-medium mb-2 block">Período</label>
-              <DatePickerWithRange 
+              <DatePickerWithRange
                 id="date-range-picker"
                 date={dateRange}
                 onDateChange={setDateRange}
@@ -170,7 +179,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="flex items-end">
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => {
                   setSelectedChild('all');
@@ -196,7 +205,7 @@ export default function ReportsPage() {
           color="blue"
           subtitle="En el período seleccionado"
         />
-        
+
         <MetricCard
           title="Estado de Ánimo"
           value={metrics.averageMood.toFixed(1)}
@@ -205,7 +214,7 @@ export default function ReportsPage() {
           color={metrics.averageMood >= 4 ? 'green' : metrics.averageMood >= 3 ? 'orange' : 'red'}
           subtitle="Promedio del período"
         />
-        
+
         <MetricCard
           title="Tendencia"
           value={metrics.improvementTrend > 0 ? '+' : ''}
@@ -213,7 +222,7 @@ export default function ReportsPage() {
           color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
           subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}
         />
-        
+
         <MetricCard
           title="Categorías"
           value={metrics.activeCategories}
@@ -221,7 +230,7 @@ export default function ReportsPage() {
           color="purple"
           subtitle="Diferentes áreas"
         />
-        
+
         <MetricCard
           title="Seguimientos"
           value={metrics.followUpsRequired}
@@ -229,7 +238,7 @@ export default function ReportsPage() {
           color={metrics.followUpsRequired > 0 ? 'orange' : 'green'}
           subtitle="Pendientes"
         />
-        
+
         <MetricCard
           title="Días Activos"
           value={metrics.activeDays}
@@ -338,7 +347,7 @@ export default function ReportsPage() {
       </Tabs>
 
       {/* Export Dialog */}
-      <ExportReportDialog 
+      <ExportReportDialog
         open={isExportDialogOpen}
         onOpenChange={setIsExportDialogOpen}
         data={filteredLogs}
