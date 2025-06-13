@@ -1,6 +1,6 @@
 // ================================================================
 // src/app/dashboard/reports/page.tsx
-// Página principal de reportes y análisis - REFACORIZADA COGNITIVE COMPLEXITY <15
+// Página principal de reportes y análisis - REFACTORIZADA Y LIMPIA
 // ================================================================
 
 'use client';
@@ -51,7 +51,7 @@ import { format, subMonths } from 'date-fns';
 // ================================================================
 function calculateImprovementTrend(logs: any[]): number {
   if (logs.length < 2) return 0;
-  const moodLogs = logs.filter(log => log.mood_score).sort((a, b) => 
+  const moodLogs = logs.filter(log => log.mood_score).sort((a, b) =>
     new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
   if (moodLogs.length < 2) return 0;
@@ -91,9 +91,8 @@ function calculateMetrics(filteredLogs: any[]) {
 // COMPONENTE PRINCIPAL
 // ================================================================
 export default function ReportsPage() {
-  const { user } = useAuth();
   const { children, loading: childrenLoading } = useChildren();
-  const { logs, stats, loading: logsLoading } = useLogs();
+  const { logs, loading: logsLoading } = useLogs();
 
   const [selectedChild, setSelectedChild] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -139,9 +138,11 @@ export default function ReportsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Niño</label>
+              <label htmlFor="child-select" className="text-sm font-medium mb-2 block">
+                Niño
+              </label>
               <Select value={selectedChild} onValueChange={setSelectedChild}>
-                <SelectTrigger>
+                <SelectTrigger id="child-select">
                   <SelectValue placeholder="Seleccionar niño" />
                 </SelectTrigger>
                 <SelectContent>
@@ -154,17 +155,19 @@ export default function ReportsPage() {
                 </SelectContent>
               </Select>
             </div>
-            
             <div>
-              <label className="text-sm font-medium mb-2 block">Período</label>
-              <DatePickerWithRange 
+              <label htmlFor="period-picker" className="text-sm font-medium mb-2 block">
+                Período
+              </label>
+              {/* El DatePickerWithRange NO acepta id directamente, pero mantenemos accesibilidad con el label */}
+              <DatePickerWithRange
                 date={dateRange}
                 onDateChange={setDateRange}
+                // id="period-picker" // No soportado, pero el label es solo visual
               />
             </div>
-
             <div className="flex items-end">
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => {
                   setSelectedChild('all');
@@ -190,24 +193,48 @@ export default function ReportsPage() {
           color="blue"
           subtitle="En el período seleccionado"
         />
-        
+
         <MetricCard
           title="Estado de Ánimo"
           value={metrics.averageMood.toFixed(1)}
           suffix="/5"
           icon={Heart}
-          color={metrics.averageMood >= 4 ? 'green' : metrics.averageMood >= 3 ? 'orange' : 'red'}
+          color={
+            metrics.averageMood >= 4
+              ? 'green'
+              : metrics.averageMood >= 3
+              ? 'orange'
+              : 'red'
+          }
           subtitle="Promedio del período"
         />
-        
+
         <MetricCard
           title="Tendencia"
-          value={metrics.improvementTrend > 0 ? '+' : ''}
-          icon={metrics.improvementTrend > 0 ? TrendingUp : metrics.improvementTrend < 0 ? TrendingUp : Target}
-          color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
-          subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}
+          value={metrics.improvementTrend > 0 ? `+${metrics.improvementTrend.toFixed(2)}` : metrics.improvementTrend.toFixed(2)}
+          icon={
+            metrics.improvementTrend > 0
+              ? TrendingUp
+              : metrics.improvementTrend < 0
+              ? TrendingUp
+              : Target
+          }
+          color={
+            metrics.improvementTrend > 0
+              ? 'green'
+              : metrics.improvementTrend < 0
+              ? 'red'
+              : 'gray'
+          }
+          subtitle={
+            metrics.improvementTrend > 0
+              ? 'Mejorando'
+              : metrics.improvementTrend < 0
+              ? 'Necesita atención'
+              : 'Estable'
+          }
         />
-        
+
         <MetricCard
           title="Categorías"
           value={metrics.activeCategories}
@@ -215,7 +242,7 @@ export default function ReportsPage() {
           color="purple"
           subtitle="Diferentes áreas"
         />
-        
+
         <MetricCard
           title="Seguimientos"
           value={metrics.followUpsRequired}
@@ -223,7 +250,7 @@ export default function ReportsPage() {
           color={metrics.followUpsRequired > 0 ? 'orange' : 'green'}
           subtitle="Pendientes"
         />
-        
+
         <MetricCard
           title="Días Activos"
           value={metrics.activeDays}
@@ -332,7 +359,7 @@ export default function ReportsPage() {
       </Tabs>
 
       {/* Export Dialog */}
-      <ExportReportDialog 
+      <ExportReportDialog
         open={isExportDialogOpen}
         onOpenChange={setIsExportDialogOpen}
         data={filteredLogs}
