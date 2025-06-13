@@ -338,19 +338,22 @@ function ChildrenStats({ children }: Readonly<{ children: ChildWithRelation[] }>
 function ChildrenLoadingSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, i) => (
-        <Card key={i} className="animate-pulse">
-          <CardHeader>
-            <div className="flex items-center space-x-4">
-              <div className="rounded-full bg-gray-200 h-12 w-12"></div>
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-24"></div>
-                <div className="h-3 bg-gray-200 rounded w-16"></div>
+      {[...Array(6)].map((_, i) => {
+        const uniqueKey = `skeleton-${i}-${Math.random().toString(36).slice(2, 11)}`;
+        return (
+          <Card key={uniqueKey} className="animate-pulse">
+            <CardHeader>
+              <div className="flex items-center space-x-4">
+                <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  <div className="h-3 bg-gray-200 rounded w-16"></div>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-        </Card>
-      ))}
+            </CardHeader>
+          </Card>
+        );
+      })}
     </div>
   );
 }
@@ -483,7 +486,9 @@ export default function ChildrenPage() {
       </div>
 
       {/* Estadísticas rápidas */}
-      <ChildrenStats children={children} />
+      <ChildrenStats>
+        {children}
+      </ChildrenStats>
 
       {/* Filtros */}
       <FiltersCard filters={filters} onFiltersChange={setFilters} />
