@@ -186,10 +186,15 @@ export default function SettingsPage() {
               </p>
               <p className="text-sm text-gray-600">{user.email}</p>
               <p className="text-xs text-blue-600 capitalize">
-                {user.role === 'parent' ? 'Padre/Madre' :
-                 user.role === 'teacher' ? 'Docente' :
-                 user.role === 'specialist' ? 'Especialista' : 
-                 user.role === 'admin' ? 'Administrador' : 'Usuario'}
+                {(() => {
+                  switch(user.role) {
+                    case 'parent': return 'Padre/Madre';
+                    case 'teacher': return 'Docente';
+                    case 'specialist': return 'Especialista';
+                    case 'admin': return 'Administrador';
+                    default: return 'Usuario';
+                  }
+                })()}
               </p>
             </div>
           </div>
