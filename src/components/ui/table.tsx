@@ -4,7 +4,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+function Table({ className, ...props }: React.ComponentProps<'table'>) {
   return (
     <div
       data-slot="table-container"
@@ -14,9 +14,21 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
         data-slot="table"
         className={cn("w-full caption-bottom text-sm", className)}
         {...props}
-      />
+      >
+        <thead>
+          <tr>
+            <th scope="col">Header 1</th>
+            <th scope="col">Header 2</th>
+            <th scope="col">Header 3</th>
+            {}
+          </tr>
+        </thead>
+        <tbody>
+          {}
+        </tbody>
+      </table>
     </div>
-  )
+  );
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
