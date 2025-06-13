@@ -146,6 +146,22 @@ export function Header() {
     { name: 'Exportar', href: '/dashboard/export', icon: Download },
   ];
 
+  // Extract user role label to avoid nested ternary in JSX
+  const getUserRoleLabel = () => {
+    switch (user?.role) {
+      case 'parent':
+        return 'Padre/Madre';
+      case 'teacher':
+        return 'Docente';
+      case 'specialist':
+        return 'Especialista';
+      case 'admin':
+        return 'Admin';
+      default:
+        return 'Usuario';
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200">
       <div className="flex items-center justify-between px-3 sm:px-4 lg:px-6 h-14 sm:h-16">
@@ -285,12 +301,9 @@ export function Header() {
                 <p>Notificaciones ({totalNotifications})</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
-
-          {/* User Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center space-x-2 h-8 sm:h-10 px-2 sm:px-3">
+                  <p className="text-xs text-gray-500 capitalize">
+                    {getUserRoleLabel()}
+                  </p>
                 <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
                   <AvatarImage src={user?.avatar_url ?? undefined} />
                   <AvatarFallback className="text-xs sm:text-sm">
