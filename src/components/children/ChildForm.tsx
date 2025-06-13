@@ -603,7 +603,7 @@ export function PrivacySettingsForm({ settings, onChange }: Readonly<PrivacySett
 // COMPONENTE PRINCIPAL
 // ================================================================
 
-export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFormProps) {
+export default function ChildForm({ child, mode, onSuccess, onCancel }: Readonly<ChildFormProps>) {
   const { user } = useAuth();
   const { createChild, updateChild } = useChildren();
   const [uploading, setUploading] = useState(false);
