@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -25,7 +25,7 @@ import {
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useLogs } from '@/hooks/use-logs';
 import type { LogWithDetails, IntensityLevel } from '@/types';
-import { 
+import {
   EditIcon,
   MoreVerticalIcon,
   CalendarIcon,
@@ -55,7 +55,7 @@ export default function LogDetailPage() {
   const { user } = useAuth();
   // 'logs' eliminado de la desestructuración
   const { loading, getLogById, addParentFeedback, markAsReviewed } = useLogs();
-  
+
   const [log, setLog] = useState<LogWithDetails | null>(null);
   const [feedback, setFeedback] = useState('');
   const [specialistNotes, setSpecialistNotes] = useState('');
@@ -107,7 +107,7 @@ export default function LogDetailPage() {
 
   const handleAddFeedback = async () => {
     if (!feedback.trim()) return;
-    
+
     try {
       await addParentFeedback(log.id, feedback);
       setFeedback('');
@@ -139,12 +139,13 @@ export default function LogDetailPage() {
   // ---------- CORRECCIÓN: ternario extraído a variable ----------
   let moodDescription = '';
   if (log.mood_score !== undefined && log.mood_score !== null) {
-    moodDescription =
-      log.mood_score <= 2
-        ? 'Necesita atención'
-        : log.mood_score <= 3
-        ? 'Normal'
-        : 'Muy positivo';
+    if (log.mood_score <= 2) {
+      moodDescription = 'Necesita atención';
+    } else if (log.mood_score <= 3) {
+      moodDescription = 'Normal';
+    } else {
+      moodDescription = 'Muy positivo';
+    }
   }
   // -------------------------------------------------------------
 
@@ -162,11 +163,11 @@ export default function LogDetailPage() {
               Registro de {log.child_name}
             </h1>
             <p className="text-gray-600">
-              {format(new Date(log.created_at), 'dd MMMM yyyy \'a las\' HH:mm', { locale: es })}
+              {format(new Date(log.created_at), "dd MMMM yyyy 'a las' HH:mm", { locale: es })}
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {log.can_edit && (
             <Button variant="outline" size="sm">
@@ -215,7 +216,7 @@ export default function LogDetailPage() {
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
-                  <div 
+                  <div
                     className="w-4 h-4 rounded-full"
                     style={{ backgroundColor: log.category_color }}
                   />
@@ -226,7 +227,7 @@ export default function LogDetailPage() {
                     </CardDescription>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   {log.is_private && (
                     <Badge variant="secondary">
@@ -244,7 +245,7 @@ export default function LogDetailPage() {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-6">
               {/* Content */}
               <div>
