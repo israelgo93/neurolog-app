@@ -96,7 +96,7 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={child.avatar_url || undefined} />
+              <AvatarImage src={child.avatar_url ?? undefined} />
               <AvatarFallback className="bg-blue-100 text-blue-600">
                 {child.name.charAt(0).toUpperCase()}
               </AvatarFallback>
@@ -207,12 +207,14 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Búsqueda por nombre */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Buscar por nombre</label>
+            <label htmlFor='search-input' className="text-sm font-medium">Buscar por nombre</label>
             <div className="relative">
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
+                id="search-input"
+                type='text'
                 placeholder="Nombre del niño..."
-                value={filters.search || ''}
+                value={filters.search ?? ''}
                 onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
                 className="pl-10"
               />
@@ -221,7 +223,7 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
 
           {/* Relación */}
           <Select 
-            value={filters.relationship_type || 'all'} 
+            value={filters.relationship_type ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               relationship_type: value === 'all' ? undefined : value as RelationshipType 
@@ -242,13 +244,14 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
 
           {/* Rango de edad */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Edad máxima</label>
+            <label htmlFor="max-age-input" className="text-sm font-medium">Edad máxima</label>
             <Input
+              id="max-age-input"
               type="number"
               placeholder="Años"
               min="0"
               max="25"
-              value={filters.max_age || ''}
+              value={filters.max_age ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 max_age: e.target.value ? parseInt(e.target.value) : undefined 
@@ -267,18 +270,16 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
 
 export default function ChildrenPage() {
   const { user } = useAuth();
-  const { children, loading, error, filterChildren } = useChildren({ 
+  const { children, loading, error, filterChildren } = useChildren({
     includeInactive: false,
-    realtime: true 
+    realtime: true,
   });
-  
+
   const [filters, setFilters] = useState<ChildFilters>({});
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Aplicar filtros
-  const filteredChildren = useMemo(() => {
-    return filterChildren(filters);
-  }, [children, filters, filterChildren]);
+  const filteredChildren = useMemo(() => filterChildren(filters), [children, filters, filterChildren]);
 
   // Handlers
   const handleEdit = (child: ChildWithRelation) => {
@@ -294,203 +295,271 @@ export default function ChildrenPage() {
   };
 
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-          <p className="text-gray-500">Cargando...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
     <div className="space-y-6">
-      {/* Header con botón de crear niño */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mis Niños</h1>
-          <p className="text-gray-600">
-            Gestiona y visualiza el progreso de los niños bajo tu cuidado
-          </p>
-        </div>
-        
-        <div className="flex space-x-3">
-          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="h-4 w-4 mr-2" />
-            Actualizar
-          </Button>
-          
-          <Button asChild>
-            <Link href="/dashboard/children/new">
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Crear Niño
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {/* Estadísticas rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <UsersIcon className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Niños</p>
-                <p className="text-2xl font-bold">{children.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <BookOpenIcon className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Activos</p>
-                <p className="text-2xl font-bold">
-                  {children.filter(c => c.is_active).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <EditIcon className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Editables</p>
-                <p className="text-2xl font-bold">
-                  {children.filter(c => c.can_edit).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <TrendingUpIcon className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Con Diagnóstico</p>
-                <p className="text-2xl font-bold">
-                  {children.filter(c => c.diagnosis).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filtros */}
+      <HeaderSection />
+      <StatsSection children={children} />
       <FiltersCard filters={filters} onFiltersChange={setFilters} />
+      <ChildrenContent
+        loading={loading}
+        error={error}
+        children={children}
+        filteredChildren={filteredChildren}
+        filters={filters}
+        setFilters={setFilters}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        onEdit={handleEdit}
+        onViewDetails={handleViewDetails}
+        onManageUsers={handleManageUsers}
+      />
+    </div>
+  );
+}
 
-      {/* Lista/Grid de niños */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="flex items-center space-x-4">
-                  <div className="rounded-full bg-gray-200 h-12 w-12"></div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-24"></div>
-                    <div className="h-3 bg-gray-200 rounded w-16"></div>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          ))}
+// ===================== Subcomponents =====================
+
+function LoadingState() {
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="text-center">
+        <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+        <p className="text-gray-500">Cargando...</p>
+      </div>
+    </div>
+  );
+}
+
+function HeaderSection() {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Mis Niños</h1>
+        <p className="text-gray-600">
+          Gestiona y visualiza el progreso de los niños bajo tu cuidado
+        </p>
+      </div>
+      <div className="flex space-x-3">
+        <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+          <RefreshCwIcon className="h-4 w-4 mr-2" />
+          Actualizar
+        </Button>
+        <Button asChild>
+          <Link href="/dashboard/children/new">
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Crear Niño
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function StatsSection({ children }: { children: ChildWithRelation[] }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <StatCard
+        icon={<UsersIcon className="h-8 w-8 text-blue-600" />}
+        label="Total Niños"
+        value={children.length}
+      />
+      <StatCard
+        icon={<BookOpenIcon className="h-8 w-8 text-green-600" />}
+        label="Activos"
+        value={children.filter((c) => c.is_active).length}
+      />
+      <StatCard
+        icon={<EditIcon className="h-8 w-8 text-purple-600" />}
+        label="Editables"
+        value={children.filter((c) => c.can_edit).length}
+      />
+      <StatCard
+        icon={<TrendingUpIcon className="h-8 w-8 text-orange-600" />}
+        label="Con Diagnóstico"
+        value={children.filter((c) => c.diagnosis).length}
+      />
+    </div>
+  );
+}
+
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center">
+          {icon}
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">{label}</p>
+            <p className="text-2xl font-bold">{value}</p>
+          </div>
         </div>
-      ) : error ? (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="text-center py-12">
-            <p className="text-red-600 mb-4">Error al cargar los niños: {error}</p>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              <RefreshCwIcon className="h-4 w-4 mr-2" />
-              Reintentar
-            </Button>
-          </CardContent>
-        </Card>
-      ) : filteredChildren.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-            {children.length === 0 ? (
-              <>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No hay niños registrados
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Comienza agregando el primer niño para empezar el seguimiento
-                </p>
-                <Button asChild>
-                  <Link href="/dashboard/children/new">
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    Agregar Primer Niño
-                  </Link>
-                </Button>
-              </>
-            ) : (
-              <>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No se encontraron niños
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  No hay niños que coincidan con los filtros seleccionados
-                </p>
-                <Button 
-                  variant="outline"
-                  onClick={() => setFilters({})}
-                >
-                  Limpiar Filtros
-                </Button>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* View Mode Toggle */}
-          <div className="flex justify-end">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Vista:</span>
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                Tarjetas
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                Lista
-              </Button>
-            </div>
-          </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-          {/* Children Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredChildren.map((child) => (
-              <ChildCard
-                key={child.id}
-                child={child}
-                onEdit={handleEdit}
-                onViewDetails={handleViewDetails}
-                onManageUsers={handleManageUsers}
-              />
-            ))}
-          </div>
-        </>
-      )}
+interface ChildrenContentProps {
+  loading: boolean;
+  error: string | null;
+  children: ChildWithRelation[];
+  filteredChildren: ChildWithRelation[];
+  filters: ChildFilters;
+  setFilters: React.Dispatch<React.SetStateAction<ChildFilters>>;
+  viewMode: 'grid' | 'list';
+  setViewMode: React.Dispatch<React.SetStateAction<'grid' | 'list'>>;
+  onEdit: (child: ChildWithRelation) => void;
+  onViewDetails: (child: ChildWithRelation) => void;
+  onManageUsers: (child: ChildWithRelation) => void;
+}
+
+function ChildrenContent({
+  loading,
+  error,
+  children,
+  filteredChildren,
+  filters,
+  setFilters,
+  viewMode,
+  setViewMode,
+  onEdit,
+  onViewDetails,
+  onManageUsers,
+}: ChildrenContentProps) {
+  if (loading) return <ChildrenLoadingSkeleton />;
+  if (error) return <ChildrenError error={error} />;
+  if (filteredChildren.length === 0)
+    return (
+      <ChildrenEmpty
+        hasChildren={children.length > 0}
+        setFilters={setFilters}
+      />
+    );
+
+  return (
+    <>
+      <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredChildren.map((child) => (
+          <ChildCard
+            key={child.id}
+            child={child}
+            onEdit={onEdit}
+            onViewDetails={onViewDetails}
+            onManageUsers={onManageUsers}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function ChildrenLoadingSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[...Array(6)].map((_, i) => (
+        <Card key={i} className="animate-pulse">
+          <CardHeader>
+            <div className="flex items-center space-x-4">
+              <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-24"></div>
+                <div className="h-3 bg-gray-200 rounded w-16"></div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function ChildrenError({ error }: { error: string }) {
+  return (
+    <Card className="border-red-200 bg-red-50">
+      <CardContent className="text-center py-12">
+        <p className="text-red-600 mb-4">Error al cargar los niños: {error}</p>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          <RefreshCwIcon className="h-4 w-4 mr-2" />
+          Reintentar
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ChildrenEmpty({
+  hasChildren,
+  setFilters,
+}: {
+  hasChildren: boolean;
+  setFilters: React.Dispatch<React.SetStateAction<ChildFilters>>;
+}) {
+  return (
+    <Card>
+      <CardContent className="text-center py-12">
+        <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+        {hasChildren ? (
+          <>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No se encontraron niños
+            </h3>
+            <p className="text-gray-600 mb-6">
+              No hay niños que coincidan con los filtros seleccionados
+            </p>
+            <Button variant="outline" onClick={() => setFilters({})}>
+              Limpiar Filtros
+            </Button>
+          </>
+        ) : (
+          <>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No hay niños registrados
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Comienza agregando el primer niño para empezar el seguimiento
+            </p>
+            <Button asChild>
+              <Link href="/dashboard/children/new">
+                <PlusIcon className="mr-2 h-4 w-4" />
+                Agregar Primer Niño
+              </Link>
+            </Button>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ViewModeToggle({
+  viewMode,
+  setViewMode,
+}: {
+  viewMode: 'grid' | 'list';
+  setViewMode: React.Dispatch<React.SetStateAction<'grid' | 'list'>>;
+}) {
+  return (
+    <div className="flex justify-end">
+      <div className="flex items-center space-x-2">
+        <span className="text-sm text-gray-600">Vista:</span>
+        <Button
+          variant={viewMode === 'grid' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setViewMode('grid')}
+        >
+          Tarjetas
+        </Button>
+        <Button
+          variant={viewMode === 'list' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setViewMode('list')}
+        >
+          Lista
+        </Button>
+      </div>
     </div>
   );
 }

@@ -90,12 +90,7 @@ CREATE TABLE children (
   emergency_contact JSONB DEFAULT '[]',
   medical_info JSONB DEFAULT '{}',
   educational_info JSONB DEFAULT '{}',
-  privacy_settings JSONB DEFAULT '{
-    "share_with_specialists": true,
-    "share_progress_reports": true,
-    "allow_photo_sharing": false,
-    "data_retention_months": 36
-  }',
+  privacy_settings JSONB DEFAULT '{ "share_with_specialists": true,"share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}',
   created_by UUID REFERENCES profiles(id) NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -214,13 +209,15 @@ $$ LANGUAGE plpgsql;
 -- Función para crear perfil automáticamente cuando se registra usuario
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  DEFAULT_ROLE CONSTANT TEXT := 'parent'; -- Declaración de constante
 BEGIN
   INSERT INTO profiles (id, email, full_name, role)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')
+    COALESCE(NEW.raw_user_meta_data->>'role', DEFAULT_ROLE)
   );
   RETURN NEW;
 END;
@@ -287,6 +284,8 @@ CREATE OR REPLACE FUNCTION audit_sensitive_access(
   action_details TEXT DEFAULT NULL
 )
 RETURNS VOID AS $$
+DECLARE 
+  DEFAULT_RISK CONSTANT TEXT := 'medium'; -- Declaración de constante
 BEGIN
   INSERT INTO audit_logs (
     table_name,
@@ -307,7 +306,7 @@ BEGIN
       'details', action_details,
       'timestamp', NOW()
     ),
-    'medium'
+    DEFAULT_RISK
   );
 EXCEPTION
   WHEN OTHERS THEN
@@ -465,11 +464,12 @@ DECLARE
   policy_count INTEGER;
   function_count INTEGER;
   category_count INTEGER;
+  DEFAULT_SCHEMA CONSTANT TEXT := 'public';
 BEGIN
   -- Contar tablas
   SELECT COUNT(*) INTO table_count
   FROM information_schema.tables 
-  WHERE table_schema = 'public' 
+  WHERE table_schema = DEFAULT_SCHEMA 
     AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
@@ -477,7 +477,7 @@ BEGIN
   -- Contar políticas
   SELECT COUNT(*) INTO policy_count
   FROM pg_policies 
-  WHERE schemaname = 'public';
+  WHERE schemaname = DEFAULT_SCHEMA;
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
   
@@ -497,7 +497,7 @@ BEGIN
   -- Verificar RLS
   IF (SELECT COUNT(*) FROM pg_class c 
       JOIN pg_namespace n ON n.oid = c.relnamespace 
-      WHERE n.nspname = 'public' 
+      WHERE n.nspname = DEFAULT_SCHEMA
         AND c.relname = 'children' 
         AND c.relrowsecurity = true) > 0 THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
