@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -34,10 +34,8 @@ import {
   EyeIcon,
   UserPlusIcon,
   CalendarIcon,
-  MapPinIcon,
   HeartIcon,
   TrendingUpIcon,
-  DownloadIcon,
   UsersIcon,
   BookOpenIcon,
   RefreshCwIcon
@@ -207,14 +205,15 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Búsqueda por nombre */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Buscar por nombre
+             <label htmlFor="search" className="text-sm font-medium text-gray-700">
+                Buscar por nombre
+              </label>
               <input
+                id="search"
                 type="text"
                 name="search"
                 className="mt-1 block w-full border rounded px-2 py-1"
               />
-            </label>
           <div className="relative">
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -249,17 +248,22 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
 
           {/* Rango de edad */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Edad máxima</label>
+            <label htmlFor="max-age" className="text-sm font-medium">
+              Edad máxima
+            </label>
             <Input
+              id="max-age"
               type="number"
               placeholder="Años"
               min="0"
               max="25"
               value={filters.max_age || ''}
-              onChange={(e) => onFiltersChange({ 
-                ...filters, 
-                max_age: e.target.value ? parseInt(e.target.value) : undefined 
-              })}
+              onChange={(e) =>
+                onFiltersChange({
+                  ...filters,
+                  max_age: e.target.value ? parseInt(e.target.value) : undefined,
+                })
+              }
             />
           </div>
         </div>
