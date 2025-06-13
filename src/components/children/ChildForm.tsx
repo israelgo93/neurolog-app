@@ -268,7 +268,7 @@ export function ItemsList({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
-          onKeyPress={(e) => {
+          onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
               onAdd();
@@ -295,7 +295,7 @@ export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps)
 
   const addItem = useCallback((field: string, value: string, setter: (v: string) => void) => {
     if (value.trim()) {
-      const currentItems = medicalInfo[field] || [];
+      const currentItems = medicalInfo[field] ?? [];
       onChange({
         ...medicalInfo,
         [field]: [...currentItems, value.trim()]
@@ -305,7 +305,7 @@ export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps)
   }, [medicalInfo, onChange]);
 
   const removeItem = useCallback((field: string, index: number) => {
-    const currentItems = medicalInfo[field] || [];
+    const currentItems = medicalInfo[field] ?? [];
     onChange({
       ...medicalInfo,
       [field]: currentItems.filter((_: any, i: number) => i !== index)
@@ -379,7 +379,7 @@ export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps)
   );
 }
 
-export function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormProps) {
+export function EducationalInfoForm({ educationalInfo, onChange }: Readonly<EducationalInfoFormProps>) {
   const [newGoal, setNewGoal] = useState('');
   const [newAccommodation, setNewAccommodation] = useState('');
 
