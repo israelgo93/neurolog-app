@@ -316,7 +316,7 @@ BEGIN
   );
 EXCEPTION
   WHEN OTHERS THEN
-    NULL; -- No fallar por errores de auditoría
+     RAISE NOTICE 'Error en auditoría: %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
