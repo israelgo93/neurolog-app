@@ -201,68 +201,75 @@ function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenPr
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {children.slice(0, 6).map((child) => (
-          <Card key={child.id} className="hover:shadow-md transition-all duration-200 group">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center space-x-3 sm:space-x-4">
-                <Avatar className="h-12 w-12 sm:h-16 sm:w-16 border-2 border-gray-100">
-                  <AvatarImage 
-                    src={child.avatar_url} 
-                    alt={child.name}
-                  />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-                    {child.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
-                    {child.name}
-                  </h4>
+        {children.slice(0, 6).map((child) => {
+          const weeklyLogs = child.weekly_logs ?? 0;
+          let progressBarColor = "bg-red-500";
+          if (weeklyLogs >= 5) {
+            progressBarColor = "bg-green-500";
+          } else if (weeklyLogs >= 3) {
+            progressBarColor = "bg-yellow-500";
+          }
+
+          return (
+            <Card key={child.id} className="hover:shadow-md transition-all duration-200 group">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <Avatar className="h-12 w-12 sm:h-16 sm:w-16 border-2 border-gray-100">
+                    <AvatarImage 
+                      src={child.avatar_url} 
+                      alt={child.name}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                      {child.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Badge variant={child.can_edit ? "default" : "secondary"} className="text-xs">
-                      {child.can_edit ? "Editor" : "Lectura"}
-                    </Badge>
-                    <span className="text-xs text-gray-500">
-                      {child.relationship_type}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
+                      {child.name}
+                    </h4>
+                    
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Badge variant={child.can_edit ? "default" : "secondary"} className="text-xs">
+                        {child.can_edit ? "Editor" : "Lectura"}
+                      </Badge>
+                      <span className="text-xs text-gray-500">
+                        {child.relationship_type}
+                      </span>
+                    </div>
+                    
+                    {child.last_log_date && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Último registro: {format(new Date(child.last_log_date), 'dd MMM', { locale: es })}
+                      </p>
+                    )}
                   </div>
                   
-                  {child.last_log_date && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Último registro: {format(new Date(child.last_log_date), 'dd MMM', { locale: es })}
-                    </p>
-                  )}
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/dashboard/children/${child.id}`}>
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
                 
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/dashboard/children/${child.id}`}>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
+                {/* Progress bar de actividad */}
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Actividad semanal</span>
+                    <span>{weeklyLogs}/7</span>
+                  </div>
+                  <Progress 
+                    value={(weeklyLogs / 7) * 100} 
+                    className="h-2"
+                    indicatorClassName={progressBarColor}
+                  />
                 </div>
-              </div>
-              
-              {/* Progress bar de actividad */}
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Actividad semanal</span>
-                  <span>{child.weekly_logs || 0}/7</span>
-                </div>
-                <Progress 
-                  value={((child.weekly_logs || 0) / 7) * 100} 
-                  className="h-2"
-                  indicatorClassName={
-                    (child.weekly_logs ?? 0) >= 5 ? "bg-green-500" :
-                    (child.weekly_logs || 0) >= 3 ? "bg-yellow-500" : "bg-red-500"
-                  }
-                />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
       
       {children.length > 6 && (
@@ -350,7 +357,7 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
                   </div>
                 )}
                 <Badge variant="outline" className="text-xs">
-                  {log.category_name || 'General'}
+                  {log.category_name ?? 'General'}
                 </Badge>
               </div>
             </div>
@@ -416,7 +423,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] || 'Usuario'}
+            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] ?? 'Usuario'}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
             Aquí está el resumen de hoy para tus niños en seguimiento
