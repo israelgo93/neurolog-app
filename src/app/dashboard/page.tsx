@@ -99,7 +99,7 @@ function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
+          <Card key={`skeleton-card`} className="animate-pulse">
             <CardContent className="p-3 sm:p-4 md:p-6">
               <div className="flex items-center justify-between space-x-2">
                 <div className="space-y-2 flex-1">
@@ -118,8 +118,8 @@ function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
 
   return (
     <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-      {statCards.map((stat, index) => (
-        <Card key={index} className={`hover:shadow-md transition-all duration-200 ${stat.borderColor} border-l-4`}>
+      {statCards.map((stat) => (
+        <Card key={stat.title} className={`hover:shadow-md transition-all duration-200 ${stat.borderColor} border-l-4`}>
           <CardContent className="p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between space-x-2">
               <div className="space-y-1 sm:space-y-2 flex-1 min-w-0">
@@ -290,7 +290,7 @@ function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenPr
 // COMPONENTE DE REGISTROS RECIENTES RESPONSIVO
 // ================================================================
 
-function RecentLogs({ logs, loading }: RecentLogsProps) {
+function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
   if (loading) {
     return (
       <div className="space-y-3 sm:space-y-4">
@@ -367,15 +367,25 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
             </p>
             
             <div className="flex items-center justify-between mt-2">
-              <div className="text-xs text-gray-500">
-                <span className="font-medium">{log.child_name}</span>
-                <span className="mx-1">•</span>
-                <span>
-                  {isToday(new Date(log.created_at)) ? 'Hoy' :
-                   isYesterday(new Date(log.created_at)) ? 'Ayer' :
-                   format(new Date(log.created_at), 'dd MMM', { locale: es })}
-                </span>
-              </div>
+              {(() => {
+                let dateLabel;
+                if (isToday(new Date(log.created_at))) {
+                  dateLabel = 'Hoy';
+                } else if (isYesterday(new Date(log.created_at))) {
+                  dateLabel = 'Ayer';
+                } else {
+                  dateLabel = format(new Date(log.created_at), 'dd MMM', { locale: es });
+                }
+                return (
+                  <div className="text-xs text-gray-500">
+                    <span className="font-medium">{log.child_name}</span>
+                    <span className="mx-1">•</span>
+                    <span>
+                      {dateLabel}
+                    </span>
+                  </div>
+                );
+              })()}
               
               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="sm" asChild>
@@ -407,7 +417,7 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { children, loading: childrenLoading, stats: childrenStats } = useChildren();
+  const { children, loading: childrenLoading, stats: } = useChildren();
   const { logs, loading: logsLoading, stats } = useLogs();
 
   const greeting = () => {

@@ -160,6 +160,18 @@ export default function SettingsPage() {
     )
   }
 
+  // Extraer etiqueta de rol de usuario a una variable independiente
+  let userRoleLabel = 'Usuario';
+  if (user.role === 'parent') {
+    userRoleLabel = 'Padre/Madre';
+  } else if (user.role === 'teacher') {
+    userRoleLabel = 'Docente';
+  } else if (user.role === 'specialist') {
+    userRoleLabel = 'Especialista';
+  } else if (user.role === 'admin') {
+    userRoleLabel = 'Administrador';
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -185,10 +197,7 @@ export default function SettingsPage() {
               </p>
               <p className="text-sm text-gray-600">{user.email}</p>
               <p className="text-xs text-blue-600 capitalize">
-                {user.role === 'parent' ? 'Padre/Madre' :
-                 user.role === 'teacher' ? 'Docente' :
-                 user.role === 'specialist' ? 'Especialista' : 
-                 user.role === 'admin' ? 'Administrador' : 'Usuario'}
+                {userRoleLabel}
               </p>
             </div>
           </div>
