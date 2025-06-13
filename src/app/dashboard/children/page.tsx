@@ -456,11 +456,13 @@ function ChildrenContent({
   );
 }
 
-function ChildrenLoadingSkeleton() {
+const skeletonKeys = ['sk1', 'sk2', 'sk3', 'sk4', 'sk5', 'sk6'];
+
+export function ChildrenLoadingSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, i) => (
-        <Card key={i} className="animate-pulse">
+      {skeletonKeys.map(key => (
+        <Card key={key} className="animate-pulse">
           <CardHeader>
             <div className="flex items-center space-x-4">
               <div className="rounded-full bg-gray-200 h-12 w-12"></div>
@@ -475,6 +477,7 @@ function ChildrenLoadingSkeleton() {
     </div>
   );
 }
+
 
 function ChildrenError({ error }: { error: string }) {
   return (
