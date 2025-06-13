@@ -124,7 +124,7 @@ interface PrivacySettingsFormProps {
 // COMPONENTES AUXILIARES (fuera del principal)
 // ================================================================
 
-export function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps) {
+export function EmergencyContactForm({ contacts, onChange }: Readonly<EmergencyContactFormProps>) {
   const addContact = () => {
     onChange([
       ...contacts,
@@ -229,22 +229,20 @@ export function EmergencyContactForm({ contacts, onChange }: EmergencyContactFor
 
 // COMPONENTE AUXILIAR GENERAL PARA LISTAS DE ITEMS (evita ternarias anidadas)
 export function ItemsList({
-  field,
   items,
   placeholder,
   value,
   onValueChange,
   onAdd,
   onRemove
-}: {
-  field: string,
+}: Readonly<{
   items: string[],
   placeholder: string,
   value: string,
   onValueChange: (v: string) => void,
   onAdd: () => void,
   onRemove: (idx: number) => void
-}) {
+}>) {
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
@@ -664,8 +662,8 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-      await uploadFile('AVATARS', file, fileName);
-      const url = getPublicUrl('AVATARS', fileName);
+      await uploadFile('avatars', fileName, file);
+      const url = getPublicUrl('avatars', fileName);
 
       form.setValue('avatar_url', url);
     } catch (error) {
@@ -885,15 +883,7 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
               <CardContent>
                 <EmergencyContactForm
                   contacts={form.watch('emergency_contact')}
-                  onChange={(contacts) =>
-                    form.setValue(
-                      'emergency_contact',
-                      contacts.map((c) => ({
-                        ...c,
-                        is_primary: c.is_primary ?? false
-                      }))
-                    )
-                  }
+                  onChange={(contacts) => form.setValue('emergency_contact', contacts)}
                 />
               </CardContent>
             </Card>
