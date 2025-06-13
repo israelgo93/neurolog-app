@@ -134,6 +134,10 @@ export default function ReportsPage() {
     );
   }
 
+  // Extract nested ternary operations into independent variables
+  const trendIcon = metrics.improvementTrend > 0 ? TrendingUp : 
+                   (metrics.improvementTrend < 0 ? TrendingUp : Target);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -216,13 +220,13 @@ export default function ReportsPage() {
           value={metrics.averageMood.toFixed(1)}
           suffix="/5"
           icon={Heart}
-          color={moodColor}
-          subtitle="Promedio del período"
-        />
-        
         <MetricCard
           title="Tendencia"
           value={metrics.improvementTrend > 0 ? '+' : ''}
+          icon={trendIcon}
+          color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
+          subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}
+        />
           icon={metrics.improvementTrend > 0 ? TrendingUp : metrics.improvementTrend < 0 ? TrendingUp : Target}
           color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
           subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}
