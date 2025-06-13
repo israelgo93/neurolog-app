@@ -395,8 +395,8 @@ export default function ChildrenPage() {
       {/* Lista/Grid de niños */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={`loading-placeholder-${i}`} className="animate-pulse">
+          {Array.from({ length: 6 }, () => (
+            <Card key={`loading-placeholder-${Math.random().toString(36).substring(2, 11)}`} className="animate-pulse">
               <CardHeader>
                 <div className="flex items-center space-x-4">
                   <div className="rounded-full bg-gray-200 h-12 w-12"></div>
