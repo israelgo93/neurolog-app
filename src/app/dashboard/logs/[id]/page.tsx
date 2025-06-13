@@ -25,6 +25,8 @@ import {
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useLogs } from '@/hooks/use-logs';
 import type { LogWithDetails, IntensityLevel } from '@/types';
+
+export type UserRole = 'admin' | 'teacher' | 'specialist' | 'parent' | 'family';
 import {
   MoreVerticalIcon,
   CalendarIcon,
@@ -43,14 +45,19 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-export type UserRole = 'admin' | 'teacher' | 'specialist' | 'parent' | 'family';
 export default function LogDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const logId = params.id as string;
   const { user } = useAuth();
   // 'logs' eliminado de la desestructuración
   const { loading, getLogById, addParentFeedback, markAsReviewed } = useLogs();
+  const params = useParams();
+  const router = useRouter();
+  const logId = params?.id as string | undefined;
+
+  // Ensure user.role is typed correctly
+  // Assume user.role can be any UserRole (including 'parent' and 'family')
+  const userRole = user?.role as UserRole | undefined;
+
+  // Use userRole for role checks to ensure correct type narrowing
 
   const [log, setLog] = useState<LogWithDetails | null>(null);
   const [feedback, setFeedback] = useState('');
@@ -109,8 +116,10 @@ export default function LogDetailPage() {
       setFeedback('');
       setIsAddingFeedback(false);
       // Refresh log data
-      const updatedLog = getLogById(logId);
-      setLog(updatedLog || null);
+      if (logId) {
+        const updatedLog = getLogById(logId);
+        setLog(updatedLog || null);
+      }
     } catch (error) {
       console.error('Error adding feedback:', error);
     }
@@ -122,18 +131,19 @@ export default function LogDetailPage() {
       setSpecialistNotes('');
       setIsReviewing(false);
       // Refresh log data
-      const updatedLog = getLogById(logId);
-      setLog(updatedLog || null);
+      if (logId) {
+        const updatedLog = getLogById(logId);
+        setLog(updatedLog || null);
+      }
     } catch (error) {
       console.error('Error marking as reviewed:', error);
     }
   };
 
-  const canReview = user?.role === 'specialist' && !log.reviewed_by;
-  const canAddFeedback = user?.role === 'parent' || user?.role === 'family';
-  // ---------- CORRECCIÓN: ternario extraído a variable ----------
+  const canReview = userRole === 'specialist' && !log?.reviewed_by;
+  const canAddFeedback = userRole === 'parent' || userRole === 'family';
   let moodDescription = '';
-  if (log.mood_score !== undefined && log.mood_score !== null) {
+  if (log?.mood_score !== undefined && log?.mood_score !== null) {
     if (log.mood_score <= 2) {
       moodDescription = 'Necesita atención';
     } else if (log.mood_score <= 3) {
