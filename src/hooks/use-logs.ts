@@ -107,7 +107,6 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     }
   }, [userId, supabase]);
 
-  // Separa la creación del query
   function buildLogsQuery({
     supabase,
     accessibleChildrenIds,
@@ -143,7 +142,6 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     return query;
   }
 
-  // Separa el mapeo del log
   function mapLogsData(data: any[]): LogWithDetails[] {
     return (data || []).map(log => ({
       ...log,
@@ -153,10 +151,35 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     })) as LogWithDetails[];
   }
 
-  // =======================
-  // FUNCIONES DE FETCH (refactorizadas)
-  // =======================
+  // =============== REFACTORIZACIÓN DE FETCHLOGS ===============
+  // Para reducir la complejidad, separa validaciones y handlers:
 
+  // 1. Handler para falta de children accesibles
+  const handleNoAccessibleChildren = useCallback(() => {
+    if (mountedRef.current) {
+      setLogs([]);
+      setHasMore(false);
+      setLoading(false);
+    }
+  }, []);
+
+  // 2. Handler para error
+  const handleError = useCallback((err: unknown) => {
+    if (mountedRef.current) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar los registros';
+      setError(errorMessage);
+    }
+  }, []);
+
+  // 3. Handler para setLogs y setHasMore
+  const handleLogsData = useCallback((newLogs: LogWithDetails[], append: boolean) => {
+    if (mountedRef.current) {
+      setLogs(prev => append ? [...prev, ...newLogs] : newLogs);
+      setHasMore(newLogs.length === pageSize);
+    }
+  }, [pageSize]);
+
+  // =========== FUNCIÓN PRINCIPAL REFACTORIZADA ===============
   const fetchLogs = useCallback(async (page: number = 0, append: boolean = false): Promise<void> => {
     if (!userId) return;
     if (!append) {
@@ -167,14 +190,9 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     try {
       const accessibleChildrenIds = await getAccessibleChildrenIds();
       if (accessibleChildrenIds.length === 0) {
-        if (mountedRef.current) {
-          setLogs([]);
-          setHasMore(false);
-          setLoading(false);
-        }
+        handleNoAccessibleChildren();
         return;
       }
-
       if (childId && !accessibleChildrenIds.includes(childId)) {
         throw new Error('No tienes acceso a este niño');
       }
@@ -194,21 +212,26 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
 
       const newLogs = mapLogsData(data);
 
-      if (mountedRef.current) {
-        setLogs(prev => append ? [...prev, ...newLogs] : newLogs);
-        setHasMore(newLogs.length === pageSize);
-      }
+      handleLogsData(newLogs, append);
     } catch (err) {
-      if (mountedRef.current) {
-        const errorMessage = err instanceof Error ? err.message : 'Error al cargar los registros';
-        setError(errorMessage);
-      }
+      handleError(err);
     } finally {
       if (mountedRef.current && !append) setLoading(false);
     }
-  }, [userId, childId, includePrivate, includeDeleted, pageSize, getAccessibleChildrenIds, supabase]);
+  }, [
+    userId,
+    childId,
+    includePrivate,
+    includeDeleted,
+    pageSize,
+    getAccessibleChildrenIds,
+    supabase,
+    handleNoAccessibleChildren,
+    handleError,
+    handleLogsData
+  ]);
+  // ===========================================================
 
-  // El resto de funciones quedan igual
   const fetchStats = useCallback(async (): Promise<void> => {
     if (!userId) return;
     try {
@@ -244,9 +267,7 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     }
   }, [userId, getAccessibleChildrenIds, supabase]);
 
-  // ================
-  // CRUD & API igual (sin cambios, puedes pegarlos igual que tu versión)
-  // ================
+  // El resto de funciones CRUD/API iguales (puedes pegarlas igual)
   const refreshLogs = useCallback(async (): Promise<void> => {
     setCurrentPage(0);
     await Promise.all([
