@@ -77,7 +77,7 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
           </div>
           
           <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-700 block">
+            <label htmlFor="charts" className="text-sm font-medium text-gray-700 block">
               Incluir en el reporte
             </label>
             
