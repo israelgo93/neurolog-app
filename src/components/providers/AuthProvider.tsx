@@ -42,7 +42,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // ================================================================
 
 interface AuthProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 // ================================================================
@@ -69,69 +69,76 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   // ================================================================
 
   /**
-   *  FETCH PROFILE - MEJORADO CON MEJOR MANEJO DE ERRORES
+   * CREAR NUEVO PERFIL - FUNCIÓN EXTRAÍDA PARA REDUCIR COMPLEJIDAD
+   */
+  const createNewProfile = useCallback(async (userId: string): Promise<Profile | null> => {
+    console.log('ℹ️ Profile not found, creating new profile...');
+    
+    const { data: authUser, error: authError } = await supabase.auth.getUser();
+    
+    if (!authUser?.user || authError) {
+      return null;
+    }
+
+    const userData = authUser.user;
+    const fullName = userData.user_metadata?.full_name ?? 
+                    userData.user_metadata?.name ??
+                    userData.email?.split('@')[0] ?? 
+                    'Usuario';
+    
+    const { data: newProfile, error: createError } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        email: userData.email ?? '',
+        full_name: fullName,
+        role: userData.user_metadata?.role ?? 'parent',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (createError) {
+      console.error('❌ Error creating profile:', createError);
+      return null;
+    }
+    
+    console.log('✅ Profile created successfully:', newProfile.full_name);
+    return newProfile as Profile;
+  }, [supabase]);
+
+  /**
+   * FETCH PROFILE - REFACTORIZADA PARA MENOR COMPLEJIDAD
    */
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     try {
       console.log('🔍 Fetching profile for user:', userId);
       
-      //  CAMBIO: .maybeSingle() en lugar de .single()
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle(); // ← ESTO ELIMINA EL ERROR 406
+        .maybeSingle();
 
       if (error) {
         console.error('❌ Error fetching profile:', error);
         return null;
       }
 
-      //  Si no existe el perfil, crearlo automáticamente
-      if (!data) {
-        console.log('ℹ️ Profile not found, creating new profile...');
-        
-        const { data: authUser, error: authError } = await supabase.auth.getUser();
-        
-        if (authUser?.user && !authError) {
-          const userData = authUser.user;
-          const fullName = userData.user_metadata?.full_name ?? 
-                          userData.user_metadata?.name ??
-                          userData.email?.split('@')[0] ?? 
-                          'Usuario';
-          
-          const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert({
-              id: userId,
-              email: userData.email ?? '',
-              full_name: fullName,
-              role: userData.user_metadata?.role ?? 'parent',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .select()
-            .single();
-          
-          if (createError) {
-            console.error('❌ Error creating profile:', createError);
-            return null;
-          }
-          
-          console.log('✅ Profile created successfully:', newProfile.full_name);
-          return newProfile as Profile;
-        }
-        
-        return null;
+      // Early return para perfil existente
+      if (data) {
+        console.log('✅ Profile fetched successfully:', data.full_name);
+        return data as Profile;
       }
 
-      console.log('✅ Profile fetched successfully:', data.full_name);
-      return data as Profile;
+      // Crear perfil si no existe
+      return await createNewProfile(userId);
     } catch (err) {
       console.error('❌ Unexpected error fetching profile:', err);
       return null;
     }
-  }, [supabase]);
+  }, [supabase, createNewProfile]);
 
   /**
    *  CHECK ADMIN STATUS - ESTABILIZADA
@@ -314,6 +321,100 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   }, []);
 
   // ================================================================
+  // FUNCIONES HELPER PARA MANEJAR SESIONES - EXTRAÍDAS PARA REDUCIR COMPLEJIDAD
+  // ================================================================
+
+  /**
+   * PROCESAR SESIÓN EXISTENTE - FUNCIÓN EXTRAÍDA
+   */
+  const processExistingSession = useCallback(async (user: User): Promise<void> => {
+    if (!mountedRef.current) return;
+
+    console.log('✅ Session found, fetching profile...');
+    
+    await updateLastLogin(user.id);
+    
+    const profile = await fetchProfile(user.id);
+    if (!profile || !mountedRef.current) return;
+
+    setUser(profile);
+    
+    const adminStatus = await checkAdminStatus(user.id);
+    if (mountedRef.current) {
+      setIsAdmin(adminStatus);
+    }
+  }, [updateLastLogin, fetchProfile, checkAdminStatus]);
+
+  /**
+   * MANEJAR SIGN IN - FUNCIÓN EXTRAÍDA
+   */
+  const handleSignIn = useCallback(async (user: User): Promise<void> => {
+    console.log('✅ User signed in, fetching profile...');
+    setLoading(true);
+    
+    await updateLastLogin(user.id);
+    
+    const profile = await fetchProfile(user.id);
+    if (!profile || !mountedRef.current) return;
+
+    setUser(profile);
+    
+    const adminStatus = await checkAdminStatus(user.id);
+    if (mountedRef.current) {
+      setIsAdmin(adminStatus);
+    }
+  }, [updateLastLogin, fetchProfile, checkAdminStatus]);
+
+  /**
+   * MANEJAR SIGN OUT - FUNCIÓN EXTRAÍDA
+   */
+  const handleSignOut = useCallback((): void => {
+    console.log('👋 User signed out');
+    if (!mountedRef.current) return;
+
+    setUser(null);
+    setIsAdmin(false);
+    setError(null);
+  }, []);
+
+  /**
+   * MANEJAR TOKEN REFRESH - FUNCIÓN EXTRAÍDA
+   */
+  const handleTokenRefresh = useCallback((): void => {
+    console.log('🔄 Token refreshed, maintaining user state');
+    // No necesitamos recargar el perfil en token refresh
+    // El usuario ya está cargado y el token se renovó automáticamente
+  }, []);
+
+  /**
+   * MANEJAR EVENTOS DE AUTH STATE - FUNCIÓN PRINCIPAL EXTRAÍDA
+   */
+  const handleAuthStateChange = useCallback(async (event: string, session: any): Promise<void> => {
+    if (!mountedRef.current) return;
+
+    console.log('🔄 Auth state changed:', event);
+
+    try {
+      if (event === 'SIGNED_IN' && session?.user) {
+        await handleSignIn(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        handleSignOut();
+      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+        handleTokenRefresh();
+      }
+    } catch (err) {
+      console.error('❌ Error handling auth state change:', err);
+      if (mountedRef.current) {
+        setError('Error en el cambio de estado de autenticación');
+      }
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, [handleSignIn, handleSignOut, handleTokenRefresh]);
+
+  // ================================================================
   // EFECTO PRINCIPAL - INICIALIZACIÓN UNA SOLA VEZ
   // ================================================================
 
@@ -324,10 +425,10 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     initializedRef.current = true;
     mountedRef.current = true;
 
-    console.log('🚀 Initializing AuthProvider (ONE TIME ONLY)...');
+    console.log('� Initializing AuthProvider (ONE TIME ONLY)...');
 
     /**
-     *  FUNCIÓN DE INICIALIZACIÓN ÚNICA
+     *  FUNCIÓN DE INICIALIZACIÓN ÚNICA - REFACTORIZADA
      */
     const initializeAuth = async (): Promise<void> => {
       try {
@@ -335,24 +436,13 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
         
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (session?.user && mountedRef.current) {
-          console.log('✅ Session found, fetching profile...');
-          
-          await updateLastLogin(session.user.id);
-          
-          const profile = await fetchProfile(session.user.id);
-          
-          if (profile && mountedRef.current) {
-            setUser(profile);
-            
-            const adminStatus = await checkAdminStatus(session.user.id);
-            if (mountedRef.current) {
-              setIsAdmin(adminStatus);
-            }
-          }
-        } else {
+        // Early return si no hay sesión
+        if (!session?.user || !mountedRef.current) {
           console.log('ℹ️ No active session found');
+          return;
         }
+
+        await processExistingSession(session.user);
       } catch (err) {
         console.error('❌ Error during initialization:', err);
         if (mountedRef.current) {
@@ -366,56 +456,10 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     };
 
     /**
-     *  LISTENER DE AUTH MEJORADO - UNA SOLA SUBSCRIPCIÓN
+     *  LISTENER DE AUTH SIMPLIFICADO
      */
     const setupAuthListener = () => {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (!mountedRef.current) return;
-
-          console.log('🔄 Auth state changed:', event);
-
-          try {
-            if (event === 'SIGNED_IN' && session?.user) {
-              console.log('✅ User signed in, fetching profile...');
-              setLoading(true);
-              
-              await updateLastLogin(session.user.id);
-              
-              const profile = await fetchProfile(session.user.id);
-              if (profile && mountedRef.current) {
-                setUser(profile);
-                
-                const adminStatus = await checkAdminStatus(session.user.id);
-                if (mountedRef.current) {
-                  setIsAdmin(adminStatus);
-                }
-              }
-            } else if (event === 'SIGNED_OUT') {
-              console.log('👋 User signed out');
-              if (mountedRef.current) {
-                setUser(null);
-                setIsAdmin(false);
-                setError(null);
-              }
-            } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-              console.log('🔄 Token refreshed, maintaining user state');
-              // No necesitamos recargar el perfil en token refresh
-              // El usuario ya está cargado y el token se renovó automáticamente
-            }
-          } catch (err) {
-            console.error('❌ Error handling auth state change:', err);
-            if (mountedRef.current) {
-              setError('Error en el cambio de estado de autenticación');
-            }
-          } finally {
-            if (mountedRef.current) {
-              setLoading(false);
-            }
-          }
-        }
-      );
-
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
       authSubscriptionRef.current = subscription;
       return subscription;
     };
@@ -434,7 +478,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
         authSubscriptionRef.current = null;
       }
     };
-  }, []); //  DEPENDENCIAS VACÍAS - SOLO EJECUTAR UNA VEZ
+  }, [processExistingSession, handleAuthStateChange]); //  DEPENDENCIAS NECESARIAS
 
   // ================================================================
   // CLEANUP ON UNMOUNT
