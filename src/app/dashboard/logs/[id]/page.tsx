@@ -247,10 +247,21 @@ export default function LogDetailPage() {
                     <span className="text-2xl">{getMoodEmoji(log.mood_score)}</span>
                     <div>
                       <p className="text-lg font-semibold text-gray-900">{log.mood_score}/5</p>
-                      <p className="text-sm text-gray-600">
-                        {log.mood_score <= 2 ? 'Necesita atención' : 
-                         log.mood_score <= 3 ? 'Normal' : 'Muy positivo'}
-                      </p>
+                      {(() => {
+                        let moodText = '';
+                        if (log.mood_score <= 2) {
+                          moodText = 'Necesita atención';
+                        } else if (log.mood_score <= 3) {
+                          moodText = 'Normal';
+                        } else {
+                          moodText = 'Muy positivo';
+                        }
+                        return (
+                          <p className="text-sm text-gray-600">
+                            {moodText}
+                          </p>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
