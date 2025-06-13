@@ -178,6 +178,29 @@ const handleNoAccess = () => {
   }
 };
 
+const setFetchedLogs = (newLogs: LogWithDetails[], append: boolean) => {
+  if (!mountedRef.current) return;
+  if (append) {
+    setLogs(prev => [...prev, ...newLogs]);
+  } else {
+    setLogs(newLogs);
+  }
+  setHasMore(newLogs.length === pageSize);
+  console.log(`✅ Logs fetched successfully: ${newLogs.length}`);
+};
+
+const handleFetchError = (err: unknown) => {
+  console.error('❌ Error fetching logs:', err);
+  if (mountedRef.current) {
+    const errorMessage = err instanceof Error ? err.message : 'Error al cargar los registros';
+    setError(errorMessage);
+  }
+};
+
+const stopLoading = (append: boolean) => {
+  if (mountedRef.current && !append) setLoading(false);
+};
+
 const fetchLogs = useCallback(async (page: number = 0, append: boolean = false): Promise<void> => {
   if (!userId) return;
 
@@ -208,36 +231,21 @@ const fetchLogs = useCallback(async (page: number = 0, append: boolean = false):
       includeDeleted,
       includePrivate
     ).order('created_at', { ascending: false })
-     .range(page * pageSize, (page + 1) * pageSize - 1);
+      .range(page * pageSize, (page + 1) * pageSize - 1);
 
     const { data, error } = await query;
-
     if (error) throw error;
 
     const newLogs = mapLogData(data);
-
-    if (mountedRef.current) {
-      if (append) {
-        setLogs(prev => [...prev, ...newLogs]);
-      } else {
-        setLogs(newLogs);
-      }
-      setHasMore(newLogs.length === pageSize);
-      console.log(`✅ Logs fetched successfully: ${newLogs.length}`);
-    }
+    setFetchedLogs(newLogs, append);
 
   } catch (err) {
-    console.error('❌ Error fetching logs:', err);
-    if (mountedRef.current) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al cargar los registros';
-      setError(errorMessage);
-    }
+    handleFetchError(err);
   } finally {
-    if (mountedRef.current && !append) {
-      setLoading(false);
-    }
+    stopLoading(append);
   }
 }, [userId, childId, includePrivate, includeDeleted, pageSize, getAccessibleChildrenIds, supabase]);
+
 
 
   const fetchStats = useCallback(async (): Promise<void> => {
