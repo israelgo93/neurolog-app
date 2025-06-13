@@ -121,6 +121,9 @@ export default function ReportsPage() {
 
   const filteredLogs = filterLogs(logs, selectedChild, dateRange);
   const metrics = calculateMetrics(filteredLogs);
+  
+  // Extract nested ternary into a variable for better readability
+  const moodColor = metrics.averageMood >= 4 ? 'green' : (metrics.averageMood >= 3 ? 'orange' : 'red');
 
   if (childrenLoading || logsLoading) {
     return (
@@ -205,12 +208,12 @@ export default function ReportsPage() {
           icon={FileText}
           color="blue"
           subtitle="En el período seleccionado"
-        />
-        
-        <MetricCard
           title="Estado de Ánimo"
           value={metrics.averageMood.toFixed(1)}
           suffix="/5"
+          icon={Heart}
+          color={moodColor}
+          subtitle="Promedio del período"
           icon={Heart}
           color={metrics.averageMood >= 4 ? 'green' : metrics.averageMood >= 3 ? 'orange' : 'red'}
           subtitle="Promedio del período"
