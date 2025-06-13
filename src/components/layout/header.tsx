@@ -147,6 +147,15 @@ export function Header() {
   ];
 
   // Extract user role label to avoid nested ternary in JSX
+  const userRoleLabel = user?.role === 'parent'
+    ? 'Padre/Madre'
+    : user?.role === 'teacher'
+    ? 'Docente'
+    : user?.role === 'specialist'
+    ? 'Especialista'
+    : user?.role === 'admin'
+    ? 'Admin'
+    : 'Usuario';
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200">
@@ -296,12 +305,9 @@ export function Header() {
                 className="flex items-center space-x-2"
               >
                 <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
-                  <AvatarImage src={user?.avatar_url ?? undefined} />
-                  <AvatarFallback className="text-xs sm:text-sm">
-                    {getUserInitials()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden sm:block text-left">
+                  <p className="text-xs text-gray-500 capitalize">
+                    {userRoleLabel}
+                  </p>
                   <p className="text-xs sm:text-sm font-medium text-gray-900 truncate max-w-24 lg:max-w-32">
                     {user?.full_name ?? 'Usuario'}
                   </p>
