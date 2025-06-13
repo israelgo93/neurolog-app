@@ -97,11 +97,11 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
                 <Badge variant="secondary" className={getRelationshipColor(child.relationship_type)}>
                   {getRelationshipLabel(child.relationship_type)}
                 </Badge>
-                {child.can_edit && (
+                {child.can_edit ? (
                   <Badge variant="outline" className="text-xs">
                     Editor
                   </Badge>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
@@ -119,18 +119,18 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
                 <EyeIcon className="mr-2 h-4 w-4" />
                 Ver detalles
               </DropdownMenuItem>
-              {child.can_edit && (
+              {child.can_edit ? (
                 <DropdownMenuItem onClick={() => onEdit(child)}>
                   <EditIcon className="mr-2 h-4 w-4" />
                   Editar
                 </DropdownMenuItem>
-              )}
-              {child.can_invite_others && (
+              ) : null}
+              {child.can_invite_others ? (
                 <DropdownMenuItem onClick={() => onManageUsers(child)}>
                   <UserPlusIcon className="mr-2 h-4 w-4" />
                   Gestionar usuarios
                 </DropdownMenuItem>
-              )}
+              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -138,21 +138,21 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
 
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4 text-sm">
-          {child.birth_date && (
+          {child.birth_date ? (
             <div className="flex items-center space-x-2">
               <CalendarIcon className="h-4 w-4 text-gray-400" />
               <span className="text-gray-600">{calculateAge(child.birth_date)} años</span>
             </div>
-          )}
+          ) : null}
 
-          {child.diagnosis && (
+          {child.diagnosis ? (
             <div className="flex items-center space-x-2">
               <HeartIcon className="h-4 w-4 text-gray-400" />
               <span className="text-gray-600 truncate" title={child.diagnosis}>
                 {child.diagnosis}
               </span>
             </div>
-          )}
+          ) : null}
         </div>
 
         <div className="flex justify-between items-center pt-2 border-t">
@@ -392,12 +392,31 @@ export default function ChildrenPage() {
     },
   ];
 
+  // Preparar skeletons con key única
+  const skeletons = Array.from({ length: 6 }).map((_, idx) => (
+    <Card key={`skeleton-child-${idx}`} className="animate-pulse">
+      <CardHeader>
+        <div className="flex items-center space-x-4">
+          <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-24"></div>
+            <div className="h-3 bg-gray-200 rounded w-16"></div>
+          </div>
+        </div>
+      </CardHeader>
+    </Card>
+  ));
+
+  // Variables para ternarios anidados
+  const noChildren = children.length === 0;
+  const noFiltered = filteredChildren.length === 0 && !noChildren;
+
   return (
     <div className="space-y-6">
       {/* Header y estadísticas */}
       <HeaderStats stats={stats}>
         {stats.map((stat, idx) => (
-          <Card key={idx}>
+          <Card key={stat.label}>
             <CardContent className="p-6">
               <div className="flex items-center">
                 {stat.icon}
@@ -417,19 +436,7 @@ export default function ChildrenPage() {
       {/* Render según estado */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, idx) => (
-            <Card key={`skeleton-child-${idx}`} className="animate-pulse">
-              <CardHeader>
-                <div className="flex items-center space-x-4">
-                  <div className="rounded-full bg-gray-200 h-12 w-12"></div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-24"></div>
-                    <div className="h-3 bg-gray-200 rounded w-16"></div>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          ))}
+          {skeletons}
         </div>
       ) : error ? (
         <Card className="border-red-200 bg-red-50">
@@ -441,11 +448,11 @@ export default function ChildrenPage() {
             </Button>
           </CardContent>
         </Card>
-      ) : filteredChildren.length === 0 ? (
+      ) : noChildren || noFiltered ? (
         <Card>
           <CardContent className="text-center py-12">
             <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-            {children.length === 0 ? (
+            {noChildren ? (
               <>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay niños registrados</h3>
                 <p className="text-gray-600 mb-6">
