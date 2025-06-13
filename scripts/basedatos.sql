@@ -1,7 +1,3 @@
--- SonarQube: No es posible usar constantes globales en SQL estándar para CHECKs, DEFAULTs o vistas.
--- La duplicación de literales es inevitable en este contexto. Si SonarQube marca esto como problema, puede ignorarse o marcarse como 'Won't Fix'.
--- NOSONAR
-
 -- ================================================================
 -- NEUROLOG APP - SCRIPT COMPLETO DE BASE DE DATOS
 -- ================================================================
@@ -286,6 +282,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Constantes para literales repetidos (solo para funciones PL/pgSQL)
+-- Para CHECKs, DEFAULTs y vistas, la duplicación es inevitable en SQL estándar
+
 -- Función de auditoría
 CREATE OR REPLACE FUNCTION audit_sensitive_access(
   action_type TEXT,
@@ -293,6 +292,8 @@ CREATE OR REPLACE FUNCTION audit_sensitive_access(
   action_details TEXT DEFAULT NULL
 )
 RETURNS VOID AS $$
+DECLARE
+  co_medium CONSTANT TEXT := 'medium';
 BEGIN
   INSERT INTO audit_logs (
     table_name,
@@ -313,11 +314,11 @@ BEGIN
       'details', action_details,
       'timestamp', NOW()
     ),
-    'medium'
+    co_medium
   );
 EXCEPTION
   WHEN OTHERS THEN
-    NULL; -- No fallar por errores de auditoría
+    RAISE WARNING 'Error en audit_sensitive_access: %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -356,7 +357,7 @@ SELECT
   COUNT(CASE WHEN dl.is_private THEN 1 END) as private_logs,
   COUNT(CASE WHEN dl.reviewed_at IS NOT NULL THEN 1 END) as reviewed_logs
 FROM children c
-LEFT JOIN daily_logs dl ON c.id = dl.child_id AND dl.is_deleted = false
+LEFT JOIN daily_logs dl ON c.id = dl.child_id AND NOT dl.is_deleted
 WHERE c.created_by = auth.uid()
 GROUP BY c.id, c.name;
 
