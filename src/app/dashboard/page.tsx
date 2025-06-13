@@ -265,14 +265,22 @@ function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenPr
                   <span>Actividad semanal</span>
                   <span>{child.weekly_logs ?? 0}/7</span>
                 </div>
-                <Progress 
-                  value={((child.weekly_logs?? 0) / 7) * 100} 
-                  className="h-2"
-                  indicatorClassName={
-                    (child.weekly_logs ?? 0) >= 5 ? "bg-green-500" :
-                    (child.weekly_logs ?? 0) >= 3 ? "bg-yellow-500" : "bg-red-500"
+                {(() => {
+                  const weeklyLogs = child.weekly_logs ?? 0;
+                  let indicatorColor = "bg-red-500";
+                  if (weeklyLogs >= 5) {
+                    indicatorColor = "bg-green-500";
+                  } else if (weeklyLogs >= 3) {
+                    indicatorColor = "bg-yellow-500";
                   }
-                />
+                  return (
+                    <Progress 
+                      value={(weeklyLogs / 7) * 100} 
+                      className="h-2"
+                      indicatorClassName={indicatorColor}
+                    />
+                  );
+                })()}
               </div>
             </CardContent>
           </Card>
@@ -297,20 +305,23 @@ function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenPr
 // COMPONENTE DE REGISTROS RECIENTES RESPONSIVO
 // ================================================================
 
-function RecentLogs({ logs, loading }: RecentLogsProps) {
+function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
   if (loading) {
     return (
       <div className="space-y-3 sm:space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={`log-loading-${i}`} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white animate-pulse">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
+        {[...Array(3)].map((_) => {
+          const uniqueKey = `log-loading-${Math.random().toString(36).slice(2, 11)}`;
+          return (
+            <div key={uniqueKey} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white animate-pulse">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+              <Skeleton className="h-6 w-12" />
             </div>
-            <Skeleton className="h-6 w-12" />
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }
@@ -375,7 +386,7 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
                     </div>
                   )}
                   <Badge variant="outline" className="text-xs">
-                    {log.category_name || 'General'}
+                    {log.category_name ?? 'General'}
                   </Badge>
                 </div>
               </div>
@@ -438,7 +449,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] || 'Usuario'}
+            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] ?? 'Usuario'}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
             Aquí está el resumen de hoy para tus niños en seguimiento
