@@ -957,12 +957,15 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: Readonly
               disabled={form.formState.isSubmitting}
             >
               <SaveIcon className="mr-2 h-4 w-4" />
-              {form.formState.isSubmitting
-                ? 'Guardando...'
-                : mode === 'create'
-                  ? 'Crear Niño'
-                  : 'Guardar Cambios'
-              }
+              {(() => {
+                if (form.formState.isSubmitting) {
+                  return 'Guardando...';
+                }
+                if (mode === 'create') {
+                  return 'Crear Niño';
+                }
+                return 'Guardar Cambios';
+              })()}
             </Button>
           </div>
         </form>
