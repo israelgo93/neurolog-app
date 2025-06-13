@@ -100,7 +100,7 @@ function getCorrelationText(correlation: number) {
   return 'Débil o nula';
 }
 
-function DayBars({ weeklyPattern }: { weeklyPattern: Record<number, number> }) {
+function DayBars({ weeklyPattern }: Readonly<{ weeklyPattern: Record<number, number> }>) {
   const values = Object.values(weeklyPattern);
   const maxCount = values.length > 0 ? Math.max(...values) : 0;
 
@@ -194,7 +194,7 @@ export function CorrelationAnalysis({ logs }: Readonly<CorrelationAnalysisProps>
   const categoryMoodCorr = React.useMemo(() => {
     return logs.reduce((acc, log) => {
       if (!log.mood_score || !log.category_name) return acc;
-      if (!acc[log.category_name]) acc[log.category_name] = { total: 0, count: 0 };
+      acc[log.category_name] ??= { total: 0, count: 0 };
       acc[log.category_name].total += log.mood_score;
       acc[log.category_name].count += 1;
       return acc;
@@ -203,11 +203,14 @@ export function CorrelationAnalysis({ logs }: Readonly<CorrelationAnalysisProps>
 
   const categoryAverages = React.useMemo(() => {
     const entries = Object.entries(categoryMoodCorr);
-    const mapped = entries.map(([category, data]) => ({
-      category,
-      avgMood: data.total / data.count,
-      count: data.count
-    }));
+    const mapped = entries.map(([category, data]) => {
+      const typedData = data as { total: number; count: number };
+      return {
+        category,
+        avgMood: typedData.total / typedData.count,
+        count: typedData.count
+      };
+    });
     const sorted = [...mapped].sort((a, b) => b.avgMood - a.avgMood);
     return sorted;
   }, [categoryMoodCorr]);
@@ -283,9 +286,9 @@ function getFrequencyInsight(logs: any[]) {
   const totalDays = 30;
   const frequency = (daysWithLogs / totalDays) * 100;
 
-  let type = 'info';
-  let icon = Target;
-  let recommendation = 'Buen ritmo de registro, mantén la consistencia';
+  let type: string;
+  let icon;
+  let recommendation: string;
   if (frequency > 80) {
     type = 'success';
     icon = CheckCircle;
@@ -295,9 +298,9 @@ function getFrequencyInsight(logs: any[]) {
     icon = Target;
     recommendation = 'Buen ritmo de registro, mantén la consistencia';
   } else {
-    type = 'info';
     icon = AlertTriangle;
     recommendation = 'Intenta mantener registros más regulares para obtener mejores insights';
+    type = 'info';
   }
 
   return {
@@ -345,8 +348,10 @@ function getCategoryInsight(logs: any[]) {
   }, {} as Record<string, number>);
   const categories = Object.entries(categoryCount);
   if (!categories.length) return null;
-  const sortedCategories = [...categories].sort((a, b) => b[1] - a[1]);
-  const mostUsedCategory = sortedCategories[0];
+  const sortedCategories = [...categories].sort(
+    (a, b) => (b as [string, number])[1] - (a as [string, number])[1]
+  );
+  const mostUsedCategory = sortedCategories[0] as [string, number];
   return {
     type: 'info',
     icon: Target,
@@ -361,7 +366,7 @@ export function AdvancedInsights({ logs }: Readonly<AdvancedInsightsProps>) {
     getFrequencyInsight(logs),
     getMoodInsight(logs),
     getCategoryInsight(logs)
-  ].filter(Boolean) as Array<ReturnType<typeof getFrequencyInsight>>;
+  ].filter(Boolean);
 
   if (insights.length === 0) {
     return (
@@ -376,7 +381,8 @@ export function AdvancedInsights({ logs }: Readonly<AdvancedInsightsProps>) {
   return (
     <div className="space-y-4">
       {insights.map((insight) => {
-        let badgeVariant = 'secondary';
+        if (!insight) return null;
+        let badgeVariant: "default" | "destructive" | "outline" | "secondary" | null | undefined = "secondary";
         let badgeText = 'Info';
         if (insight.type === 'success') {
           badgeVariant = 'default';
