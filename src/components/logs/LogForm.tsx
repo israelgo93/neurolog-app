@@ -188,7 +188,6 @@ function MoodSelector({ value, onChange }: MoodSelectorProps) {
 
 function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManagerProps) {
   const [uploading, setUploading] = useState(false);
-  // const { user } = useAuth();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -393,7 +392,7 @@ function TagsInput({ tags, onChange }: TagsInputProps) {
 // ================================================================
 
 export default function LogForm({ log, childId, mode, onSuccess, onCancel }: LogFormProps) {
-  const { user } = useAuth();
+  useAuth();
   const { children } = useChildren();
   const { createLog, updateLog } = useLogs();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -433,7 +432,6 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
         setCategories(data || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
-      } finally {
       }
     }
 
