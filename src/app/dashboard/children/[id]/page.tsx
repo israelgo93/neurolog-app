@@ -56,7 +56,7 @@ export default function ChildDetailPage() {
   const router = useRouter();
   const childId = params.id as string;
   useAuth(); // Keep the hook call without destructuring unused variables
-  const { children, loading: childLoading, getChildById } = useChildren();
+  const { loading: childLoading, getChildById } = useChildren();
   const { logs, loading: logsLoading, stats } = useLogs({ childId });
   
   const [child, setChild] = useState<ChildWithRelation | null>(null);
