@@ -3,7 +3,6 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,23 +15,17 @@ import { useLogs } from '@/hooks/use-logs';
 import { 
   Users, 
   BookOpen, 
-  TrendingUp, 
-  Calendar, 
+  TrendingUp,  
   Heart,
   AlertCircle,
-  Clock,
   Eye,
   Plus,
   BarChart3,
-  Bell,
   Activity,
-  Target,
-  Award,
   ChevronRight,
-  MoreHorizontal
 } from 'lucide-react';
 import Link from 'next/link';
-import { format, isToday, isYesterday, startOfWeek, endOfWeek } from 'date-fns';
+import { format, isToday, isYesterday } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 // ================================================================
@@ -58,41 +51,41 @@ interface RecentLogsProps {
 // COMPONENTE DE ESTADÍSTICAS RÁPIDAS RESPONSIVO
 // ================================================================
 
-function QuickStats({ stats, loading }: QuickStatsProps) {
+function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
   const statCards = [
     {
       title: 'Niños',
-      value: stats.total_children || 0,
+      value: stats.total_children ?? 0,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200',
       description: 'En seguimiento',
-      trend: stats.children_growth || 0
+      trend: stats.children_growth ?? 0
     },
     {
       title: 'Registros',
-      value: stats.total_logs || 0,
+      value: stats.total_logs ?? 0,
       icon: BookOpen,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200',
       description: 'Documentados',
-      trend: stats.logs_growth || 0
+      trend: stats.logs_growth ?? 0
     },
     {
       title: 'Esta Semana',
-      value: stats.logs_this_week || 0,
+      value: stats.logs_this_week ?? 0,
       icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
       description: 'Nuevos registros',
-      trend: stats.weekly_growth || 0
+      trend: stats.weekly_growth ?? 0
     },
     {
       title: 'Pendientes',
-      value: stats.pending_reviews || 0,
+      value: stats.pending_reviews ?? 0,
       icon: AlertCircle,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
@@ -161,7 +154,7 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
 // COMPONENTE DE NIÑOS ACCESIBLES RESPONSIVO
 // ================================================================
 
-function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
+function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenProps>) {
   if (loading) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -262,7 +255,7 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
                   value={((child.weekly_logs || 0) / 7) * 100} 
                   className="h-2"
                   indicatorClassName={
-                    (child.weekly_logs || 0) >= 5 ? "bg-green-500" :
+                    (child.weekly_logs ?? 0) >= 5 ? "bg-green-500" :
                     (child.weekly_logs || 0) >= 3 ? "bg-yellow-500" : "bg-red-500"
                   }
                 />
