@@ -239,7 +239,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: Readonly<MedicalInfoFormProp
   };
 
   const removeItem = (field: string, index: number) => {
-    const currentItems = medicalInfo[field] || [];
+    const currentItems = medicalInfo[field] ?? [];
     onChange({
       ...medicalInfo,
       [field]: currentItems.filter((_: any, i: number) => i !== index)
@@ -382,7 +382,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: Readonly<MedicalInfoFormProp
   );
 }
 
-function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormProps) {
+function EducationalInfoForm({ educationalInfo, onChange }: Readonly<EducationalInfoFormProps>) {
   const [newGoal, setNewGoal] = useState('');
   const [newAccommodation, setNewAccommodation] = useState('');
 
@@ -780,7 +780,7 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: Readonly
                       alt={form.watch('name')}
                     />
                     <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl">
-                      {form.watch('name')?.charAt(0)?.toUpperCase() || 'N'}
+                      {form.watch('name')?.charAt(0)?.toUpperCase() ?? 'N'}
                     </AvatarFallback>
                   </Avatar>
                   
