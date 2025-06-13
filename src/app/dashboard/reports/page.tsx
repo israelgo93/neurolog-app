@@ -8,7 +8,6 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Select,
@@ -18,7 +17,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
 import { ProgressChart } from '@/components/reports/ProgressChart';
@@ -28,23 +26,16 @@ import { ExportReportDialog } from '@/components/reports/ExportReportDialog';
 import { TimePatterns, CorrelationAnalysis, AdvancedInsights } from '@/components/reports/TimePatterns';
 import type { DateRange } from 'react-day-picker';
 import { 
-  BarChart3,
   TrendingUp,
   Calendar,
   Download,
   FileText,
   PieChart,
-  LineChart,
-  Users,
-  Activity,
   Heart,
   Target,
-  Award,
-  AlertTriangle,
-  CheckCircle,
-  Clock
+  AlertTriangle
 } from 'lucide-react';
-import { format, subMonths } from 'date-fns';
+import { subMonths } from 'date-fns';
 
 // ================================================================
 // HELPERS
@@ -193,7 +184,7 @@ export default function ReportsPage() {
               {/* El DatePickerWithRange NO acepta id directamente, pero mantenemos accesibilidad con el label */}
               <DatePickerWithRange
                 date={dateRange}
-                onDateChange={setDateRange}
+                setDate={setDateRange}
                 // id="period-picker" // No soportado, pero el label es solo visual
               />
             </div>
