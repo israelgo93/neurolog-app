@@ -112,23 +112,20 @@ function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
 
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_) => {
-          const uniqueKey = `stat-loading-${Math.random().toString(36).slice(2, 11)}`;
-          return (
-            <Card key={uniqueKey} className="animate-pulse">
-              <CardContent className="p-3 sm:p-4 md:p-6">
-                <div className="flex items-center justify-between space-x-2">
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
-                    <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
-                    <Skeleton className="h-2 sm:h-3 w-14 sm:w-18" />
-                  </div>
-                  <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" />
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {[0, 1, 2, 3].map((i) => (
+          <Card key={`stat-loading-${i}`} className="animate-pulse">
+        <CardContent className="p-3 sm:p-4 md:p-6">
+          <div className="flex items-center justify-between space-x-2">
+            <div className="space-y-2 flex-1">
+          <Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
+          <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
+          <Skeleton className="h-2 sm:h-3 w-14 sm:w-18" />
+            </div>
+            <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" />
+          </div>
+        </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
@@ -175,23 +172,20 @@ function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenPr
   if (loading) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {[...Array(3)].map((_) => {
-          const uniqueKey = `child-loading-${Math.random().toString(36).slice(2, 11)}`;
-          return (
-            <Card key={uniqueKey} className="animate-pulse">
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center space-x-3 sm:space-x-4">
-                  <Skeleton className="h-12 w-12 sm:h-16 sm:w-16 rounded-full" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-4 w-24 sm:w-32" />
-                    <Skeleton className="h-3 w-16 sm:w-20" />
-                    <Skeleton className="h-3 w-20 sm:w-24" />
-                  </div>
+        {[0, 1, 2].map((i) => (
+          <Card key={`child-loading-${i}`} className="animate-pulse">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center space-x-3 sm:space-x-4">
+                <Skeleton className="h-12 w-12 sm:h-16 sm:w-16 rounded-full" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-24 sm:w-32" />
+                  <Skeleton className="h-3 w-16 sm:w-20" />
+                  <Skeleton className="h-3 w-20 sm:w-24" />
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
@@ -315,8 +309,8 @@ function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
   if (loading) {
     return (
       <div className="space-y-3 sm:space-y-4">
-        {[...Array(3)].map((_) => {
-          const uniqueKey = `log-loading-${Math.random().toString(36).slice(2, 11)}`;
+        {[...Array(3)].map((_, i) => {
+            const uniqueKey = `log-loading-${i}`;
           return (
             <div key={uniqueKey} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white animate-pulse">
               <Skeleton className="h-10 w-10 rounded-full" />
