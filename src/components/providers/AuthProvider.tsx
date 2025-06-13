@@ -249,24 +249,32 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   // ================================================================
 
   // --- Función: Manejar eventos de cambio de autenticación ---
+  const handleSignedIn = useCallback(async (user: User) => {
+    setLoading(true);
+    await updateLastLogin(user.id);
+    const profile = await fetchProfile(user.id);
+    if (profile && mountedRef.current) {
+      setUser(profile);
+      const adminStatus = await checkAdminStatus(user.id);
+      if (mountedRef.current) setIsAdmin(adminStatus);
+    }
+  }, [fetchProfile, checkAdminStatus, updateLastLogin]);
+
+  const handleSignedOut = useCallback(() => {
+    if (mountedRef.current) {
+      setUser(null);
+      setIsAdmin(false);
+      setError(null);
+    }
+  }, []);
+
   const handleAuthChange = useCallback(async (event: string, session: any) => {
     if (!mountedRef.current) return;
     try {
       if (event === 'SIGNED_IN' && session?.user) {
-        setLoading(true);
-        await updateLastLogin(session.user.id);
-        const profile = await fetchProfile(session.user.id);
-        if (profile && mountedRef.current) {
-          setUser(profile);
-          const adminStatus = await checkAdminStatus(session.user.id);
-          if (mountedRef.current) setIsAdmin(adminStatus);
-        }
+        await handleSignedIn(session.user);
       } else if (event === 'SIGNED_OUT') {
-        if (mountedRef.current) {
-          setUser(null);
-          setIsAdmin(false);
-          setError(null);
-        }
+        handleSignedOut();
       }
       // TOKEN_REFRESHED no requiere acción
     } catch {
@@ -274,27 +282,21 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [fetchProfile, checkAdminStatus, updateLastLogin]);
+  }, [handleSignedIn, handleSignedOut]);
 
   // --- Función: Inicializar sesión ---
   const initializeAuth = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user && mountedRef.current) {
-        await updateLastLogin(session.user.id);
-        const profile = await fetchProfile(session.user.id);
-        if (profile && mountedRef.current) {
-          setUser(profile);
-          const adminStatus = await checkAdminStatus(session.user.id);
-          if (mountedRef.current) setIsAdmin(adminStatus);
-        }
+        await handleSignedIn(session.user);
       }
     } catch {
       if (mountedRef.current) setError('Error al cargar la sesión');
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [supabase, fetchProfile, checkAdminStatus, updateLastLogin]);
+  }, [supabase, handleSignedIn]);
 
   useEffect(() => {
     if (initializedRef.current) return;
