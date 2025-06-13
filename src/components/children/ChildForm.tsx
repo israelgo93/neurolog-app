@@ -157,7 +157,7 @@ function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps)
       </div>
 
       {contacts.map((contact, index) => (
-        <Card key={index} className="p-4">
+        <Card key={`${contact.phone}-${contact.name}-${contact.relationship}`} className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor={`contact-name-${index}`}>Nombre</Label>
