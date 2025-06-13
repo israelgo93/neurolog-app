@@ -664,8 +664,8 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-      await uploadFile('avatars', fileName, file);
-      const url = getPublicUrl('avatars', fileName);
+      await uploadFile('AVATARS', file, fileName);
+      const url = getPublicUrl('AVATARS', fileName);
 
       form.setValue('avatar_url', url);
     } catch (error) {
@@ -885,7 +885,15 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
               <CardContent>
                 <EmergencyContactForm
                   contacts={form.watch('emergency_contact')}
-                  onChange={(contacts) => form.setValue('emergency_contact', contacts)}
+                  onChange={(contacts) =>
+                    form.setValue(
+                      'emergency_contact',
+                      contacts.map((c) => ({
+                        ...c,
+                        is_primary: c.is_primary ?? false
+                      }))
+                    )
+                  }
                 />
               </CardContent>
             </Card>
