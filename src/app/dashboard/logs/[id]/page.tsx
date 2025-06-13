@@ -253,8 +253,7 @@ export default function LogDetailPage() {
                   <div>
                     <p className="text-lg font-semibold text-gray-900">{log.mood_score}/5</p>
                     <p className="text-sm text-gray-600">
-                      {log.mood_score <= 2 ? 'Necesita atención' : 
-                       log.mood_score <= 3 ? 'Normal' : 'Muy positivo'}
+                      {getMoodDescription(log.mood_score)}
                     </p>
                   </div>
                 </div>
