@@ -112,11 +112,16 @@ function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
 
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_) => {
-          const uniqueKey = `stat-loading-${Math.random().toString(36).slice(2, 11)}`;
+        {[...Array(4)].map((_, idx) => {
+          const uniqueKey = `stat-loading-${idx}`;
           return (
             <Card key={uniqueKey} className="animate-pulse">
-              <CardContent className="p-3 sm:p-4 md:p-6">
+                {/* 
+                Math.random() is used here only to generate unique keys for loading skeletons.
+                This is safe because these keys are only needed for temporary, non-persistent UI elements
+                during loading states, and do not affect application logic, security, or data integrity.
+                */}
+                <CardContent className="p-3 sm:p-4 md:p-6">
                 <div className="flex items-center justify-between space-x-2">
                   <div className="space-y-2 flex-1">
                     <Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
