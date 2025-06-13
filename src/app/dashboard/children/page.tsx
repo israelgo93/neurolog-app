@@ -48,10 +48,10 @@ import { es } from 'date-fns/locale';
 // ================================================================
 
 interface ChildCardProps {
-  child: ChildWithRelation;
-  onEdit: (child: ChildWithRelation) => void;
-  onViewDetails: (child: ChildWithRelation) => void;
-  onManageUsers: (child: ChildWithRelation) => void;
+  readonly child: ChildWithRelation;
+  readonly onEdit: (child: ChildWithRelation) => void;
+  readonly onViewDetails: (child: ChildWithRelation) => void;
+  readonly onManageUsers: (child: ChildWithRelation) => void;
 }
 
 function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardProps) {
@@ -188,8 +188,8 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
 }
 
 interface FiltersCardProps {
-  filters: ChildFilters;
-  onFiltersChange: (filters: ChildFilters) => void;
+  readonly filters: ChildFilters;
+  readonly onFiltersChange: (filters: ChildFilters) => void;
 }
 
 function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
@@ -264,10 +264,12 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
 // ================= FUNCIONES AUXILIARES DE RENDER =================
 
 function renderLoadingCards() {
+  // Usar un id único para cada Card
+  const loadingIds = ['a','b','c','d','e','f'];
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, i) => (
-        <Card key={i} className="animate-pulse">
+      {loadingIds.map((id) => (
+        <Card key={id} className="animate-pulse">
           <CardHeader>
             <div className="flex items-center space-x-4">
               <div className="rounded-full bg-gray-200 h-12 w-12"></div>
@@ -439,6 +441,53 @@ export default function ChildrenPage() {
   }
 
   // Renderizado principal simplificado
+  let mainContent: JSX.Element;
+  if (loading) {
+    mainContent = renderLoadingCards();
+  } else if (error) {
+    mainContent = renderError(error);
+  } else if (filteredChildren.length === 0) {
+    mainContent = renderEmpty(children.length, setFilters);
+  } else {
+    mainContent = (
+      <>
+        {/* View Mode Toggle */}
+        <div className="flex justify-end">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">Vista:</span>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              Tarjetas
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              Lista
+            </Button>
+          </div>
+        </div>
+
+        {/* Children Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredChildren.map((child) => (
+            <ChildCard
+              key={child.id}
+              child={child}
+              onEdit={handleEdit}
+              onViewDetails={handleViewDetails}
+              onManageUsers={handleManageUsers}
+            />
+          ))}
+        </div>
+      </>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header con botón de crear niño */}
@@ -472,49 +521,7 @@ export default function ChildrenPage() {
       <FiltersCard filters={filters} onFiltersChange={setFilters} />
 
       {/* Lista/Grid de niños */}
-      {loading
-        ? renderLoadingCards()
-        : error
-        ? renderError(error)
-        : filteredChildren.length === 0
-        ? renderEmpty(children.length, setFilters)
-        : (
-          <>
-            {/* View Mode Toggle */}
-            <div className="flex justify-end">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Vista:</span>
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  Tarjetas
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  Lista
-                </Button>
-              </div>
-            </div>
-
-            {/* Children Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredChildren.map((child) => (
-                <ChildCard
-                  key={child.id}
-                  child={child}
-                  onEdit={handleEdit}
-                  onViewDetails={handleViewDetails}
-                  onManageUsers={handleManageUsers}
-                />
-              ))}
-            </div>
-          </>
-        )}
+      {mainContent}
     </div>
   );
 }
