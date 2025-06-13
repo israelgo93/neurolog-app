@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 interface ProgressChartProps {
-  data: any[];
+  readonly data: readonly any[];
 }
 
 export function ProgressChart({ data }: ProgressChartProps) {
