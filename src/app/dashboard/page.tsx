@@ -103,10 +103,11 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
   ];
 
   if (loading) {
+    const skeletonIds = ['children', 'logs', 'weekly', 'pending'];
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
+        {skeletonIds.map((id) => (
+          <Card key={`stat-skeleton-${id}`} className="animate-pulse">
             <CardContent className="p-3 sm:p-4 md:p-6">
               <div className="flex items-center justify-between space-x-2">
                 <div className="space-y-2 flex-1">
@@ -161,12 +162,12 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
 // COMPONENTE DE NIÑOS ACCESIBLES RESPONSIVO
 // ================================================================
 
-function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
   if (loading) {
+    const childSkeletonIds = ['child-1', 'child-2', 'child-3'];
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
+        {childSkeletonIds.map((id) => (
+          <Card key={`child-skeleton-${id}`} className="animate-pulse">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <Skeleton className="h-12 w-12 sm:h-16 sm:w-16 rounded-full" />
@@ -181,6 +182,7 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
         ))}
       </div>
     );
+  }
   }
 
   if (children.length === 0) {
@@ -289,13 +291,12 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
 // ================================================================
 // COMPONENTE DE REGISTROS RECIENTES RESPONSIVO
 // ================================================================
-
-function RecentLogs({ logs, loading }: RecentLogsProps) {
   if (loading) {
+    const logSkeletonIds = ['recent-log-1', 'recent-log-2', 'recent-log-3'];
     return (
       <div className="space-y-3 sm:space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white animate-pulse">
+        {logSkeletonIds.map((id) => (
+          <div key={`log-skeleton-${id}`} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white animate-pulse">
             <Skeleton className="h-10 w-10 rounded-full" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-3/4" />
@@ -305,6 +306,8 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
           </div>
         ))}
       </div>
+    );
+  }
     );
   }
 
