@@ -444,7 +444,7 @@ export function EducationalInfoForm({ educationalInfo, onChange }: Readonly<Educ
         </Label>
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            {(educationalInfo.iep_goals || []).map((goal: string, idx: number) => (
+            {(educationalInfo.iep_goals ?? []).map((goal: string, idx: number) => (
               <Badge key={`${goal}-${idx}`} variant="secondary" className="text-sm">
                 {goal}
                 <Button
