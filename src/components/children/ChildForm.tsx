@@ -327,7 +327,6 @@ export function MedicalInfoForm({ medicalInfo, onChange }: Readonly<MedicalInfoF
           Alergias
         </Label>
         <ItemsList
-          field="allergies"
           items={medicalInfo.allergies ?? []}
           placeholder="Agregar alergia..."
           value={newAllergy}
@@ -339,7 +338,6 @@ export function MedicalInfoForm({ medicalInfo, onChange }: Readonly<MedicalInfoF
       <div>
         <Label className="text-base font-medium mb-3 block">Medicamentos</Label>
         <ItemsList
-          field="medications"
           items={medicalInfo.medications ?? []}
           placeholder="Agregar medicamento..."
           value={newMedication}
@@ -351,7 +349,6 @@ export function MedicalInfoForm({ medicalInfo, onChange }: Readonly<MedicalInfoF
       <div>
         <Label className="text-base font-medium mb-3 block">Condiciones Médicas</Label>
         <ItemsList
-          field="conditions"
           items={medicalInfo.conditions ?? []}
           placeholder="Agregar condición..."
           value={newCondition}
