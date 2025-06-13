@@ -106,6 +106,37 @@ export default function ReportsPage() {
   const filteredLogs = filterLogs(logs, selectedChild, dateRange);
   const metrics = calculateMetrics(filteredLogs);
 
+  // --- Tendencia (Evita ternarios anidados) ---
+  // Icono
+  let trendIcon;
+  if (metrics.improvementTrend > 0) {
+    trendIcon = TrendingUp;
+  } else if (metrics.improvementTrend < 0) {
+    trendIcon = TrendingUp; // Puedes cambiarlo a otro icono si prefieres diferenciar "baja"
+  } else {
+    trendIcon = Target;
+  }
+
+  // Color
+  let trendColor: 'green' | 'red' | 'gray';
+  if (metrics.improvementTrend > 0) {
+    trendColor = 'green';
+  } else if (metrics.improvementTrend < 0) {
+    trendColor = 'red';
+  } else {
+    trendColor = 'gray';
+  }
+
+  // Subtítulo
+  let trendSubtitle: string;
+  if (metrics.improvementTrend > 0) {
+    trendSubtitle = 'Mejorando';
+  } else if (metrics.improvementTrend < 0) {
+    trendSubtitle = 'Necesita atención';
+  } else {
+    trendSubtitle = 'Estable';
+  }
+
   if (childrenLoading || logsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -212,27 +243,9 @@ export default function ReportsPage() {
         <MetricCard
           title="Tendencia"
           value={metrics.improvementTrend > 0 ? `+${metrics.improvementTrend.toFixed(2)}` : metrics.improvementTrend.toFixed(2)}
-          icon={
-            metrics.improvementTrend > 0
-              ? TrendingUp
-              : metrics.improvementTrend < 0
-              ? TrendingUp
-              : Target
-          }
-          color={
-            metrics.improvementTrend > 0
-              ? 'green'
-              : metrics.improvementTrend < 0
-              ? 'red'
-              : 'gray'
-          }
-          subtitle={
-            metrics.improvementTrend > 0
-              ? 'Mejorando'
-              : metrics.improvementTrend < 0
-              ? 'Necesita atención'
-              : 'Estable'
-          }
+          icon={trendIcon}
+          color={trendColor}
+          subtitle={trendSubtitle}
         />
 
         <MetricCard
