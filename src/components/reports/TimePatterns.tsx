@@ -275,7 +275,14 @@ export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
     } else {
       type = 'info';
     }
-    const icon = frequency > 80 ? CheckCircle : frequency > 50 ? Target : AlertTriangle;
+    let icon;
+    if (frequency > 80) {
+      icon = CheckCircle;
+    } else if (frequency > 50) {
+      icon = Target;
+    } else {
+      icon = AlertTriangle;
+    }
     let recommendation = 'Estado de ánimo estable';
     
     if (frequency < 50) {
