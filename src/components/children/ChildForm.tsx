@@ -464,7 +464,7 @@ export function EducationalInfoForm({ educationalInfo, onChange }: Readonly<Educ
               placeholder="Agregar objetivo IEP..."
               value={newGoal}
               onChange={(e) => setNewGoal(e.target.value)}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   addItem('iep_goals', newGoal, setNewGoal);
@@ -506,7 +506,7 @@ export function EducationalInfoForm({ educationalInfo, onChange }: Readonly<Educ
               placeholder="Agregar acomodación..."
               value={newAccommodation}
               onChange={(e) => setNewAccommodation(e.target.value)}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   addItem('accommodations', newAccommodation, setNewAccommodation);
