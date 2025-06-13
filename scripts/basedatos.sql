@@ -47,6 +47,7 @@ DROP TABLE IF EXISTS profiles CASCADE;
 -- ================================================================
 
 -- TABLA: profiles (usuarios del sistema)
+-- 'parent' debe repetirse aquí por limitación del lenguaje SQL (no se permiten constantes).
 CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
@@ -97,6 +98,7 @@ CREATE TABLE children (
 );
 
 -- TABLA: user_child_relations (relaciones usuario-niño)
+-- 'parent' repetido por limitación en CHECK (no admite constantes).
 CREATE TABLE user_child_relations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
@@ -319,6 +321,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ================================================================
 
 -- Vista para niños accesibles por usuario
+-- 'parent' se repite aquí porque no se pueden usar constantes dentro de una CREATE VIEW.
 CREATE OR REPLACE VIEW user_accessible_children AS
 SELECT 
   c.*,
