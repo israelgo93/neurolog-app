@@ -880,7 +880,15 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: Readonly
               <CardContent>
                 <EmergencyContactForm
                   contacts={form.watch('emergency_contact')}
-                  onChange={(contacts) => form.setValue('emergency_contact', contacts)}
+                  onChange={(contacts) =>
+                    form.setValue(
+                      'emergency_contact',
+                      contacts.map((c) => ({
+                        ...c,
+                        is_primary: c.is_primary ?? false
+                      }))
+                    )
+                  }
                 />
               </CardContent>
             </Card>
