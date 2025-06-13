@@ -1,9 +1,9 @@
 // src/components/children/ChildForm.tsx
-// Formulario actualizado para crear/editar niños con el nuevo modelo
+// Formulario actualizado y refactorizado para cumplir con SonarQube
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/form';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
-import { uploadFile, getPublicUrl, STORAGE_BUCKETS } from '@/lib/supabase';
+import { uploadFile, getPublicUrl } from '@/lib/supabase';
 import type { Child, ChildInsert, ChildUpdate, EmergencyContact } from '@/types';
 import { 
   CalendarIcon, 
@@ -42,12 +42,14 @@ import {
   ShieldIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 
 // ================================================================
 // ESQUEMAS DE VALIDACIÓN
 // ================================================================
 
 const emergencyContactSchema = z.object({
+  id: z.string().optional(), // Nuevo campo para key única
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
   relationship: z.string().min(2, 'La relación es requerida'),
@@ -116,102 +118,101 @@ interface PrivacySettingsFormProps {
 }
 
 // ================================================================
-// COMPONENTES AUXILIARES
+// COMPONENTES AUXILIARES (fuera del principal)
 // ================================================================
 
-function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps) {
+export function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps) {
   const addContact = () => {
-    onChange([...contacts, {
-      name: '',
-      phone: '',
-      relationship: '',
-      is_primary: contacts.length === 0
-    }]);
+    onChange([
+      ...contacts,
+      {
+        id: uuidv4(),
+        name: '',
+        phone: '',
+        relationship: '',
+        is_primary: contacts.length === 0
+      }
+    ]);
   };
 
-  const removeContact = (index: number) => {
-    const newContacts = contacts.filter((_, i) => i !== index);
-    onChange(newContacts);
+  const removeContact = (id: string | undefined) => {
+    onChange(contacts.filter((c) => c.id !== id));
   };
 
-  const updateContact = (index: number, field: keyof EmergencyContact, value: any) => {
-    const newContacts = contacts.map((contact, i) => 
-      i === index ? { ...contact, [field]: value } : contact
+  const updateContact = (id: string | undefined, field: keyof EmergencyContact, value: any) => {
+    onChange(
+      contacts.map((contact) =>
+        contact.id === id ? { ...contact, [field]: value } : contact
+      )
     );
-    onChange(newContacts);
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Label className="text-base font-medium">Contactos de Emergencia</Label>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addContact}
-        >
+        <Button type="button" variant="outline" size="sm" onClick={addContact}>
           <PlusIcon className="h-4 w-4 mr-2" />
           Agregar Contacto
         </Button>
       </div>
-
-      {contacts.map((contact, index) => (
-        <Card key={index} className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor={`contact-name-${index}`}>Nombre</Label>
-              <Input
-                id={`contact-name-${index}`}
-                value={contact.name}
-                onChange={(e) => updateContact(index, 'name', e.target.value)}
-                placeholder="Nombre completo"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor={`contact-phone-${index}`}>Teléfono</Label>
-              <Input
-                id={`contact-phone-${index}`}
-                value={contact.phone}
-                onChange={(e) => updateContact(index, 'phone', e.target.value)}
-                placeholder="+1234567890"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor={`contact-relationship-${index}`}>Relación</Label>
-              <Input
-                id={`contact-relationship-${index}`}
-                value={contact.relationship}
-                onChange={(e) => updateContact(index, 'relationship', e.target.value)}
-                placeholder="Padre, Madre, Tutor, etc."
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id={`contact-primary-${index}`}
-                  checked={contact.is_primary}
-                  onCheckedChange={(checked) => updateContact(index, 'is_primary', checked)}
+      {contacts.map((contact) => (
+        <Card key={contact.id}>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Nombre</Label>
+                <Input
+                  value={contact.name}
+                  onChange={(e) =>
+                    updateContact(contact.id, 'name', e.target.value)
+                  }
+                  placeholder="Nombre completo"
                 />
-                <Label htmlFor={`contact-primary-${index}`}>Contacto Principal</Label>
               </div>
-              
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                onClick={() => removeContact(index)}
-              >
-                <TrashIcon className="h-4 w-4" />
-              </Button>
+              <div>
+                <Label>Teléfono</Label>
+                <Input
+                  value={contact.phone}
+                  onChange={(e) =>
+                    updateContact(contact.id, 'phone', e.target.value)
+                  }
+                  placeholder="+1234567890"
+                />
+              </div>
+              <div>
+                <Label>Relación</Label>
+                <Input
+                  value={contact.relationship}
+                  onChange={(e) =>
+                    updateContact(contact.id, 'relationship', e.target.value)
+                  }
+                  placeholder="Padre, Madre, Tutor, etc."
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={contact.is_primary}
+                    onCheckedChange={(checked) =>
+                      updateContact(contact.id, 'is_primary', checked)
+                    }
+                  />
+                  <Label>Contacto Principal</Label>
+                </div>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => removeContact(contact.id)}
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </div>
+          </CardContent>
         </Card>
       ))}
-
       {contacts.length === 0 && (
         <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
           <PhoneIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
@@ -223,12 +224,12 @@ function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps)
   );
 }
 
-function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
+export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
   const [newAllergy, setNewAllergy] = useState('');
   const [newMedication, setNewMedication] = useState('');
   const [newCondition, setNewCondition] = useState('');
 
-  const addItem = (field: string, value: string, setter: (value: string) => void) => {
+  const addItem = useCallback((field: string, value: string, setter: (v: string) => void) => {
     if (value.trim()) {
       const currentItems = medicalInfo[field] || [];
       onChange({
@@ -237,35 +238,34 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
       });
       setter('');
     }
-  };
+  }, [medicalInfo, onChange]);
 
-  const removeItem = (field: string, index: number) => {
+  const removeItem = useCallback((field: string, index: number) => {
     const currentItems = medicalInfo[field] || [];
     onChange({
       ...medicalInfo,
       [field]: currentItems.filter((_: any, i: number) => i !== index)
     });
-  };
+  }, [medicalInfo, onChange]);
 
   const ItemsList = ({ field, items, placeholder }: { field: string, items: string[], placeholder: string }) => (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        {items.map((item, index) => (
-          <Badge key={index} variant="secondary" className="text-sm">
+        {items.map((item, idx) => (
+          <Badge key={`${item}-${idx}`} variant="secondary" className="text-sm">
             {item}
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-auto p-0 ml-2"
-              onClick={() => removeItem(field, index)}
+              onClick={() => removeItem(field, idx)}
             >
               <TrashIcon className="h-3 w-3" />
             </Button>
           </Badge>
         ))}
       </div>
-      
       <div className="flex space-x-2">
         <Input
           placeholder={placeholder}
@@ -313,7 +313,6 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           placeholder="Agregar alergia..." 
         />
       </div>
-
       <div>
         <Label className="text-base font-medium mb-3 block">Medicamentos</Label>
         <ItemsList 
@@ -322,7 +321,6 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           placeholder="Agregar medicamento..." 
         />
       </div>
-
       <div>
         <Label className="text-base font-medium mb-3 block">Condiciones Médicas</Label>
         <ItemsList 
@@ -331,7 +329,6 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           placeholder="Agregar condición..." 
         />
       </div>
-
       <div>
         <Label htmlFor="emergency-notes">Notas de Emergencia</Label>
         <Textarea
@@ -349,11 +346,11 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
   );
 }
 
-function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormProps) {
+export function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormProps) {
   const [newGoal, setNewGoal] = useState('');
   const [newAccommodation, setNewAccommodation] = useState('');
 
-  const addItem = (field: string, value: string, setter: (value: string) => void) => {
+  const addItem = useCallback((field: string, value: string, setter: (v: string) => void) => {
     if (value.trim()) {
       const currentItems = educationalInfo[field] || [];
       onChange({
@@ -362,15 +359,15 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
       });
       setter('');
     }
-  };
+  }, [educationalInfo, onChange]);
 
-  const removeItem = (field: string, index: number) => {
+  const removeItem = useCallback((field: string, index: number) => {
     const currentItems = educationalInfo[field] || [];
     onChange({
       ...educationalInfo,
       [field]: currentItems.filter((_: any, i: number) => i !== index)
     });
-  };
+  }, [educationalInfo, onChange]);
 
   return (
     <div className="space-y-6">
@@ -387,7 +384,6 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
             placeholder="Nombre de la escuela..."
           />
         </div>
-
         <div>
           <Label htmlFor="grade">Grado/Nivel</Label>
           <Input
@@ -401,7 +397,6 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
           />
         </div>
       </div>
-
       <div>
         <Label htmlFor="teacher">Docente Principal</Label>
         <Input
@@ -414,7 +409,6 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
           placeholder="Nombre del docente..."
         />
       </div>
-
       <div>
         <Label className="text-base font-medium mb-3 block">
           <GraduationCapIcon className="h-4 w-4 inline mr-2" />
@@ -422,22 +416,21 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
         </Label>
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            {(educationalInfo.iep_goals || []).map((goal: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-sm">
+            {(educationalInfo.iep_goals || []).map((goal: string, idx: number) => (
+              <Badge key={`${goal}-${idx}`} variant="secondary" className="text-sm">
                 {goal}
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="h-auto p-0 ml-2"
-                  onClick={() => removeItem('iep_goals', index)}
+                  onClick={() => removeItem('iep_goals', idx)}
                 >
                   <TrashIcon className="h-3 w-3" />
                 </Button>
               </Badge>
             ))}
           </div>
-          
           <div className="flex space-x-2">
             <Input
               placeholder="Agregar objetivo IEP..."
@@ -461,27 +454,25 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
           </div>
         </div>
       </div>
-
       <div>
         <Label className="text-base font-medium mb-3 block">Acomodaciones</Label>
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            {(educationalInfo.accommodations || []).map((accommodation: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-sm">
+            {(educationalInfo.accommodations || []).map((accommodation: string, idx: number) => (
+              <Badge key={`${accommodation}-${idx}`} variant="secondary" className="text-sm">
                 {accommodation}
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="h-auto p-0 ml-2"
-                  onClick={() => removeItem('accommodations', index)}
+                  onClick={() => removeItem('accommodations', idx)}
                 >
                   <TrashIcon className="h-3 w-3" />
                 </Button>
               </Badge>
             ))}
           </div>
-          
           <div className="flex space-x-2">
             <Input
               placeholder="Agregar acomodación..."
@@ -509,7 +500,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
   );
 }
 
-function PrivacySettingsForm({ settings, onChange }: PrivacySettingsFormProps) {
+export function PrivacySettingsForm({ settings, onChange }: PrivacySettingsFormProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -528,7 +519,6 @@ function PrivacySettingsForm({ settings, onChange }: PrivacySettingsFormProps) {
             })}
           />
         </div>
-
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label className="text-base">Reportes de Progreso</Label>
@@ -544,7 +534,6 @@ function PrivacySettingsForm({ settings, onChange }: PrivacySettingsFormProps) {
             })}
           />
         </div>
-
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label className="text-base">Compartir Fotos</Label>
@@ -561,7 +550,6 @@ function PrivacySettingsForm({ settings, onChange }: PrivacySettingsFormProps) {
           />
         </div>
       </div>
-
       <div>
         <Label htmlFor="data-retention">Retención de Datos (meses)</Label>
         <Input
@@ -594,6 +582,14 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
   const [activeTab, setActiveTab] = useState('basic');
   const router = useRouter();
 
+  // --- Adaptar contactos para incluir id único
+  const defaultContacts = useMemo(() => (
+    (child?.emergency_contact || []).map(c => ({
+      ...c,
+      id: c.id || uuidv4()
+    }))
+  ), [child?.emergency_contact]);
+
   const form = useForm<ChildFormData>({
     resolver: zodResolver(childFormSchema),
     defaultValues: {
@@ -602,7 +598,7 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
       diagnosis: child?.diagnosis || '',
       notes: child?.notes || '',
       avatar_url: child?.avatar_url || '',
-      emergency_contact: child?.emergency_contact || [],
+      emergency_contact: defaultContacts,
       medical_info: child?.medical_info || {
         allergies: [],
         medications: [],
@@ -631,13 +627,13 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
 
     try {
       setUploading(true);
-      
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      
+
       await uploadFile('avatars', fileName, file);
       const url = getPublicUrl('avatars', fileName);
-      
+
       form.setValue('avatar_url', url);
     } catch (error) {
       console.error('Error uploading avatar:', error);
@@ -648,17 +644,19 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
 
   const onSubmit = async (data: ChildFormData) => {
     try {
+      // Quitar ids temporales antes de guardar
+      const contactsClean = (data.emergency_contact || []).map(({ id, ...rest }) => rest);
+      const finalData = { ...data, emergency_contact: contactsClean };
       let result: Child;
-      
-      if (mode === 'create') {
-        result = await createChild(data as ChildInsert);
-      } else {
-        result = await updateChild(child!.id, data as ChildUpdate);
-      }
 
-      onSuccess?.(result);
-      
-      if (!onSuccess) {
+      if (mode === 'create') {
+        result = await createChild(finalData as ChildInsert);
+      } else {
+        result = await updateChild(child!.id, finalData as ChildUpdate);
+      }
+      if (onSuccess) {
+        onSuccess(result);
+      } else {
         router.push(`/dashboard/children/${result.id}`);
       }
     } catch (error) {
@@ -683,20 +681,18 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
             {mode === 'create' ? 'Agregar Niño' : 'Editar Niño'}
           </h1>
           <p className="text-gray-600 mt-1">
-            {mode === 'create' 
+            {mode === 'create'
               ? 'Completa la información para agregar un nuevo niño al seguimiento'
-              : 'Actualiza la información del niño'
-            }
+              : 'Actualiza la información del niño'}
           </p>
         </div>
-        
         <div className="flex space-x-3">
           {onCancel && (
             <Button variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
           )}
-          <Button 
+          <Button
             onClick={form.handleSubmit(onSubmit)}
             disabled={form.formState.isSubmitting}
           >
@@ -705,31 +701,31 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
           </Button>
         </div>
       </div>
-
       {/* Tabs */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`${
-                activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center`}
-            >
-              <tab.icon className="h-4 w-4 mr-2" />
-              {tab.label}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            const tabClass = isActive
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300';
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`${tabClass} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center`}
+                type="button"
+              >
+                <tab.icon className="h-4 w-4 mr-2" />
+                {tab.label}
+              </button>
+            );
+          })}
         </nav>
       </div>
-
       {/* Form Content */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Basic Information Tab */}
           {activeTab === 'basic' && (
             <Card>
               <CardHeader>
@@ -742,15 +738,14 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
                 {/* Avatar Upload */}
                 <div className="flex items-center space-x-6">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage 
-                      src={form.watch('avatar_url')} 
+                    <AvatarImage
+                      src={form.watch('avatar_url')}
                       alt={form.watch('name')}
                     />
                     <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl">
-                      {form.watch('name')?.charAt(0)?.toUpperCase() || 'N'}
+                      {(form.watch('name')?.charAt(0)?.toUpperCase() || 'N')}
                     </AvatarFallback>
                   </Avatar>
-                  
                   <div>
                     <Label htmlFor="avatar-upload" className="cursor-pointer">
                       <div className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700">
@@ -771,8 +766,6 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
                     </p>
                   </div>
                 </div>
-
-                {/* Name */}
                 <FormField
                   control={form.control}
                   name="name"
@@ -786,8 +779,6 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
                     </FormItem>
                   )}
                 />
-
-                {/* Birth Date */}
                 <FormField
                   control={form.control}
                   name="birth_date"
@@ -795,10 +786,10 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
                     <FormItem>
                       <FormLabel>Fecha de Nacimiento</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="date" 
+                        <Input
+                          type="date"
                           max={format(new Date(), 'yyyy-MM-dd')}
-                          {...field} 
+                          {...field}
                         />
                       </FormControl>
                       <FormDescription>
@@ -808,8 +799,6 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
                     </FormItem>
                   )}
                 />
-
-                {/* Diagnosis */}
                 <FormField
                   control={form.control}
                   name="diagnosis"
@@ -817,9 +806,9 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
                     <FormItem>
                       <FormLabel>Diagnóstico</FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           placeholder="Diagnóstico principal o condición..."
-                          {...field} 
+                          {...field}
                         />
                       </FormControl>
                       <FormDescription>
@@ -829,8 +818,6 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
                     </FormItem>
                   )}
                 />
-
-                {/* Notes */}
                 <FormField
                   control={form.control}
                   name="notes"
@@ -838,10 +825,10 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
                     <FormItem>
                       <FormLabel>Notas Adicionales</FormLabel>
                       <FormControl>
-                        <Textarea 
+                        <Textarea
                           placeholder="Información adicional importante..."
                           rows={4}
-                          {...field} 
+                          {...field}
                         />
                       </FormControl>
                       <FormDescription>
@@ -854,8 +841,6 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
               </CardContent>
             </Card>
           )}
-
-          {/* Emergency Contacts Tab */}
           {activeTab === 'emergency' && (
             <Card>
               <CardHeader>
@@ -872,8 +857,6 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
               </CardContent>
             </Card>
           )}
-
-          {/* Medical Information Tab */}
           {activeTab === 'medical' && (
             <Card>
               <CardHeader>
@@ -890,8 +873,6 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
               </CardContent>
             </Card>
           )}
-
-          {/* Educational Information Tab */}
           {activeTab === 'educational' && (
             <Card>
               <CardHeader>
@@ -908,8 +889,6 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
               </CardContent>
             </Card>
           )}
-
-          {/* Privacy Settings Tab */}
           {activeTab === 'privacy' && (
             <Card>
               <CardHeader>
@@ -926,27 +905,26 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
               </CardContent>
             </Card>
           )}
-
           {/* Form Actions */}
           <div className="flex justify-end space-x-4 pt-6 border-t">
             {onCancel && (
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={onCancel}
               >
                 Cancelar
               </Button>
             )}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={form.formState.isSubmitting}
             >
               <SaveIcon className="mr-2 h-4 w-4" />
               {form.formState.isSubmitting
                 ? 'Guardando...'
-                : mode === 'create' 
-                  ? 'Crear Niño' 
+                : mode === 'create'
+                  ? 'Crear Niño'
                   : 'Guardar Cambios'
               }
             </Button>
