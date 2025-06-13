@@ -49,7 +49,7 @@ import { v4 as uuidv4 } from 'uuid';
 // ================================================================
 
 const emergencyContactSchema = z.object({
-  id: z.string().optional(), // Nuevo campo para key única
+  id: z.string().optional(),
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
   relationship: z.string().min(2, 'La relación es requerida'),
@@ -224,6 +224,67 @@ export function EmergencyContactForm({ contacts, onChange }: EmergencyContactFor
   );
 }
 
+// COMPONENTE AUXILIAR GENERAL PARA LISTAS DE ITEMS (evita ternarias anidadas)
+export function ItemsList({
+  field,
+  items,
+  placeholder,
+  value,
+  onValueChange,
+  onAdd,
+  onRemove
+}: {
+  field: string,
+  items: string[],
+  placeholder: string,
+  value: string,
+  onValueChange: (v: string) => void,
+  onAdd: () => void,
+  onRemove: (idx: number) => void
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {items.map((item, idx) => (
+          <Badge key={`${item}-${idx}`} variant="secondary" className="text-sm">
+            {item}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto p-0 ml-2"
+              onClick={() => onRemove(idx)}
+            >
+              <TrashIcon className="h-3 w-3" />
+            </Button>
+          </Badge>
+        ))}
+      </div>
+      <div className="flex space-x-2">
+        <Input
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onValueChange(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onAdd();
+            }
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onAdd}
+        >
+          <PlusIcon className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
   const [newAllergy, setNewAllergy] = useState('');
   const [newMedication, setNewMedication] = useState('');
@@ -248,57 +309,14 @@ export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps)
     });
   }, [medicalInfo, onChange]);
 
-  const ItemsList = ({ field, items, placeholder }: { field: string, items: string[], placeholder: string }) => (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        {items.map((item, idx) => (
-          <Badge key={`${item}-${idx}`} variant="secondary" className="text-sm">
-            {item}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-auto p-0 ml-2"
-              onClick={() => removeItem(field, idx)}
-            >
-              <TrashIcon className="h-3 w-3" />
-            </Button>
-          </Badge>
-        ))}
-      </div>
-      <div className="flex space-x-2">
-        <Input
-          placeholder={placeholder}
-          value={field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition}
-          onChange={(e) => {
-            if (field === 'allergies') setNewAllergy(e.target.value);
-            else if (field === 'medications') setNewMedication(e.target.value);
-            else setNewCondition(e.target.value);
-          }}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-              const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
-              addItem(field, value, setter);
-            }
-          }}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-            const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
-            addItem(field, value, setter);
-          }}
-        >
-          <PlusIcon className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
+  // Handlers individuales para cada campo
+  const handleAddAllergy = () => addItem('allergies', newAllergy, setNewAllergy);
+  const handleAddMedication = () => addItem('medications', newMedication, setNewMedication);
+  const handleAddCondition = () => addItem('conditions', newCondition, setNewCondition);
+
+  const handleRemoveAllergy = (idx: number) => removeItem('allergies', idx);
+  const handleRemoveMedication = (idx: number) => removeItem('medications', idx);
+  const handleRemoveCondition = (idx: number) => removeItem('conditions', idx);
 
   return (
     <div className="space-y-6">
@@ -307,26 +325,38 @@ export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps)
           <HeartIcon className="h-4 w-4 inline mr-2" />
           Alergias
         </Label>
-        <ItemsList 
-          field="allergies" 
-          items={medicalInfo.allergies || []} 
-          placeholder="Agregar alergia..." 
+        <ItemsList
+          field="allergies"
+          items={medicalInfo.allergies || []}
+          placeholder="Agregar alergia..."
+          value={newAllergy}
+          onValueChange={setNewAllergy}
+          onAdd={handleAddAllergy}
+          onRemove={handleRemoveAllergy}
         />
       </div>
       <div>
         <Label className="text-base font-medium mb-3 block">Medicamentos</Label>
-        <ItemsList 
-          field="medications" 
-          items={medicalInfo.medications || []} 
-          placeholder="Agregar medicamento..." 
+        <ItemsList
+          field="medications"
+          items={medicalInfo.medications || []}
+          placeholder="Agregar medicamento..."
+          value={newMedication}
+          onValueChange={setNewMedication}
+          onAdd={handleAddMedication}
+          onRemove={handleRemoveMedication}
         />
       </div>
       <div>
         <Label className="text-base font-medium mb-3 block">Condiciones Médicas</Label>
-        <ItemsList 
-          field="conditions" 
-          items={medicalInfo.conditions || []} 
-          placeholder="Agregar condición..." 
+        <ItemsList
+          field="conditions"
+          items={medicalInfo.conditions || []}
+          placeholder="Agregar condición..."
+          value={newCondition}
+          onValueChange={setNewCondition}
+          onAdd={handleAddCondition}
+          onRemove={handleRemoveCondition}
         />
       </div>
       <div>
