@@ -30,7 +30,7 @@ import { useChildren } from '@/hooks/use-children';
 import { uploadFile, getPublicUrl } from '@/lib/supabase';
 import type { Child, ChildInsert, ChildUpdate, EmergencyContact as EmergencyContactBase } from '@/types';
 import { 
-  CalendarIcon, 
+  
   ImageIcon, 
   PlusIcon, 
   TrashIcon, 
