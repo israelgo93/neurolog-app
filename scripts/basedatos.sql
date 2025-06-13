@@ -120,6 +120,7 @@ CREATE TABLE user_child_relations (
 );
 
 -- TABLA: daily_logs (registros diarios)
+-- 'medium' se repite por limitación del lenguaje SQL (no se pueden usar constantes en CHECK/DEFAULT). 
 CREATE TABLE daily_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
@@ -127,7 +128,7 @@ CREATE TABLE daily_logs (
   title TEXT NOT NULL CHECK (length(trim(title)) >= 2),
   content TEXT NOT NULL,
   mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10),
-  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium',
+  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium', -- NOSONAR
   logged_by UUID REFERENCES profiles(id) NOT NULL,
   log_date DATE DEFAULT CURRENT_DATE,
   is_private BOOLEAN DEFAULT FALSE,
@@ -148,6 +149,7 @@ CREATE TABLE daily_logs (
 );
 
 -- TABLA: audit_logs (auditoría del sistema)
+-- 'medium' se repite por limitación del lenguaje SQL (no se pueden usar constantes en CHECK/DEFAULT). 
 CREATE TABLE audit_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   table_name TEXT NOT NULL,
@@ -161,7 +163,7 @@ CREATE TABLE audit_logs (
   ip_address INET,
   user_agent TEXT,
   session_id TEXT,
-  risk_level TEXT CHECK (risk_level IN ('low', 'medium', 'high', 'critical')) DEFAULT 'low',
+  risk_level TEXT CHECK (risk_level IN ('low', 'medium', 'high', 'critical')) DEFAULT 'low', -- NOSONAR
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -287,7 +289,7 @@ CREATE OR REPLACE FUNCTION audit_sensitive_access(
 )
 RETURNS VOID AS $$
 DECLARE 
-  DEFAULT_RISK CONSTANT TEXT := 'medium'; -- Declaración de constante
+  DEFAULT_RISK CONSTANT TEXT := 'medium'; -- Declaración de constante -- NOSONAR
 BEGIN
   INSERT INTO audit_logs (
     table_name,
