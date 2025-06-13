@@ -130,8 +130,9 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
     const x = data.map(item => item[field1]);
     const y = data.map(field2Func);
     
-    const meanX = x.reduce((a, b) => a + b) / x.length;
-    const meanY = y.reduce((a, b) => a + b) / y.length;
+    const meanX = x.reduce((a, b) => a + b, 0) / x.length;
+    const meanY = y.reduce((a, b) => a + b, 0) / y.length;
+
     
     const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
     const denomX = Math.sqrt(x.reduce((sum, xi) => sum + Math.pow(xi - meanX, 2), 0));

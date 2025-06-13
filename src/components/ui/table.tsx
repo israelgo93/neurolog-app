@@ -13,8 +13,16 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
       <table
         data-slot="table"
         className={cn("w-full caption-bottom text-sm", className)}
+        aria-label="Tabla de datos"
+        role="table"
         {...props}
-      />
+      >
+        <thead className="sr-only">
+          <tr>
+            <th scope="col">Encabezado</th>
+          </tr>
+        </thead>
+      </table>
     </div>
   )
 }
