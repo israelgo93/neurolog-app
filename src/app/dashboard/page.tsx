@@ -165,24 +165,27 @@ function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
 // COMPONENTE DE NIÑOS ACCESIBLES RESPONSIVO
 // ================================================================
 
-function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
+function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenProps>) {
   if (loading) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {[...Array(3)].map((_, i) => (
-          <Card key={`child-loading-${i}`} className="animate-pulse">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center space-x-3 sm:space-x-4">
-                <Skeleton className="h-12 w-12 sm:h-16 sm:w-16 rounded-full" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-4 w-24 sm:w-32" />
-                  <Skeleton className="h-3 w-16 sm:w-20" />
-                  <Skeleton className="h-3 w-20 sm:w-24" />
+        {[...Array(3)].map((_) => {
+          const uniqueKey = `child-loading-${Math.random().toString(36).slice(2, 11)}`;
+          return (
+            <Card key={uniqueKey} className="animate-pulse">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <Skeleton className="h-12 w-12 sm:h-16 sm:w-16 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-24 sm:w-32" />
+                    <Skeleton className="h-3 w-16 sm:w-20" />
+                    <Skeleton className="h-3 w-20 sm:w-24" />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     );
   }
