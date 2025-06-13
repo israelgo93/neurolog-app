@@ -12,8 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useToast } from '@/components/ui/use-toast'
-import { 
-  Settings, 
+import {  
   User, 
   Bell, 
   Shield, 
@@ -30,10 +29,16 @@ export default function SettingsPage() {
   const { toast } = useToast()
   
   // ✅ Estado del perfil inicializado correctamente desde el usuario
-  const [profileData, setProfileData] = useState({
+  type UserRole = 'parent' | 'teacher' | 'specialist' | 'admin';
+
+  const [profileData, setProfileData] = useState<{
+    full_name: string;
+    email: string;
+    role: UserRole;
+  }>({
     full_name: '',
     email: '',
-    role: 'parent' as const
+    role: 'parent'
   })
 
   const [preferences, setPreferences] = useState({

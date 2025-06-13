@@ -55,44 +55,44 @@ interface RecentLogsProps {
 // COMPONENTE DE ESTADÍSTICAS RÁPIDAS RESPONSIVO
 // ================================================================
 
-function QuickStats({ stats, loading }: QuickStatsProps) {
+function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
   const statCards = [
     {
       title: 'Niños',
-      value: stats.total_children || 0,
+      value: stats.total_children ?? 0,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200',
       description: 'En seguimiento',
-      trend: stats.children_growth || 0,
+      trend: stats.children_growth ?? 0,
       key: 'stat-children'
     },
     {
       title: 'Registros',
-      value: stats.total_logs || 0,
+      value: stats.total_logs ?? 0,
       icon: BookOpen,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200',
       description: 'Documentados',
-      trend: stats.logs_growth || 0,
+      trend: stats.logs_growth ?? 0,
       key: 'stat-logs'
     },
     {
       title: 'Esta Semana',
-      value: stats.logs_this_week || 0,
+      value: stats.logs_this_week ?? 0,
       icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
       description: 'Nuevos registros',
-      trend: stats.weekly_growth || 0,
+      trend: stats.weekly_growth ?? 0,
       key: 'stat-week'
     },
     {
       title: 'Pendientes',
-      value: stats.pending_reviews || 0,
+      value: stats.pending_reviews ?? 0,
       icon: AlertCircle,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
@@ -106,20 +106,23 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
   if (loading) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={`stat-loading-${i}`} className="animate-pulse">
-            <CardContent className="p-3 sm:p-4 md:p-6">
-              <div className="flex items-center justify-between space-x-2">
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
-                  <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
-                  <Skeleton className="h-2 sm:h-3 w-14 sm:w-18" />
+        {[...Array(4)].map((_) => {
+          const uniqueKey = `stat-loading-${Math.random().toString(36).slice(2, 11)}`;
+          return (
+            <Card key={uniqueKey} className="animate-pulse">
+              <CardContent className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
+                    <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
+                    <Skeleton className="h-2 sm:h-3 w-14 sm:w-18" />
+                  </div>
+                  <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" />
                 </div>
-                <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     );
   }
