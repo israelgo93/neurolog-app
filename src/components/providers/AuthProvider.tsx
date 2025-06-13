@@ -42,7 +42,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // ================================================================
 
 interface AuthProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 // ================================================================
@@ -50,9 +50,9 @@ interface AuthProviderProps {
 // ================================================================
 
 const getFullName = (userData: any) => (
-  userData.user_metadata?.full_name ||
-  userData.user_metadata?.name ||
-  userData.email?.split('@')[0] ||
+  userData.user_metadata?.full_name ??
+  userData.user_metadata?.name ??
+  userData.email?.split('@')[0] ??
   'Usuario'
 );
 
@@ -100,9 +100,9 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
         .from('profiles')
         .insert({
           id: userId,
-          email: userData.email || '',
+          email: userData.email ?? '',
           full_name: fullName,
-          role: userData.user_metadata?.role || 'parent',
+          role: userData.user_metadata?.role ?? 'parent',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -152,7 +152,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
     } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión');
+      setError(err.message ?? 'Error al iniciar sesión');
       throw err;
     } finally {
       setLoading(false);
@@ -177,7 +177,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       });
       if (error) throw error;
     } catch (err: any) {
-      setError(err.message || 'Error al registrarse');
+      setError(err.message ?? 'Error al registrarse');
       throw err;
     } finally {
       setLoading(false);
@@ -193,7 +193,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       setIsAdmin(false);
       setError(null);
     } catch (err: any) {
-      setError(err.message || 'Error al cerrar sesión');
+      setError(err.message ?? 'Error al cerrar sesión');
       throw err;
     } finally {
       setLoading(false);
@@ -212,7 +212,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       if (error) throw error;
       setUser(prev => prev ? { ...prev, ...updates } : null);
     } catch (err: any) {
-      setError(err.message || 'Error al actualizar perfil');
+      setError(err.message ?? 'Error al actualizar perfil');
       throw err;
     } finally {
       setLoading(false);
@@ -225,7 +225,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
     } catch (err: any) {
-      setError(err.message || 'Error al enviar email de recuperación');
+      setError(err.message ?? 'Error al enviar email de recuperación');
       throw err;
     }
   }, [supabase]);
