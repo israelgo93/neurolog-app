@@ -486,7 +486,7 @@ export function EducationalInfoForm({ educationalInfo, onChange }: Readonly<Educ
         <Label className="text-base font-medium mb-3 block">Acomodaciones</Label>
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            {(educationalInfo.accommodations || []).map((accommodation: string, idx: number) => (
+            {(educationalInfo.accommodations ?? []).map((accommodation: string, idx: number) => (
               <Badge key={`${accommodation}-${idx}`} variant="secondary" className="text-sm">
                 {accommodation}
                 <Button
@@ -528,7 +528,7 @@ export function EducationalInfoForm({ educationalInfo, onChange }: Readonly<Educ
   );
 }
 
-export function PrivacySettingsForm({ settings, onChange }: PrivacySettingsFormProps) {
+export function PrivacySettingsForm({ settings, onChange }: Readonly<PrivacySettingsFormProps>) {
   return (
     <div className="space-y-6">
       <div className="space-y-4">
