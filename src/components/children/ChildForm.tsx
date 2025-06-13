@@ -251,7 +251,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         {items.map((item, index) => (
-          <Badge key={index} variant="secondary" className="text-sm">
+          <Badge key={item} variant="secondary" className="text-sm">
             {item}
             <Button
               type="button"
