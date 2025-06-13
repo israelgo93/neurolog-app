@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
-import type { ChildWithRelation } from '@/types';
+import type { ChildWithRelation as ChildWithRelationBase } from '@/types';
 // Define UserRelation type locally since import was not found
 type UserRelation = {
   user_id: string;
@@ -33,6 +33,10 @@ type UserRelation = {
   relationship_type: string;
   can_edit?: boolean;
   can_export?: boolean;
+};
+// Extend ChildWithRelation to include user_relations
+type ChildWithRelation = ChildWithRelationBase & {
+  user_relations?: UserRelation[];
 };
 
 import {
@@ -53,11 +57,12 @@ import {
   GraduationCapIcon,
   ShieldIcon,
   ClockIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+// import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 } from 'lucide-react';
 import { format, differenceInYears, subMonths, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
 
 export default function ChildDetailPage() {
   const params = useParams();
@@ -500,7 +505,7 @@ export default function ChildDetailPage() {
                   onChange={e => setFilterCategory(e.target.value)}
                 >
                   <option value="">Todas las categorías</option>
-                  {[...new Set(logs.map(l => l.category?.name).filter(Boolean))].map((cat, idx) => (
+                  {[...new Set(logs.map(l => l.category?.name).filter(Boolean))].map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
