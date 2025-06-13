@@ -29,20 +29,17 @@ import {
   EditIcon,
   MoreVerticalIcon,
   CalendarIcon,
-  HeartIcon,
   MapPinIcon,
   CloudIcon,
   FileIcon,
   MessageSquareIcon,
   AlertCircleIcon,
   CheckCircleIcon,
-  EyeIcon,
   EyeOffIcon,
   ClockIcon,
   ArrowLeftIcon,
   UserIcon,
   TagIcon,
-  ThermometerIcon,
   ReplyIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -138,7 +135,7 @@ export default function LogDetailPage() {
   };
 
   const canReview = user?.role === 'specialist' && !log.reviewed_by;
-  const canAddFeedback = user?.role === 'parent' || user?.role === 'family';
+  const canAddFeedback = user?.role === 'parent' ?? user?.role === 'family';
 
   return (
     <div className="space-y-6">
