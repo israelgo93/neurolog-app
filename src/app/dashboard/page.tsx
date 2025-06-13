@@ -36,8 +36,20 @@ import { es } from 'date-fns/locale';
 // INTERFACES Y TIPOS
 // ================================================================
 
+interface DashboardStats {
+  total_children?: number;
+  children_growth?: number;
+  total_logs?: number;
+  logs_growth?: number;
+  logs_this_week?: number;
+  weekly_growth?: number;
+  pending_reviews?: number;
+  avg_mood_score?: number;
+  last_log_date?: string;
+}
+
 interface QuickStatsProps {
-  stats: any;
+  stats: DashboardStats;
   loading: boolean;
 }
 
@@ -449,7 +461,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] ?? 'Usuario'}
+            {greeting()}, {user?.full_name?.split(' ')[0] ?? 'Usuario'}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
             Aquí está el resumen de hoy para tus niños en seguimiento
@@ -531,7 +543,7 @@ export default function DashboardPage() {
                 <div className="flex items-center">
                   <Heart className="h-4 w-4 text-red-400 mr-1" />
                   <span className="font-medium">
-                    {stats.avg_mood_score ? stats.avg_mood_score.toFixed(1) : 'N/A'}/5
+                    {stats.avg_mood_score !== undefined && stats.avg_mood_score !== null ? stats.avg_mood_score.toFixed(1) : 'N/A'}/5
                   </span>
                 </div>
               </div>
@@ -539,7 +551,7 @@ export default function DashboardPage() {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Último registro</span>
                 <span className="text-xs text-gray-500">
-                  {stats.last_log_date ? 
+                  {stats.last_log_date && !isNaN(new Date(stats.last_log_date).getTime()) ? 
                     format(new Date(stats.last_log_date), 'dd MMM', { locale: es }) : 
                     'Ninguno'
                   }
