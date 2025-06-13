@@ -416,7 +416,7 @@ export function EducationalInfoForm({ educationalInfo, onChange }: Readonly<Educ
           <Label htmlFor="grade">Grado/Nivel</Label>
           <Input
             id="grade"
-            value={educationalInfo.grade || ''}
+            value={educationalInfo.grade ?? ''}
             onChange={(e) => onChange({
               ...educationalInfo,
               grade: e.target.value
@@ -429,7 +429,7 @@ export function EducationalInfoForm({ educationalInfo, onChange }: Readonly<Educ
         <Label htmlFor="teacher">Docente Principal</Label>
         <Input
           id="teacher"
-          value={educationalInfo.teacher || ''}
+          value={educationalInfo.teacher ?? ''}
           onChange={(e) => onChange({
             ...educationalInfo,
             teacher: e.target.value
