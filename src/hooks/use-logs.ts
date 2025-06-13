@@ -429,7 +429,7 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
           schema: 'public',
           table: 'daily_logs'
         },
-        (payload) => {
+        () => {
           if (mountedRef.current && autoRefresh) {
             setTimeout(() => {
               if (mountedRef.current) refreshLogs();
