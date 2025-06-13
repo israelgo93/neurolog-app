@@ -41,19 +41,13 @@ import type {
   LogInsert, 
   LogUpdate, 
   Category, 
-  IntensityLevel,
   LogAttachment,
-  ChildWithRelation
 } from '@/types';
 import { 
-  CalendarIcon, 
   ImageIcon, 
   PlusIcon, 
   TrashIcon, 
   SaveIcon,
-  HeartIcon,
-  AlertTriangleIcon,
-  EyeIcon,
   EyeOffIcon,
   TagIcon,
   MapPinIcon,
@@ -63,7 +57,6 @@ import {
   UploadIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 
 // ================================================================
 // ESQUEMAS DE VALIDACIÓN
@@ -135,7 +128,7 @@ interface TagsInputProps {
 // COMPONENTES AUXILIARES
 // ================================================================
 
-function MoodSelector({ value, onChange }: MoodSelectorProps) {
+function MoodSelector({ value, onChange }: Readonly<MoodSelectorProps>) {
   const moods = [
     { value: 1, emoji: '😢', label: 'Muy triste', color: 'text-red-500' },
     { value: 2, emoji: '😕', label: 'Triste', color: 'text-orange-500' },
@@ -186,7 +179,7 @@ function MoodSelector({ value, onChange }: MoodSelectorProps) {
   );
 }
 
-function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManagerProps) {
+function AttachmentsManager({ attachments, onChange, childId }: Readonly<AttachmentsManagerProps>) {
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -324,7 +317,7 @@ function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManag
   );
 }
 
-function TagsInput({ tags, onChange }: TagsInputProps) {
+function TagsInput({ tags, onChange }: Readonly<TagsInputProps>) {
   const [newTag, setNewTag] = useState('');
 
   const addTag = () => {
@@ -391,7 +384,7 @@ function TagsInput({ tags, onChange }: TagsInputProps) {
 // COMPONENTE PRINCIPAL
 // ================================================================
 
-export default function LogForm({ log, childId, mode, onSuccess, onCancel }: LogFormProps) {
+export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Readonly<LogFormProps>) {
   useAuth();
   const { children } = useChildren();
   const { createLog, updateLog } = useLogs();
@@ -401,19 +394,19 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
   const form = useForm<LogFormData>({
     resolver: zodResolver(logFormSchema),
     defaultValues: {
-      child_id: log?.child_id || childId || '',
-      category_id: log?.category_id || '',
-      title: log?.title || '',
-      content: log?.content || '',
-      mood_score: log?.mood_score || undefined,
-      intensity_level: log?.intensity_level || 'medium',
-      log_date: log?.log_date || format(new Date(), 'yyyy-MM-dd'),
-      is_private: log?.is_private || false,
-      tags: log?.tags || [],
-      location: log?.location || '',
-      weather: log?.weather || '',
-      follow_up_required: log?.follow_up_required || false,
-      follow_up_date: log?.follow_up_date || '',
+      child_id: log?.child_id ?? childId ?? '',
+      category_id: log?.category_id ?? '',
+      title: log?.title ?? '',
+      content: log?.content ?? '',
+      mood_score: log?.mood_score ?? undefined,
+      intensity_level: log?.intensity_level ?? 'medium',
+      log_date: log?.log_date ?? format(new Date(), 'yyyy-MM-dd'),
+      is_private: log?.is_private ?? false,
+      tags: log?.tags ?? [],
+      location: log?.location ?? '',
+      weather: log?.weather ?? '',
+      follow_up_required: log?.follow_up_required ?? false,
+      follow_up_date: log?.follow_up_date ?? '',
       attachments: log?.attachments || []
     }
   });
@@ -429,7 +422,7 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
           .order('sort_order');
 
         if (error) throw error;
-        setCategories(data || []);
+        setCategories(data ?? []);
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
