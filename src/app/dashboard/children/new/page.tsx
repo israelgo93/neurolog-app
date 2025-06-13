@@ -102,9 +102,9 @@ export default function NewChildPage() {
         ...formData,
         name: formData.name.trim(),
         emergency_contact: emergencyContacts,
-        birth_date: formData.birth_date || null,
-        diagnosis: formData.diagnosis || null,
-        notes: formData.notes || null
+        birth_date: formData.birth_date ?? null,
+        diagnosis: formData.diagnosis ?? null,
+        notes: formData.notes ?? null
       });
       
       // Redirigir a la lista de niños
@@ -291,7 +291,7 @@ export default function NewChildPage() {
                 </Label>
                 <Input
                   id="school"
-                  value={formData.educational_info?.school || ''}
+                  value={formData.educational_info?.school ?? ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     educational_info: {
@@ -309,7 +309,7 @@ export default function NewChildPage() {
                 </Label>
                 <Input
                   id="grade"
-                  value={formData.educational_info?.grade || ''}
+                  value={formData.educational_info?.grade ?? ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     educational_info: {
@@ -328,7 +328,7 @@ export default function NewChildPage() {
               </Label>
               <Input
                 id="teacher"
-                value={formData.educational_info?.teacher || ''}
+                value={formData.educational_info?.teacher ?? ''}
                 onChange={(e) => setFormData({
                   ...formData,
                   educational_info: {
