@@ -103,6 +103,12 @@ export default function LogDetailPage() {
     return '😄';
   };
 
+  const getMoodDescription = (score: number) => {
+    if (score <= 2) return 'Necesita atención';
+    if (score <= 3) return 'Normal';
+    return 'Muy positivo';
+  };
+
   const handleAddFeedback = async () => {
     if (!feedback.trim()) return;
     
@@ -241,16 +247,15 @@ export default function LogDetailPage() {
               {/* Mood Score */}
               {log.mood_score && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Estado de ánimo</h4>
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{getMoodEmoji(log.mood_score)}</span>
-                    <div>
-                      <p className="text-lg font-semibold text-gray-900">{log.mood_score}/5</p>
-                      <p className="text-sm text-gray-600">
-                        {log.mood_score <= 2 ? 'Necesita atención' : 
-                         log.mood_score <= 3 ? 'Normal' : 'Muy positivo'}
-                      </p>
-                    </div>
+                  <p className="text-sm text-gray-600">
+                    {getMoodDescription(log.mood_score)}
+                  </p>
+                  <div>
+                    <p className="text-lg font-semibold text-gray-900">{log.mood_score}/5</p>
+                    <p className="text-sm text-gray-600">
+                      {log.mood_score <= 2 ? 'Necesita atención' : 
+                       log.mood_score <= 3 ? 'Normal' : 'Muy positivo'}
+                    </p>
                   </div>
                 </div>
               )}
