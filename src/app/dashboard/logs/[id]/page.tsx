@@ -204,7 +204,7 @@ export default function LogDetailPage() {
                     style={{ backgroundColor: log.category_color }}
                   />
                   <div>
-                    <CardTitle className="text-lg">{log.category_name || 'Sin categoría'}</CardTitle>
+                    <CardTitle className="text-lg">{log.category_name ?? 'Sin categoría'}</CardTitle>
                     <CardDescription>
                       Registrado por {log.logged_by_name}
                     </CardDescription>
@@ -314,7 +314,7 @@ export default function LogDetailPage() {
                     <h4 className="text-sm font-medium text-green-900">Revisado por especialista</h4>
                   </div>
                   <p className="text-sm text-green-700 mt-1">
-                    Revisado por {log.reviewer_name} el {format(new Date(log.reviewed_at!), 'dd MMM yyyy', { locale: es })}
+                    Revisado por {log.reviewed_by ?? 'especialista'} el {format(new Date(log.reviewed_at!), 'dd MMM yyyy', { locale: es })}
                   </p>
                   {log.specialist_notes && (
                     <div className="mt-3">
