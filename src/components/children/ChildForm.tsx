@@ -309,8 +309,22 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           variant="outline"
           size="sm"
           onClick={() => {
-            const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-            const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
+            let value = '';
+            if (field === 'allergies') {
+              value = newAllergy;
+            } else if (field === 'medications') {
+              value = newMedication;
+            } else {
+              value = newCondition;
+            }
+            let setter: (value: string) => void;
+            if (field === 'allergies') {
+              setter = setNewAllergy;
+            } else if (field === 'medications') {
+              setter = setNewMedication;
+            } else {
+              setter = setNewCondition;
+            }
             addItem(field, value, setter);
           }}
         >
@@ -443,7 +457,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
             {(educationalInfo.iep_goals || []).map((goal: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-sm">
+              <Badge key={goal} variant="secondary" className="text-sm">
                 {goal}
                 <Button
                   type="button"
@@ -963,12 +977,12 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
               disabled={form.formState.isSubmitting}
             >
               <SaveIcon className="mr-2 h-4 w-4" />
-              {form.formState.isSubmitting
-                ? 'Guardando...'
-                : mode === 'create' 
-                  ? 'Crear Niño' 
-                  : 'Guardar Cambios'
-              }
+              {(() => {
+                if (form.formState.isSubmitting) {
+                  return 'Guardando...';
+                }
+                return mode === 'create' ? 'Crear Niño' : 'Guardar Cambios';
+              })()}
             </Button>
           </div>
         </form>
