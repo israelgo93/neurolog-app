@@ -301,9 +301,14 @@ export function Header() {
                 <p>Notificaciones ({totalNotifications})</p>
               </TooltipContent>
             </Tooltip>
-                  <p className="text-xs text-gray-500 capitalize">
-                    {getUserRoleLabel()}
-                  </p>
+          </TooltipProvider>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center space-x-2"
+              >
                 <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
                   <AvatarImage src={user?.avatar_url ?? undefined} />
                   <AvatarFallback className="text-xs sm:text-sm">
