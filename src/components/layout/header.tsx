@@ -147,20 +147,6 @@ export function Header() {
   ];
 
   // Extract user role label to avoid nested ternary in JSX
-  const getUserRoleLabel = () => {
-    switch (user?.role) {
-      case 'parent':
-        return 'Padre/Madre';
-      case 'teacher':
-        return 'Docente';
-      case 'specialist':
-        return 'Especialista';
-      case 'admin':
-        return 'Admin';
-      default:
-        return 'Usuario';
-    }
-  };
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200">
