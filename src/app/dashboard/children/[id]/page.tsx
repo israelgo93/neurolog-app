@@ -22,7 +22,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-// import { useAuth } from '@/components/providers/AuthProvider'; // No se usa en el componente
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
 import type { ChildWithRelation } from '@/types';
@@ -53,9 +52,8 @@ export default function ChildDetailPage() {
   const params = useParams();
   const router = useRouter();
   const childId = params.id as string;
-  // const { user } = useAuth(); // Se eliminó porque no se usa
-  const { loading: childLoading, getChildById } = useChildren(); // Eliminado 'children'
-  const { logs, loading: logsLoading } = useLogs({ childId }); // Eliminado 'stats'
+  const { loading: childLoading, getChildById } = useChildren();
+  const { logs } = useLogs({ childId });
 
   const [child, setChild] = useState<ChildWithRelation | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
