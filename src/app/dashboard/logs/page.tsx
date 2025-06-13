@@ -572,6 +572,15 @@ export default function LogsPage() {
     window.location.href = `/dashboard/logs/${log.id}?action=feedback`;
   };
 
+  // Placeholder IDs for loading state
+  const loadingPlaceholders = useMemo(() => [
+    'loading-card-1',
+    'loading-card-2',
+    'loading-card-3',
+    'loading-card-4',
+    'loading-card-5'
+  ], []);
+
   if (loading) {
     return (
       <div className="flex-1 space-y-6 p-6">
@@ -584,8 +593,8 @@ export default function LogsPage() {
         </div>
         
         <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i} className="p-6">
+          {loadingPlaceholders.map((id) => (
+            <Card key={id} className="p-6">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
                 <div className="flex-1 space-y-2">
