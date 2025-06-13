@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -22,13 +22,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/providers/AuthProvider';
+// import { useAuth } from '@/components/providers/AuthProvider'; // No se usa en el componente
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
-import type { 
-  ChildWithRelation
-} from '@/types';
-import { 
+import type { ChildWithRelation } from '@/types';
+import {
   EditIcon,
   MoreVerticalIcon,
   UserPlusIcon,
@@ -48,24 +46,23 @@ import {
   ClockIcon,
   ArrowLeftIcon
 } from 'lucide-react';
-import { format, differenceInYears, subMonths } from 'date-fns';
+import { format, differenceInYears, subMonths, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export default function ChildDetailPage() {
   const params = useParams();
   const router = useRouter();
   const childId = params.id as string;
-  const { user } = useAuth();
-  const { children, loading: childLoading, getChildById } = useChildren();
-  const { logs, loading: logsLoading, stats } = useLogs({ childId });
-  
+  // const { user } = useAuth(); // Se eliminó porque no se usa
+  const { loading: childLoading, getChildById } = useChildren(); // Eliminado 'children'
+  const { logs, loading: logsLoading } = useLogs({ childId }); // Eliminado 'stats'
+
   const [child, setChild] = useState<ChildWithRelation | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     if (childId && !childLoading) {
-      const foundChild = getChildById(childId);
-      setChild(foundChild || null);
+      setChild(getChildById(childId) || null);
     }
   }, [childId, childLoading, getChildById]);
 
