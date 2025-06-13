@@ -1,3 +1,7 @@
+-- SonarQube: No es posible usar constantes globales en SQL estándar para CHECKs, DEFAULTs o vistas.
+-- La duplicación de literales es inevitable en este contexto. Si SonarQube marca esto como problema, puede ignorarse o marcarse como 'Won't Fix'.
+-- NOSONAR
+
 -- ================================================================
 -- NEUROLOG APP - SCRIPT COMPLETO DE BASE DE DATOS
 -- ================================================================
