@@ -48,6 +48,37 @@ interface RecentLogsProps {
 }
 
 // ================================================================
+// FUNCIONES HELPER
+// ================================================================
+
+/**
+ * Determina el color del indicador de progreso basado en la cantidad de logs semanales
+ */
+function getProgressIndicatorColor(weeklyLogs: number): string {
+  if (weeklyLogs >= 5) {
+    return "bg-green-500";
+  }
+  if (weeklyLogs >= 3) {
+    return "bg-yellow-500";
+  }
+  return "bg-red-500";
+}
+
+/**
+ * Formatea una fecha para mostrar "Hoy", "Ayer" o el formato de fecha
+ */
+function formatDisplayDate(dateString: string): string {
+  const date = new Date(dateString);
+  if (isToday(date)) {
+    return 'Hoy';
+  }
+  if (isYesterday(date)) {
+    return 'Ayer';
+  }
+  return format(date, 'dd MMM', { locale: es });
+}
+
+// ================================================================
 // COMPONENTE DE ESTADÍSTICAS RÁPIDAS RESPONSIVO
 // ================================================================
 
@@ -254,10 +285,7 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
                 <Progress 
                   value={((child.weekly_logs ?? 0) / 7) * 100} 
                   className="h-2"
-                  indicatorClassName={
-                    (child.weekly_logs ?? 0) >= 5 ? "bg-green-500" :
-                    (child.weekly_logs ?? 0) >= 3 ? "bg-yellow-500" : "bg-red-500"
-                  }
+                  indicatorClassName={getProgressIndicatorColor(child.weekly_logs ?? 0)}
                 />
               </div>
             </CardContent>
@@ -364,9 +392,7 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
                 <span className="font-medium">{log.child_name}</span>
                 <span className="mx-1">•</span>
                 <span>
-                  {isToday(new Date(log.created_at)) ? 'Hoy' :
-                   isYesterday(new Date(log.created_at)) ? 'Ayer' :
-                   format(new Date(log.created_at), 'dd MMM', { locale: es })}
+                  {formatDisplayDate(log.created_at)}
                 </span>
               </div>
               
