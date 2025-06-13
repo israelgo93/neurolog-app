@@ -180,8 +180,8 @@ function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenPr
   if (loading) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {[...Array(3)].map((_) => {
-          const uniqueKey = `child-loading-${Math.random().toString(36).slice(2, 11)}`;
+        {[...Array(3)].map((_, idx) => {
+          const uniqueKey = `child-loading-${idx}`;
           return (
             <Card key={uniqueKey} className="animate-pulse">
               <CardContent className="p-4 sm:p-6">
@@ -320,8 +320,8 @@ function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
   if (loading) {
     return (
       <div className="space-y-3 sm:space-y-4">
-        {[...Array(3)].map((_) => {
-          const uniqueKey = `log-loading-${Math.random().toString(36).slice(2, 11)}`;
+        {[...Array(3)].map((_, idx) => {
+          const uniqueKey = `log-loading-${idx}`;
           return (
             <div key={uniqueKey} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white animate-pulse">
               <Skeleton className="h-10 w-10 rounded-full" />
