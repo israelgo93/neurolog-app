@@ -36,7 +36,7 @@ export default function RegisterPage() {
 
   const validateForm = (): boolean => {
     if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden")
+      setError("Las contraseñas no coinciden en algo")
       return false
     }
 
