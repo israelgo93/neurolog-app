@@ -2,45 +2,24 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import type { ChildWithRelation, ChildFilters, RelationshipType } from '@/types';
 import {
-  PlusIcon,
-  SearchIcon,
-  FilterIcon,
-  MoreVerticalIcon,
-  EditIcon,
-  EyeIcon,
-  UserPlusIcon,
-  CalendarIcon,
-  MapPinIcon,
-  HeartIcon,
-  TrendingUpIcon,
-  DownloadIcon,
-  UsersIcon,
-  BookOpenIcon,
-  RefreshCwIcon,
+  PlusIcon, SearchIcon, FilterIcon, MoreVerticalIcon, EditIcon, EyeIcon, UserPlusIcon, CalendarIcon, MapPinIcon, HeartIcon, TrendingUpIcon, DownloadIcon, UsersIcon, BookOpenIcon, RefreshCwIcon,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -158,7 +137,6 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Información básica */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           {child.birth_date && (
             <div className="flex items-center space-x-2">
@@ -177,7 +155,6 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
           )}
         </div>
 
-        {/* Estadísticas rápidas */}
         <div className="flex justify-between items-center pt-2 border-t">
           <div className="text-center">
             <p className="text-sm font-medium text-gray-900">Registros</p>
@@ -211,9 +188,7 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Búsqueda por nombre */}
           <div className="space-y-2">
-            {/* ASOCIAR LABEL CON CONTROL */}
             <label htmlFor="search-name" className="text-sm font-medium">
               Buscar por nombre
             </label>
@@ -229,7 +204,6 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
             </div>
           </div>
 
-          {/* Relación */}
           <div className="space-y-2">
             <label htmlFor="relationship-type" className="text-sm font-medium">
               Tipo de relación
@@ -257,7 +231,6 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
             </Select>
           </div>
 
-          {/* Rango de edad */}
           <div className="space-y-2">
             <label htmlFor="max-age" className="text-sm font-medium">
               Edad máxima
@@ -283,10 +256,77 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
   );
 }
 
+// Renderiza el header y estadísticas
+function HeaderStats({ children, stats }: { children: React.ReactNode; stats: any }) {
+  return (
+    <>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Mis Niños</h1>
+          <p className="text-gray-600">Gestiona y visualiza el progreso de los niños bajo tu cuidado</p>
+        </div>
+        <div className="flex space-x-3">
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+            <RefreshCwIcon className="h-4 w-4 mr-2" />
+            Actualizar
+          </Button>
+          <Button asChild>
+            <Link href="/dashboard/children/new">
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Crear Niño
+            </Link>
+          </Button>
+        </div>
+      </div>
+      {/* Estadísticas rápidas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">{children}</div>
+    </>
+  );
+}
+
+// Renderiza lista/grid
+function ChildrenList({ viewMode, filteredChildren, handleEdit, handleViewDetails, handleManageUsers }: any) {
+  return (
+    <>
+      {/* View Mode Toggle */}
+      <div className="flex justify-end">
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">Vista:</span>
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleManageUsers('grid')}
+          >
+            Tarjetas
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleManageUsers('list')}
+          >
+            Lista
+          </Button>
+        </div>
+      </div>
+      {/* Children Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredChildren.map((child: ChildWithRelation) => (
+          <ChildCard
+            key={child.id}
+            child={child}
+            onEdit={handleEdit}
+            onViewDetails={handleViewDetails}
+            onManageUsers={handleManageUsers}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
 // ================================================================
 // COMPONENTE PRINCIPAL
 // ================================================================
-
 export default function ChildrenPage() {
   const { user } = useAuth();
   const { children, loading, error, filterChildren } = useChildren({
@@ -309,8 +349,12 @@ export default function ChildrenPage() {
     window.location.href = `/dashboard/children/${child.id}`;
   };
 
-  const handleManageUsers = (child: ChildWithRelation) => {
-    window.location.href = `/dashboard/children/${child.id}/users`;
+  const handleManageUsers = (child: ChildWithRelation | 'grid' | 'list') => {
+    if (typeof child === 'string') {
+      setViewMode(child);
+    } else {
+      window.location.href = `/dashboard/children/${child.id}/users`;
+    }
   };
 
   if (!user) {
@@ -324,91 +368,53 @@ export default function ChildrenPage() {
     );
   }
 
+  // Estadísticas para mostrar
+  const stats = [
+    {
+      icon: <UsersIcon className="h-8 w-8 text-blue-600" />,
+      label: 'Total Niños',
+      value: children.length,
+    },
+    {
+      icon: <BookOpenIcon className="h-8 w-8 text-green-600" />,
+      label: 'Activos',
+      value: children.filter((c) => c.is_active).length,
+    },
+    {
+      icon: <EditIcon className="h-8 w-8 text-purple-600" />,
+      label: 'Editables',
+      value: children.filter((c) => c.can_edit).length,
+    },
+    {
+      icon: <TrendingUpIcon className="h-8 w-8 text-orange-600" />,
+      label: 'Con Diagnóstico',
+      value: children.filter((c) => c.diagnosis).length,
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Header con botón de crear niño */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mis Niños</h1>
-          <p className="text-gray-600">Gestiona y visualiza el progreso de los niños bajo tu cuidado</p>
-        </div>
-
-        <div className="flex space-x-3">
-          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="h-4 w-4 mr-2" />
-            Actualizar
-          </Button>
-
-          <Button asChild>
-            <Link href="/dashboard/children/new">
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Crear Niño
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {/* Estadísticas rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <UsersIcon className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Niños</p>
-                <p className="text-2xl font-bold">{children.length}</p>
+      {/* Header y estadísticas */}
+      <HeaderStats stats={stats}>
+        {stats.map((stat, idx) => (
+          <Card key={idx}>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                {stat.icon}
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                  <p className="text-2xl font-bold">{stat.value}</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <BookOpenIcon className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Activos</p>
-                <p className="text-2xl font-bold">
-                  {children.filter((c) => c.is_active).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <EditIcon className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Editables</p>
-                <p className="text-2xl font-bold">
-                  {children.filter((c) => c.can_edit).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <TrendingUpIcon className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Con Diagnóstico</p>
-                <p className="text-2xl font-bold">
-                  {children.filter((c) => c.diagnosis).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        ))}
+      </HeaderStats>
 
       {/* Filtros */}
       <FiltersCard filters={filters} onFiltersChange={setFilters} />
 
-      {/* Lista/Grid de niños */}
+      {/* Render según estado */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, idx) => (
@@ -466,41 +472,13 @@ export default function ChildrenPage() {
           </CardContent>
         </Card>
       ) : (
-        <>
-          {/* View Mode Toggle */}
-          <div className="flex justify-end">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Vista:</span>
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                Tarjetas
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                Lista
-              </Button>
-            </div>
-          </div>
-
-          {/* Children Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredChildren.map((child) => (
-              <ChildCard
-                key={child.id}
-                child={child}
-                onEdit={handleEdit}
-                onViewDetails={handleViewDetails}
-                onManageUsers={handleManageUsers}
-              />
-            ))}
-          </div>
-        </>
+        <ChildrenList
+          viewMode={viewMode}
+          filteredChildren={filteredChildren}
+          handleEdit={handleEdit}
+          handleViewDetails={handleViewDetails}
+          handleManageUsers={handleManageUsers}
+        />
       )}
     </div>
   );

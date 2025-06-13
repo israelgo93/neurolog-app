@@ -1,11 +1,11 @@
 // ================================================================
 // src/app/dashboard/reports/page.tsx
-// Página principal de reportes y análisis - CORREGIDA
+// Página principal de reportes y análisis - REFACORIZADA COGNITIVE COMPLEXITY <15
 // ================================================================
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,6 @@ import { ProgressChart } from '@/components/reports/ProgressChart';
 import { CategoryDistribution } from '@/components/reports/CategoryDistribution';
 import { MoodTrendChart } from '@/components/reports/MoodTrendChart';
 import { ExportReportDialog } from '@/components/reports/ExportReportDialog';
-// ✅ ARREGLO: Importar todos los componentes desde TimePatterns.tsx
 import { TimePatterns, CorrelationAnalysis, AdvancedInsights } from '@/components/reports/TimePatterns';
 import type { DateRange } from 'react-day-picker';
 import { 
@@ -45,36 +44,57 @@ import {
   CheckCircle,
   Clock
 } from 'lucide-react';
-import { format, subDays, subWeeks, subMonths } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { format, subMonths } from 'date-fns';
 
 // ================================================================
-// FUNCIÓN HELPER PARA CALCULAR TENDENCIA DE MEJORA
+// HELPERS
 // ================================================================
 function calculateImprovementTrend(logs: any[]): number {
   if (logs.length < 2) return 0;
-  
   const moodLogs = logs.filter(log => log.mood_score).sort((a, b) => 
     new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
-  
   if (moodLogs.length < 2) return 0;
-  
   const midpoint = Math.floor(moodLogs.length / 2);
   const firstHalf = moodLogs.slice(0, midpoint);
   const secondHalf = moodLogs.slice(midpoint);
-  
   const firstAvg = firstHalf.reduce((sum, log) => sum + log.mood_score, 0) / firstHalf.length;
   const secondAvg = secondHalf.reduce((sum, log) => sum + log.mood_score, 0) / secondHalf.length;
-  
   return secondAvg - firstAvg;
 }
 
+function filterLogs(logs: any[], selectedChild: string, dateRange: DateRange | undefined) {
+  return logs.filter(log => {
+    if (selectedChild !== 'all' && log.child_id !== selectedChild) return false;
+    if (dateRange?.from && new Date(log.created_at) < dateRange.from) return false;
+    if (dateRange?.to && new Date(log.created_at) > dateRange.to) return false;
+    return true;
+  });
+}
+
+function calculateMetrics(filteredLogs: any[]) {
+  const averageMoodLogs = filteredLogs.filter(l => l.mood_score);
+  const averageMood = averageMoodLogs.length
+    ? (averageMoodLogs.reduce((sum, l) => sum + l.mood_score, 0) / averageMoodLogs.length)
+    : 0;
+  return {
+    totalLogs: filteredLogs.length,
+    averageMood,
+    improvementTrend: calculateImprovementTrend(filteredLogs),
+    activeCategories: new Set(filteredLogs.map(l => l.category_name).filter(Boolean)).size,
+    followUpsRequired: filteredLogs.filter(l => l.follow_up_required).length,
+    activeDays: new Set(filteredLogs.map(l => new Date(l.created_at).toDateString())).size
+  };
+}
+
+// ================================================================
+// COMPONENTE PRINCIPAL
+// ================================================================
 export default function ReportsPage() {
   const { user } = useAuth();
   const { children, loading: childrenLoading } = useChildren();
   const { logs, stats, loading: logsLoading } = useLogs();
-  
+
   const [selectedChild, setSelectedChild] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subMonths(new Date(), 3),
@@ -83,34 +103,9 @@ export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
-  // Filtrar logs según selecciones
-  const filteredLogs = logs.filter(log => {
-    if (selectedChild !== 'all' && log.child_id !== selectedChild) {
-      return false;
-    }
-    
-    if (dateRange?.from && new Date(log.created_at) < dateRange.from) {
-      return false;
-    }
-    
-    if (dateRange?.to && new Date(log.created_at) > dateRange.to) {
-      return false;
-    }
-    
-    return true;
-  });
-
-  // Calcular métricas
-  const metrics = {
-    totalLogs: filteredLogs.length,
-    averageMood: filteredLogs.filter(l => l.mood_score).length > 0 
-      ? (filteredLogs.filter(l => l.mood_score).reduce((sum, l) => sum + l.mood_score, 0) / filteredLogs.filter(l => l.mood_score).length)
-      : 0,
-    improvementTrend: calculateImprovementTrend(filteredLogs),
-    activeCategories: new Set(filteredLogs.map(l => l.category_name).filter(Boolean)).size,
-    followUpsRequired: filteredLogs.filter(l => l.follow_up_required).length,
-    activeDays: new Set(filteredLogs.map(l => new Date(l.created_at).toDateString())).size
-  };
+  // Helpers refactorizados
+  const filteredLogs = filterLogs(logs, selectedChild, dateRange);
+  const metrics = calculateMetrics(filteredLogs);
 
   if (childrenLoading || logsLoading) {
     return (
@@ -348,7 +343,7 @@ export default function ReportsPage() {
 }
 
 // ================================================================
-// COMPONENTES AUXILIARES
+// COMPONENTE AUXILIAR
 // ================================================================
 
 interface MetricCardProps {
