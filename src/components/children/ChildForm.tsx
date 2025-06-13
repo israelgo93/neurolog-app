@@ -614,18 +614,18 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: Readonly
   const defaultContacts = useMemo(() => (
     (child?.emergency_contact || []).map(c => ({
       ...c,
-      id: (c as any)?.id || uuidv4()
+      id: (c as any)?.id ?? uuidv4()
     }))
   ), [child?.emergency_contact]);
 
   const form = useForm<ChildFormData>({
     resolver: zodResolver(childFormSchema),
     defaultValues: {
-      name: child?.name || '',
-      birth_date: child?.birth_date || '',
-      diagnosis: child?.diagnosis || '',
-      notes: child?.notes || '',
-      avatar_url: child?.avatar_url || '',
+      name: child?.name ?? '',
+      birth_date: child?.birth_date ?? '',
+      diagnosis: child?.diagnosis ?? '',
+      notes: child?.notes ?? '',
+      avatar_url: child?.avatar_url ?? '',
       emergency_contact: defaultContacts,
       medical_info: child?.medical_info || {
         allergies: [],
