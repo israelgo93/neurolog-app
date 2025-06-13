@@ -292,7 +292,7 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2 h-8 sm:h-10 px-2 sm:px-3">
                 <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
-                  <AvatarImage src={user?.avatar_url} />
+                  <AvatarImage src={user?.avatar_url ?? undefined} />
                   <AvatarFallback className="text-xs sm:text-sm">
                     {getUserInitials()}
                   </AvatarFallback>
