@@ -251,7 +251,9 @@ export default function LogDetailPage() {
                     {getMoodDescription(log.mood_score)}
                   </p>
                   <div>
-                    <p className="text-lg font-semibold text-gray-900">{log.mood_score}/5</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {log.mood_score}/5 {getMoodEmoji(log.mood_score)}
+                    </p>
                     <p className="text-sm text-gray-600">
                       {getMoodDescription(log.mood_score)}
                     </p>
