@@ -70,21 +70,9 @@ function calculateImprovementTrend(logs: any[]): number {
   return secondAvg - firstAvg;
 }
 
-export default function ReportsPage() {
-  const { user } = useAuth();
-  const { children, loading: childrenLoading } = useChildren();
-  const { logs, stats, loading: logsLoading } = useLogs();
-  
-  const [selectedChild, setSelectedChild] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subMonths(new Date(), 3),
-    to: new Date()
-  });
-  const [activeTab, setActiveTab] = useState('overview');
-  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-
-  // Filtrar logs según selecciones
-  const filteredLogs = logs.filter(log => {
+// Helper functions to reduce complexity in the main component
+const filterLogs = (logs: any[], selectedChild: string, dateRange?: DateRange) => {
+  return logs.filter(log => {
     if (selectedChild !== 'all' && log.child_id !== selectedChild) {
       return false;
     }
@@ -99,18 +87,39 @@ export default function ReportsPage() {
     
     return true;
   });
+};
 
-  // Calcular métricas
-  const metrics = {
+const calculateMetrics = (filteredLogs: any[]) => {
+  const moodLogs = filteredLogs.filter(l => l.mood_score);
+  const hasMoodData = moodLogs.length > 0;
+  
+  return {
     totalLogs: filteredLogs.length,
-    averageMood: filteredLogs.filter(l => l.mood_score).length > 0 
-      ? (filteredLogs.filter(l => l.mood_score).reduce((sum, l) => sum + l.mood_score, 0) / filteredLogs.filter(l => l.mood_score).length)
+    averageMood: hasMoodData
+      ? (moodLogs.reduce((sum, l) => sum + l.mood_score, 0) / moodLogs.length)
       : 0,
     improvementTrend: calculateImprovementTrend(filteredLogs),
     activeCategories: new Set(filteredLogs.map(l => l.category_name).filter(Boolean)).size,
     followUpsRequired: filteredLogs.filter(l => l.follow_up_required).length,
     activeDays: new Set(filteredLogs.map(l => new Date(l.created_at).toDateString())).size
   };
+};
+
+export default function ReportsPage() {
+  const { user } = useAuth();
+  const { children, loading: childrenLoading } = useChildren();
+  const { logs, stats, loading: logsLoading } = useLogs();
+  
+  const [selectedChild, setSelectedChild] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subMonths(new Date(), 3),
+    to: new Date()
+  });
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+
+  const filteredLogs = filterLogs(logs, selectedChild, dateRange);
+  const metrics = calculateMetrics(filteredLogs);
 
   if (childrenLoading || logsLoading) {
     return (
