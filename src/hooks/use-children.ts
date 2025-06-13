@@ -93,8 +93,6 @@ async function auditAccess(type: string, id: string, desc: string) {
 
 export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn {
   const {
-    includeInactive = false,
-    autoRefresh = true,
     realtime = true
   } = options;
 
