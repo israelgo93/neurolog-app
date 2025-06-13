@@ -96,7 +96,7 @@ export default function SettingsPage() {
       console.error('Error updating profile:', error)
       toast({
         title: "Error al actualizar",
-        description: error.message || "No se pudieron guardar los cambios.",
+        description: error.message ?? "No se pudieron guardar los cambios.",
         variant: "destructive"
       })
     } finally {
@@ -166,6 +166,18 @@ export default function SettingsPage() {
     )
   }
 
+  // Extraer el rol del usuario a una variable legible
+  let userRoleLabel = 'Usuario';
+  if (user.role === 'parent') {
+    userRoleLabel = 'Padre/Madre';
+  } else if (user.role === 'teacher') {
+    userRoleLabel = 'Docente';
+  } else if (user.role === 'specialist') {
+    userRoleLabel = 'Especialista';
+  } else if (user.role === 'admin') {
+    userRoleLabel = 'Administrador';
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -191,10 +203,7 @@ export default function SettingsPage() {
               </p>
               <p className="text-sm text-gray-600">{user.email}</p>
               <p className="text-xs text-blue-600 capitalize">
-                {user.role === 'parent' ? 'Padre/Madre' :
-                 user.role === 'teacher' ? 'Docente' :
-                 user.role === 'specialist' ? 'Especialista' : 
-                 user.role === 'admin' ? 'Administrador' : 'Usuario'}
+                {userRoleLabel}
               </p>
             </div>
           </div>

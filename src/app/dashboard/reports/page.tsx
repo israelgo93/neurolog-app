@@ -216,20 +216,29 @@ export default function ReportsPage() {
           subtitle="En el período seleccionado"
         />
 
-        <MetricCard
-          title="Estado de Ánimo"
-          value={metrics.averageMood.toFixed(1)}
-          suffix="/5"
-          icon={Heart}
-          color={
-            metrics.averageMood >= 4
-              ? 'green'
-              : metrics.averageMood >= 3
-              ? 'orange'
-              : 'red'
+        {/*
+          Extraemos la lógica del color a una variable para evitar ternarios anidados
+        */}
+        {(() => {
+          let moodColor: 'green' | 'orange' | 'red';
+          if (metrics.averageMood >= 4) {
+            moodColor = 'green';
+          } else if (metrics.averageMood >= 3) {
+            moodColor = 'orange';
+          } else {
+            moodColor = 'red';
           }
-          subtitle="Promedio del período"
-        />
+          return (
+            <MetricCard
+              title="Estado de Ánimo"
+              value={metrics.averageMood.toFixed(1)}
+              suffix="/5"
+              icon={Heart}
+              color={moodColor}
+              subtitle="Promedio del período"
+            />
+          );
+        })()}
 
         <MetricCard
           title="Tendencia"
@@ -378,12 +387,12 @@ export default function ReportsPage() {
 // ================================================================
 
 interface MetricCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ComponentType<{ className?: string }>;
-  color: 'blue' | 'red' | 'purple' | 'green' | 'orange' | 'gray';
-  subtitle: string;
-  suffix?: string;
+  readonly title: string;
+  readonly value: string | number;
+  readonly icon: React.ComponentType<{ className?: string }>;
+  readonly color: 'blue' | 'red' | 'purple' | 'green' | 'orange' | 'gray';
+  readonly subtitle: string;
+  readonly suffix?: string;
 }
 
 function MetricCard({ title, value, icon: Icon, color, subtitle, suffix }: MetricCardProps) {
