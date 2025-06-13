@@ -288,7 +288,7 @@ export function ItemsList({
   );
 }
 
-export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
+export function MedicalInfoForm({ medicalInfo, onChange }: Readonly<MedicalInfoFormProps>) {
   const [newAllergy, setNewAllergy] = useState('');
   const [newMedication, setNewMedication] = useState('');
   const [newCondition, setNewCondition] = useState('');
@@ -619,7 +619,7 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
   const defaultContacts = useMemo(() => (
     (child?.emergency_contact || []).map(c => ({
       ...c,
-      id: c.id || uuidv4()
+      id: (c as any)?.id || uuidv4()
     }))
   ), [child?.emergency_contact]);
 

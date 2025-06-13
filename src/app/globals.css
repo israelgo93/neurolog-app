@@ -90,17 +90,23 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
+    border-width: 1px;
+    border-style: solid;
   }
   
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
   /* Mejoras de accesibilidad */
   *:focus-visible {
-    @apply outline-2 outline-offset-2 outline-ring;
+    outline-width: 2px;
+    outline-offset: 2px;
+    outline-color: hsl(var(--ring));
+    outline-style: solid;
   }
   
   /* Prevenir zoom en inputs en iOS */
