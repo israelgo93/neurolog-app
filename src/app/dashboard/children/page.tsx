@@ -209,6 +209,11 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
           <div className="space-y-2">
             <label className="text-sm font-medium">
               Buscar por nombre
+              <input
+                type="text"
+                name="search"
+                className="mt-1 block w-full border rounded px-2 py-1"
+              />
             </label>
           <div className="relative">
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
