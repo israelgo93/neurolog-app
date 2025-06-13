@@ -106,15 +106,6 @@ export function Header() {
     return title || 'NeuroLog';
   };
 
-  const getUserInitials = () => {
-    if (!user?.full_name) return 'U';
-    return user.full_name
-      .split(' ')
-      .map(name => name.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   const quickActions = [
     { 
