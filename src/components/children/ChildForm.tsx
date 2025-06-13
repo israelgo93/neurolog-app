@@ -28,7 +28,7 @@ import {
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { uploadFile, getPublicUrl } from '@/lib/supabase';
-import type { Child, ChildInsert, ChildUpdate, EmergencyContact } from '@/types';
+import type { Child, ChildInsert, ChildUpdate, EmergencyContact as EmergencyContactBase } from '@/types';
 import { 
   CalendarIcon, 
   ImageIcon, 
@@ -43,6 +43,9 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
+
+// Extiende EmergencyContact para incluir 'id' opcional solo para el formulario
+type EmergencyContact = EmergencyContactBase & { id?: string };
 
 // ================================================================
 // ESQUEMAS DE VALIDACIÓN
@@ -327,7 +330,7 @@ export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps)
         </Label>
         <ItemsList
           field="allergies"
-          items={medicalInfo.allergies || []}
+          items={medicalInfo.allergies ?? []}
           placeholder="Agregar alergia..."
           value={newAllergy}
           onValueChange={setNewAllergy}
@@ -339,7 +342,7 @@ export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps)
         <Label className="text-base font-medium mb-3 block">Medicamentos</Label>
         <ItemsList
           field="medications"
-          items={medicalInfo.medications || []}
+          items={medicalInfo.medications ?? []}
           placeholder="Agregar medicamento..."
           value={newMedication}
           onValueChange={setNewMedication}
@@ -351,7 +354,7 @@ export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps)
         <Label className="text-base font-medium mb-3 block">Condiciones Médicas</Label>
         <ItemsList
           field="conditions"
-          items={medicalInfo.conditions || []}
+          items={medicalInfo.conditions ?? []}
           placeholder="Agregar condición..."
           value={newCondition}
           onValueChange={setNewCondition}
@@ -363,7 +366,7 @@ export function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps)
         <Label htmlFor="emergency-notes">Notas de Emergencia</Label>
         <Textarea
           id="emergency-notes"
-          value={medicalInfo.emergency_notes || ''}
+          value={medicalInfo.emergency_notes ?? ''}
           onChange={(e) => onChange({
             ...medicalInfo,
             emergency_notes: e.target.value
@@ -382,7 +385,7 @@ export function EducationalInfoForm({ educationalInfo, onChange }: EducationalIn
 
   const addItem = useCallback((field: string, value: string, setter: (v: string) => void) => {
     if (value.trim()) {
-      const currentItems = educationalInfo[field] || [];
+      const currentItems = educationalInfo[field] ?? [];
       onChange({
         ...educationalInfo,
         [field]: [...currentItems, value.trim()]
@@ -392,7 +395,7 @@ export function EducationalInfoForm({ educationalInfo, onChange }: EducationalIn
   }, [educationalInfo, onChange]);
 
   const removeItem = useCallback((field: string, index: number) => {
-    const currentItems = educationalInfo[field] || [];
+    const currentItems = educationalInfo[field] ?? [];
     onChange({
       ...educationalInfo,
       [field]: currentItems.filter((_: any, i: number) => i !== index)
@@ -406,7 +409,7 @@ export function EducationalInfoForm({ educationalInfo, onChange }: EducationalIn
           <Label htmlFor="school">Institución Educativa</Label>
           <Input
             id="school"
-            value={educationalInfo.school || ''}
+            value={educationalInfo.school ?? ''}
             onChange={(e) => onChange({
               ...educationalInfo,
               school: e.target.value
