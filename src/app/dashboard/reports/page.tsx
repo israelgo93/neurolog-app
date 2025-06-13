@@ -106,9 +106,10 @@ const calculateMetrics = (filteredLogs: any[]) => {
 };
 
 export default function ReportsPage() {
-  const { user } = useAuth();
+  // Call useAuth() without destructuring unused variables
+  useAuth();
   const { children, loading: childrenLoading } = useChildren();
-  const { logs, stats, loading: logsLoading } = useLogs();
+  const { logs, loading: logsLoading } = useLogs();
   
   const [selectedChild, setSelectedChild] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
