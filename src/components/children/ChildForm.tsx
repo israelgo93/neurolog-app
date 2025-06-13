@@ -659,8 +659,8 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: Readonly
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-      await uploadFile('avatars', fileName, file);
-      const url = getPublicUrl('avatars', fileName);
+      await uploadFile('AVATARS', file, fileName);
+      const url = getPublicUrl('AVATARS', fileName);
 
       form.setValue('avatar_url', url);
     } catch (error) {
