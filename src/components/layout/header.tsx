@@ -147,15 +147,16 @@ export function Header() {
   ];
 
   // Extract user role label to avoid nested ternary in JSX
-  const userRoleLabel = user?.role === 'parent'
-    ? 'Padre/Madre'
-    : user?.role === 'teacher'
-    ? 'Docente'
-    : user?.role === 'specialist'
-    ? 'Especialista'
-    : user?.role === 'admin'
-    ? 'Admin'
-    : 'Usuario';
+  let userRoleLabel = 'Usuario';
+  if (user?.role === 'parent') {
+    userRoleLabel = 'Padre/Madre';
+  } else if (user?.role === 'teacher') {
+    userRoleLabel = 'Docente';
+  } else if (user?.role === 'specialist') {
+    userRoleLabel = 'Especialista';
+  } else if (user?.role === 'admin') {
+    userRoleLabel = 'Admin';
+  }
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200">
@@ -312,12 +313,9 @@ export function Header() {
                     {user?.full_name ?? 'Usuario'}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {user?.role === 'parent' ? 'Padre/Madre' : 
-                     user?.role === 'teacher' ? 'Docente' :
-                     user?.role === 'specialist' ? 'Especialista' :
-                     user?.role === 'admin' ? 'Admin' : 'Usuario'}
+                    {userRoleLabel}
                   </p>
-                </div>
+                </Avatar>
                 <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
               </Button>
             </DropdownMenuTrigger>
