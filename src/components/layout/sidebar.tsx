@@ -211,12 +211,12 @@ export function Sidebar() {
             <Avatar className="h-10 w-10 ring-2 ring-blue-100">
               <AvatarImage src={user?.avatar_url} alt={user?.full_name} />
               <AvatarFallback className="bg-gradient-to-br from-blue-100 to-purple-100 text-blue-700 font-semibold">
-                {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                {user?.full_name?.charAt(0)?.toUpperCase() ?? 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.full_name || 'Usuario'}
+                {user?.full_name ?? 'Usuario'}
               </p>
               <p className="text-xs text-gray-500 capitalize">
                 {user?.role === 'parent' ? 'Padre/Madre' :
