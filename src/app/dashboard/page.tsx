@@ -37,7 +37,7 @@ interface DashboardStats {
   logs_this_week?: number;
   weekly_growth?: number;
   pending_reviews?: number;
-  avg_mood_score?: number;
+  averageMood?: number;
   last_log_date?: string;
 }
 
@@ -112,16 +112,11 @@ function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
 
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, idx) => {
-          const uniqueKey = `stat-loading-${idx}`;
+        {[...Array(4)].map((_) => {
+          const uniqueKey = `stat-loading-${Math.random().toString(36).slice(2, 11)}`;
           return (
             <Card key={uniqueKey} className="animate-pulse">
-                {/* 
-                Math.random() is used here only to generate unique keys for loading skeletons.
-                This is safe because these keys are only needed for temporary, non-persistent UI elements
-                during loading states, and do not affect application logic, security, or data integrity.
-                */}
-                <CardContent className="p-3 sm:p-4 md:p-6">
+              <CardContent className="p-3 sm:p-4 md:p-6">
                 <div className="flex items-center justify-between space-x-2">
                   <div className="space-y-2 flex-1">
                     <Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
@@ -180,8 +175,8 @@ function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenPr
   if (loading) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {[...Array(3)].map((_, idx) => {
-          const uniqueKey = `child-loading-${idx}`;
+        {[...Array(3)].map((_) => {
+          const uniqueKey = `child-loading-${Math.random().toString(36).slice(2, 11)}`;
           return (
             <Card key={uniqueKey} className="animate-pulse">
               <CardContent className="p-4 sm:p-6">
@@ -320,8 +315,8 @@ function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
   if (loading) {
     return (
       <div className="space-y-3 sm:space-y-4">
-        {[...Array(3)].map((_, idx) => {
-          const uniqueKey = `log-loading-${idx}`;
+        {[...Array(3)].map((_) => {
+          const uniqueKey = `log-loading-${Math.random().toString(36).slice(2, 11)}`;
           return (
             <div key={uniqueKey} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white animate-pulse">
               <Skeleton className="h-10 w-10 rounded-full" />
@@ -542,7 +537,7 @@ export default function DashboardPage() {
                 <div className="flex items-center">
                   <Heart className="h-4 w-4 text-red-400 mr-1" />
                   <span className="font-medium">
-                    {stats.avg_mood_score !== undefined && stats.avg_mood_score !== null ? stats.avg_mood_score.toFixed(1) : 'N/A'}/5
+                    {stats.averageMood !== undefined && stats.averageMood !== null ? stats.averageMood.toFixed(1) : 'N/A'}/5
                   </span>
                 </div>
               </div>

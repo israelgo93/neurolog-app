@@ -58,7 +58,6 @@ import {
   ShieldIcon,
   ClockIcon,
   ArrowLeftIcon,
-// import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 } from 'lucide-react';
 import { format, differenceInYears, subMonths, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
