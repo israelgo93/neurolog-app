@@ -39,11 +39,11 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
   const calculateAge = (birthDate: string) => {
     const birth = new Date(birthDate);
     const today = new Date();
-    const age = today.getFullYear() - birth.getFullYear();
+    let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
 
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      return age - 1;
+      age -= 1;
     }
     return age;
   };
@@ -97,11 +97,11 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
                 <Badge variant="secondary" className={getRelationshipColor(child.relationship_type)}>
                   {getRelationshipLabel(child.relationship_type)}
                 </Badge>
-                {child.can_edit ? (
+                {child.can_edit && (
                   <Badge variant="outline" className="text-xs">
                     Editor
                   </Badge>
-                ) : null}
+                )}
               </div>
             </div>
           </div>
@@ -119,18 +119,18 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
                 <EyeIcon className="mr-2 h-4 w-4" />
                 Ver detalles
               </DropdownMenuItem>
-              {child.can_edit ? (
+              {child.can_edit && (
                 <DropdownMenuItem onClick={() => onEdit(child)}>
                   <EditIcon className="mr-2 h-4 w-4" />
                   Editar
                 </DropdownMenuItem>
-              ) : null}
-              {child.can_invite_others ? (
+              )}
+              {child.can_invite_others && (
                 <DropdownMenuItem onClick={() => onManageUsers(child)}>
                   <UserPlusIcon className="mr-2 h-4 w-4" />
                   Gestionar usuarios
                 </DropdownMenuItem>
-              ) : null}
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -138,21 +138,21 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
 
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4 text-sm">
-          {child.birth_date ? (
+          {child.birth_date && (
             <div className="flex items-center space-x-2">
               <CalendarIcon className="h-4 w-4 text-gray-400" />
               <span className="text-gray-600">{calculateAge(child.birth_date)} años</span>
             </div>
-          ) : null}
+          )}
 
-          {child.diagnosis ? (
+          {child.diagnosis && (
             <div className="flex items-center space-x-2">
               <HeartIcon className="h-4 w-4 text-gray-400" />
               <span className="text-gray-600 truncate" title={child.diagnosis}>
                 {child.diagnosis}
               </span>
             </div>
-          ) : null}
+          )}
         </div>
 
         <div className="flex justify-between items-center pt-2 border-t">
@@ -371,30 +371,34 @@ export default function ChildrenPage() {
   // Estadísticas para mostrar
   const stats = [
     {
+      id: 'total',
       icon: <UsersIcon className="h-8 w-8 text-blue-600" />,
       label: 'Total Niños',
       value: children.length,
     },
     {
+      id: 'active',
       icon: <BookOpenIcon className="h-8 w-8 text-green-600" />,
       label: 'Activos',
       value: children.filter((c) => c.is_active).length,
     },
     {
+      id: 'editable',
       icon: <EditIcon className="h-8 w-8 text-purple-600" />,
       label: 'Editables',
       value: children.filter((c) => c.can_edit).length,
     },
     {
+      id: 'diagnosis',
       icon: <TrendingUpIcon className="h-8 w-8 text-orange-600" />,
       label: 'Con Diagnóstico',
       value: children.filter((c) => c.diagnosis).length,
     },
   ];
 
-  // Preparar skeletons con key única
+  // Skeletons con key única segura
   const skeletons = Array.from({ length: 6 }).map((_, idx) => (
-    <Card key={`skeleton-child-${idx}`} className="animate-pulse">
+    <Card key={`skeleton-child-${idx + 1000}`} className="animate-pulse">
       <CardHeader>
         <div className="flex items-center space-x-4">
           <div className="rounded-full bg-gray-200 h-12 w-12"></div>
@@ -407,16 +411,44 @@ export default function ChildrenPage() {
     </Card>
   ));
 
-  // Variables para ternarios anidados
+  // Variables para extraer ternarios anidados (SonarCube)
   const noChildren = children.length === 0;
   const noFiltered = filteredChildren.length === 0 && !noChildren;
+
+  // Render "No niños" y "No encontrados" por separado
+  const noChildrenContent = (
+    <>
+      <h3 className="text-lg font-medium text-gray-900 mb-2">No hay niños registrados</h3>
+      <p className="text-gray-600 mb-6">
+        Comienza agregando el primer niño para empezar el seguimiento
+      </p>
+      <Button asChild>
+        <Link href="/dashboard/children/new">
+          <PlusIcon className="mr-2 h-4 w-4" />
+          Agregar Primer Niño
+        </Link>
+      </Button>
+    </>
+  );
+
+  const noFilteredContent = (
+    <>
+      <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron niños</h3>
+      <p className="text-gray-600 mb-6">
+        No hay niños que coincidan con los filtros seleccionados
+      </p>
+      <Button variant="outline" onClick={() => setFilters({})}>
+        Limpiar Filtros
+      </Button>
+    </>
+  );
 
   return (
     <div className="space-y-6">
       {/* Header y estadísticas */}
       <HeaderStats stats={stats}>
-        {stats.map((stat, idx) => (
-          <Card key={stat.label}>
+        {stats.map((stat) => (
+          <Card key={stat.id}>
             <CardContent className="p-6">
               <div className="flex items-center">
                 {stat.icon}
@@ -435,9 +467,7 @@ export default function ChildrenPage() {
 
       {/* Render según estado */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {skeletons}
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{skeletons}</div>
       ) : error ? (
         <Card className="border-red-200 bg-red-50">
           <CardContent className="text-center py-12">
@@ -452,30 +482,7 @@ export default function ChildrenPage() {
         <Card>
           <CardContent className="text-center py-12">
             <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-            {noChildren ? (
-              <>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay niños registrados</h3>
-                <p className="text-gray-600 mb-6">
-                  Comienza agregando el primer niño para empezar el seguimiento
-                </p>
-                <Button asChild>
-                  <Link href="/dashboard/children/new">
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    Agregar Primer Niño
-                  </Link>
-                </Button>
-              </>
-            ) : (
-              <>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron niños</h3>
-                <p className="text-gray-600 mb-6">
-                  No hay niños que coincidan con los filtros seleccionados
-                </p>
-                <Button variant="outline" onClick={() => setFilters({})}>
-                  Limpiar Filtros
-                </Button>
-              </>
-            )}
+            {noChildren ? noChildrenContent : noFilteredContent}
           </CardContent>
         </Card>
       ) : (
