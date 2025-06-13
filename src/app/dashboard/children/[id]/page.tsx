@@ -22,7 +22,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
 import type { 
@@ -48,16 +47,15 @@ import {
   ClockIcon,
   ArrowLeftIcon
 } from 'lucide-react';
-import { format, differenceInYears, subMonths } from 'date-fns';
+import { format, differenceInYears, subMonths, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export default function ChildDetailPage() {
   const params = useParams();
   const router = useRouter();
   const childId = params.id as string;
-  const { user } = useAuth();
-  const { children, loading: childLoading, getChildById } = useChildren();
-  const { logs, loading: logsLoading, stats } = useLogs({ childId });
+  const { loading: childLoading, getChildById } = useChildren();
+  const { logs } = useLogs({ childId });
   
   const [child, setChild] = useState<ChildWithRelation | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -109,7 +107,6 @@ export default function ChildDetailPage() {
     totalLogs: logs.length,
     logsThisWeek: logs.filter(log => new Date(log.created_at) > subWeeks(new Date(), 1)).length,
     logsThisMonth: logs.filter(log => new Date(log.created_at) > subMonths(new Date(), 1)).length,
-    lastLogDate: logs.length > 0 ? logs[0].created_at : null,
     pendingReviews: logs.filter(log => !log.reviewed_by).length,
     followUpsRequired: logs.filter(log => log.follow_up_required && !log.follow_up_date).length
   };
