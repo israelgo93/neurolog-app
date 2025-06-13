@@ -57,7 +57,7 @@ export default function ChildDetailPage() {
   const childId = params.id as string;
   useAuth(); // Keep the hook call without destructuring unused variables
   const { loading: childLoading, getChildById } = useChildren();
-  const { logs, stats } = useLogs({ childId });
+  const { logs } = useLogs({ childId });
   
   const [child, setChild] = useState<ChildWithRelation | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
