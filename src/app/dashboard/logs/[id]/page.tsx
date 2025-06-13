@@ -263,8 +263,8 @@ export default function LogDetailPage() {
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-2">Etiquetas</h4>
                   <div className="flex flex-wrap gap-2">
-                    {log.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline">
+                    {log.tags.map((tag) => (
+                      <Badge key={tag} variant="outline">
                         <TagIcon className="h-3 w-3 mr-1" />
                         {tag}
                       </Badge>
