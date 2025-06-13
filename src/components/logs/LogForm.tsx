@@ -188,7 +188,7 @@ function MoodSelector({ value, onChange }: MoodSelectorProps) {
 
 function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManagerProps) {
   const [uploading, setUploading] = useState(false);
-  const { user } = useAuth();
+  // const { user } = useAuth();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -199,7 +199,6 @@ function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManag
       const newAttachments: LogAttachment[] = [];
 
       for (const file of Array.from(files)) {
-        const fileExt = file.name.split('.').pop();
         const fileName = `${childId}/${Date.now()}-${file.name}`;
         
         await uploadFile('attachments', fileName, file);
@@ -398,7 +397,6 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
   const { children } = useChildren();
   const { createLog, updateLog } = useLogs();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
   const router = useRouter();
 
   const form = useForm<LogFormData>({
@@ -436,13 +434,11 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
       } catch (error) {
         console.error('Error fetching categories:', error);
       } finally {
-        setLoadingCategories(false);
       }
     }
 
     fetchCategories();
   }, []);
-
   const onSubmit = async (data: LogFormData) => {
     try {
       let result: DailyLog;
@@ -927,18 +923,28 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
                 Cancelar
               </Button>
             )}
-            <Button 
-              type="submit" 
-              disabled={form.formState.isSubmitting}
-            >
-              <SaveIcon className="mr-2 h-4 w-4" />
-              {form.formState.isSubmitting
-                ? 'Guardando...'
-                : mode === 'create' 
-                  ? 'Crear Registro' 
-                  : 'Guardar Cambios'
+            {/*
+              Extraer el texto del botón a una variable para evitar ternarios anidados
+            */}
+            {(() => {
+              let buttonText = '';
+              if (form.formState.isSubmitting) {
+                buttonText = 'Guardando...';
+              } else if (mode === 'create') {
+                buttonText = 'Crear Registro';
+              } else {
+                buttonText = 'Guardar Cambios';
               }
-            </Button>
+              return (
+                <Button 
+                  type="submit" 
+                  disabled={form.formState.isSubmitting}
+                >
+                  <SaveIcon className="mr-2 h-4 w-4" />
+                  {buttonText}
+                </Button>
+              );
+            })()}
           </div>
         </form>
       </Form>
