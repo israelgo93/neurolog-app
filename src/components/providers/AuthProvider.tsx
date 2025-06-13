@@ -365,69 +365,81 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       }
     };
 
-    /**
-     *  LISTENER DE AUTH MEJORADO - UNA SOLA SUBSCRIPCIÓN
-     */
-    const setupAuthListener = () => {
-      const handleAuthStateChange = async (event: string, session: any) => {
-        if (!mountedRef.current) return;
+/**
+ *  LISTENER DE AUTH MEJORADO - UNA SOLA SUBSCRIPCIÓN
+ */
 
-        console.log('🔄 Auth state changed:', event);
+// Auxiliar para manejar el login
+const handleSignIn = async (session: any) => {
+  if (!session?.user || !mountedRef.current) return;
 
-        try {
-          switch (event) {
+  console.log('✅ User signed in, fetching profile...');
+  setLoading(true);
+
+  await updateLastLogin(session.user.id);
+  const profile = await fetchProfile(session.user.id);
+
+  if (profile && mountedRef.current) {
+    setUser(profile);
+    const adminStatus = await checkAdminStatus(session.user.id);
+    if (mountedRef.current) setIsAdmin(adminStatus);
+  }
+};
+
+// Auxiliar para sign out
+const handleSignOut = () => {
+  if (!mountedRef.current) return;
+  console.log('👋 User signed out');
+  setUser(null);
+  setIsAdmin(false);
+  setError(null);
+};
+
+// Auxiliar para refresh
+const handleTokenRefreshed = (session: any) => {
+  if (session?.user) {
+    console.log('🔄 Token refreshed, maintaining user state');
+    // No necesitamos recargar el perfil en token refresh
+  }
+};
+
+const setupAuthListener = () => {
+  const handleAuthStateChange = async (event: string, session: any) => {
+    if (!mountedRef.current) return;
+    console.log('🔄 Auth state changed:', event);
+    setLoading(true);
+    try {
+      switch (event) {
         case 'SIGNED_IN':
-          if (session?.user) {
-            console.log('✅ User signed in, fetching profile...');
-            setLoading(true);
-
-            await updateLastLogin(session.user.id);
-
-            const profile = await fetchProfile(session.user.id);
-            if (profile && mountedRef.current) {
-          setUser(profile);
-
-          const adminStatus = await checkAdminStatus(session.user.id);
-          if (mountedRef.current) {
-            setIsAdmin(adminStatus);
-          }
-            }
-          }
+          await handleSignIn(session);
           break;
         case 'SIGNED_OUT':
-          console.log('👋 User signed out');
-          if (mountedRef.current) {
-            setUser(null);
-            setIsAdmin(false);
-            setError(null);
-          }
+          handleSignOut();
           break;
         case 'TOKEN_REFRESHED':
-          if (session?.user) {
-            console.log('🔄 Token refreshed, maintaining user state');
-            // No necesitamos recargar el perfil en token refresh
-          }
+          handleTokenRefreshed(session);
           break;
         default:
           break;
-          }
-        } catch (err) {
-          console.error('❌ Error handling auth state change:', err);
-          if (mountedRef.current) {
+      }
+    } catch (err) {
+      console.error('❌ Error handling auth state change:', err);
+      if (mountedRef.current) {
         setError('Error en el cambio de estado de autenticación');
-          }
-        } finally {
-          if (mountedRef.current) {
+      }
+    } finally {
+      if (mountedRef.current) {
         setLoading(false);
-          }
-        }
-      };
+      }
+    }
+  };
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
 
-      authSubscriptionRef.current = subscription;
-      return subscription;
-    };
+  authSubscriptionRef.current = subscription;
+  return subscription;
+};
+
 
     //  INICIALIZAR TODO
     initializeAuth();
