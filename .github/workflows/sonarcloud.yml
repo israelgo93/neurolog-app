@@ -13,14 +13,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20' # Cambia según tu proyecto
+
       - run: npm ci
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
           projectBaseDir: .
+          args: >
+            -Dsonar.organization=carlosjchiles
+            -Dsonar.projectKey=CarlosJChileS_neurolog-app
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
