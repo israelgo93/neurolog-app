@@ -267,23 +267,43 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
       </div>
       
       <div className="flex space-x-2">
-        <Input
-          placeholder={placeholder}
-          value={field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition}
-          onChange={(e) => {
-            if (field === 'allergies') setNewAllergy(e.target.value);
-            else if (field === 'medications') setNewMedication(e.target.value);
-            else setNewCondition(e.target.value);
-          }}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-              const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
-              addItem(field, value, setter);
-            }
-          }}
-        />
+        {/*
+          Extract value for input to avoid nested ternary
+        */}
+        {(() => {
+          let inputValue = '';
+          if (field === 'allergies') inputValue = newAllergy;
+          else if (field === 'medications') inputValue = newMedication;
+          else inputValue = newCondition;
+          return (
+            <Input
+              placeholder={placeholder}
+              value={inputValue}
+              onChange={(e) => {
+                if (field === 'allergies') setNewAllergy(e.target.value);
+                else if (field === 'medications') setNewMedication(e.target.value);
+                else setNewCondition(e.target.value);
+              }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  let value = '';
+                  let setter: (value: string) => void = setNewCondition;
+                  if (field === 'allergies') {
+                    value = newAllergy;
+                    setter = setNewAllergy;
+                  } else if (field === 'medications') {
+                    value = newMedication;
+                    setter = setNewMedication;
+                  } else {
+                    value = newCondition;
+                  }
+                  addItem(field, value, setter);
+                }
+              }}
+            />
+          );
+        })()}
         <Button
           type="button"
           variant="outline"
