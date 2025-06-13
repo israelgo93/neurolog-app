@@ -2,7 +2,6 @@
 // Dashboard principal ACTUALIZADO con componentes corregidos y diseño responsivo
 
 'use client';
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,14 +14,14 @@ import { useLogs } from '@/hooks/use-logs';
 import { 
   Users, 
   BookOpen, 
-  TrendingUp,  
+  TrendingUp,
   Heart,
   AlertCircle,
   Eye,
   Plus,
   BarChart3,
   Activity,
-  ChevronRight,
+  ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -99,7 +98,7 @@ function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <Card key={`skeleton-card`} className="animate-pulse">
+          <Card key={i} className="animate-pulse">
             <CardContent className="p-3 sm:p-4 md:p-6">
               <div className="flex items-center justify-between space-x-2">
                 <div className="space-y-2 flex-1">
@@ -118,8 +117,8 @@ function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
 
   return (
     <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-      {statCards.map((stat) => (
-        <Card key={stat.title} className={`hover:shadow-md transition-all duration-200 ${stat.borderColor} border-l-4`}>
+      {statCards.map((stat, index) => (
+        <Card key={index} className={`hover:shadow-md transition-all duration-200 ${stat.borderColor} border-l-4`}>
           <CardContent className="p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between space-x-2">
               <div className="space-y-1 sm:space-y-2 flex-1 min-w-0">
@@ -203,13 +202,14 @@ function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenPr
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {children.slice(0, 6).map((child) => {
           const weeklyLogs = child.weekly_logs ?? 0;
-          let progressBarColor = "bg-red-500";
+          let indicatorClassName = "";
           if (weeklyLogs >= 5) {
-            progressBarColor = "bg-green-500";
+            indicatorClassName = "bg-green-500";
           } else if (weeklyLogs >= 3) {
-            progressBarColor = "bg-yellow-500";
+            indicatorClassName = "bg-yellow-500";
+          } else {
+            indicatorClassName = "bg-red-500";
           }
-
           return (
             <Card key={child.id} className="hover:shadow-md transition-all duration-200 group">
               <CardContent className="p-4 sm:p-6">
@@ -263,7 +263,7 @@ function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenPr
                   <Progress 
                     value={(weeklyLogs / 7) * 100} 
                     className="h-2"
-                    indicatorClassName={progressBarColor}
+                    indicatorClassName={indicatorClassName}
                   />
                 </div>
               </CardContent>
@@ -357,7 +357,7 @@ function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
                   </div>
                 )}
                 <Badge variant="outline" className="text-xs">
-                  {log.category_name ?? 'General'}
+                  {log.category_name || 'General'}
                 </Badge>
               </div>
             </div>
@@ -367,25 +367,18 @@ function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
             </p>
             
             <div className="flex items-center justify-between mt-2">
-              {(() => {
-                let dateLabel;
-                if (isToday(new Date(log.created_at))) {
-                  dateLabel = 'Hoy';
-                } else if (isYesterday(new Date(log.created_at))) {
-                  dateLabel = 'Ayer';
-                } else {
-                  dateLabel = format(new Date(log.created_at), 'dd MMM', { locale: es });
-                }
-                return (
-                  <div className="text-xs text-gray-500">
-                    <span className="font-medium">{log.child_name}</span>
-                    <span className="mx-1">•</span>
-                    <span>
-                      {dateLabel}
-                    </span>
-                  </div>
-                );
-              })()}
+              <div className="text-xs text-gray-500">
+                <span className="font-medium">{log.child_name}</span>
+                <span className="mx-1">•</span>
+                <span>
+                  {(() => {
+                    const createdAtDate = new Date(log.created_at);
+                    if (isToday(createdAtDate)) return 'Hoy';
+                    if (isYesterday(createdAtDate)) return 'Ayer';
+                    return format(createdAtDate, 'dd MMM', { locale: es });
+                  })()}
+                </span>
+              </div>
               
               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="sm" asChild>
@@ -417,7 +410,7 @@ function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { children, loading: childrenLoading, stats: } = useChildren();
+  const { children, loading: childrenLoading, stats: childrenStats } = useChildren();
   const { logs, loading: logsLoading, stats } = useLogs();
 
   const greeting = () => {
@@ -433,7 +426,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] ?? 'Usuario'}
+            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] || 'Usuario'}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
             Aquí está el resumen de hoy para tus niños en seguimiento
@@ -487,7 +480,9 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <AccessibleChildren children={children} loading={childrenLoading} />
+              <AccessibleChildren loading={childrenLoading}>
+                {children}
+              </AccessibleChildren>
             </CardContent>
           </Card>
         </div>
