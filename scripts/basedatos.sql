@@ -16,11 +16,11 @@ ALTER TABLE IF EXISTS profiles DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS categories DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS audit_logs DISABLE ROW LEVEL SECURITY;
 
--- Eliminar vistas
+-- Eliminar vistas--
 DROP VIEW IF EXISTS user_accessible_children CASCADE;
 DROP VIEW IF EXISTS child_log_statistics CASCADE;
 
--- Eliminar funciones
+-- Eliminar funciones--
 DROP FUNCTION IF EXISTS user_can_access_child(UUID) CASCADE;
 DROP FUNCTION IF EXISTS user_can_edit_child(UUID) CASCADE;
 DROP FUNCTION IF EXISTS audit_sensitive_access(TEXT, TEXT, TEXT) CASCADE;
