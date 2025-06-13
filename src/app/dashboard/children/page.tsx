@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import type { ChildWithRelation, ChildFilters, RelationshipType } from '@/types';
 import {
-  PlusIcon, SearchIcon, FilterIcon, MoreVerticalIcon, EditIcon, EyeIcon, UserPlusIcon, CalendarIcon, MapPinIcon, HeartIcon, TrendingUpIcon, DownloadIcon, UsersIcon, BookOpenIcon, RefreshCwIcon,
+  PlusIcon, SearchIcon, FilterIcon, MoreVerticalIcon, EditIcon, EyeIcon, UserPlusIcon, CalendarIcon, HeartIcon, TrendingUpIcon, UsersIcon, BookOpenIcon, RefreshCwIcon,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -35,7 +35,7 @@ interface ChildCardProps {
   onManageUsers: (child: ChildWithRelation) => void;
 }
 
-function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardProps) {
+function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: Readonly<ChildCardProps>) {
   const calculateAge = (birthDate: string) => {
     const birth = new Date(birthDate);
     const today = new Date();
@@ -86,7 +86,7 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={child.avatar_url || undefined} />
+              <AvatarImage src={child.avatar_url ?? undefined} />
               <AvatarFallback className="bg-blue-100 text-blue-600">
                 {child.name.charAt(0).toUpperCase()}
               </AvatarFallback>
@@ -177,7 +177,7 @@ interface FiltersCardProps {
   onFiltersChange: (filters: ChildFilters) => void;
 }
 
-function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
+function FiltersCard({ filters, onFiltersChange }: Readonly<FiltersCardProps>) {
   return (
     <Card>
       <CardHeader>
@@ -197,7 +197,7 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
               <Input
                 id="search-name"
                 placeholder="Nombre del niño..."
-                value={filters.search || ''}
+                value={filters.search ?? ''}
                 onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
                 className="pl-10"
               />
@@ -209,7 +209,7 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
               Tipo de relación
             </label>
             <Select
-              value={filters.relationship_type || 'all'}
+              value={filters.relationship_type ?? 'all'}
               onValueChange={(value) =>
                 onFiltersChange({
                   ...filters,
@@ -241,7 +241,7 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
               placeholder="Años"
               min="0"
               max="25"
-              value={filters.max_age || ''}
+              value={filters.max_age ?? ''}
               onChange={(e) =>
                 onFiltersChange({
                   ...filters,
@@ -257,7 +257,7 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
 }
 
 // Renderiza el header y estadísticas
-function HeaderStats({ children, stats }: { children: React.ReactNode; stats: any }) {
+function HeaderStats({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -443,10 +443,49 @@ export default function ChildrenPage() {
     </>
   );
 
+  // Extraer la lógica de renderizado condicional a variables independientes
+  let content: React.ReactNode;
+  if (loading) {
+    content = (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{skeletons}</div>
+    );
+  } else if (error) {
+    content = (
+      <Card className="border-red-200 bg-red-50">
+        <CardContent className="text-center py-12">
+          <p className="text-red-600 mb-4">Error al cargar los niños: {error}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            <RefreshCwIcon className="h-4 w-4 mr-2" />
+            Reintentar
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  } else if (noChildren || noFiltered) {
+    content = (
+      <Card>
+        <CardContent className="text-center py-12">
+          <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+          {noChildren ? noChildrenContent : noFilteredContent}
+        </CardContent>
+      </Card>
+    );
+  } else {
+    content = (
+      <ChildrenList
+        viewMode={viewMode}
+        filteredChildren={filteredChildren}
+        handleEdit={handleEdit}
+        handleViewDetails={handleViewDetails}
+        handleManageUsers={handleManageUsers}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header y estadísticas */}
-      <HeaderStats stats={stats}>
+      <HeaderStats>
         {stats.map((stat) => (
           <Card key={stat.id}>
             <CardContent className="p-6">
@@ -466,34 +505,7 @@ export default function ChildrenPage() {
       <FiltersCard filters={filters} onFiltersChange={setFilters} />
 
       {/* Render según estado */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{skeletons}</div>
-      ) : error ? (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="text-center py-12">
-            <p className="text-red-600 mb-4">Error al cargar los niños: {error}</p>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              <RefreshCwIcon className="h-4 w-4 mr-2" />
-              Reintentar
-            </Button>
-          </CardContent>
-        </Card>
-      ) : noChildren || noFiltered ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-            {noChildren ? noChildrenContent : noFilteredContent}
-          </CardContent>
-        </Card>
-      ) : (
-        <ChildrenList
-          viewMode={viewMode}
-          filteredChildren={filteredChildren}
-          handleEdit={handleEdit}
-          handleViewDetails={handleViewDetails}
-          handleManageUsers={handleManageUsers}
-        />
-      )}
+      {content}
     </div>
   );
 }
