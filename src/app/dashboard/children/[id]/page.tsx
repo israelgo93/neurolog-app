@@ -48,8 +48,9 @@ import {
   ClockIcon,
   ArrowLeftIcon
 } from 'lucide-react';
-import { format, differenceInYears, subMonths } from 'date-fns';
+import { format, differenceInYears, subMonths, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
+
 
 export default function ChildDetailPage() {
   const params = useParams();
@@ -392,7 +393,7 @@ export default function ChildDetailPage() {
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium text-gray-900">
-                            {relation.user_name || relation.user_email}
+                            {relation.user_name ?? relation.user_email}
                           </p>
                           <Badge 
                             variant="secondary" 
