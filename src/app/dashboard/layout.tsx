@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }) {
   return (
     <div className="min-h-screen bg-gray-50/30">
