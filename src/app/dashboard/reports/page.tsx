@@ -120,6 +120,44 @@ export default function ReportsPage() {
     activeDays: getActiveDays(filteredLogs)
   };
 
+    let averageMoodColor;
+if (metrics.averageMood >= 4) {
+  averageMoodColor = 'green';
+} else if (metrics.averageMood >= 3) {
+  averageMoodColor = 'orange';
+} else {
+  averageMoodColor = 'red';
+}
+
+    let improvementTrendIcon;
+    if (metrics.improvementTrend > 0) {
+      improvementTrendIcon = TrendingUp;
+    } else if (metrics.improvementTrend < 0) {
+      improvementTrendIcon = TrendingUp; // Si aquí deberías usar otro ícono, corrígelo.
+    } else {
+      improvementTrendIcon = Target;
+    }
+
+    let improvementTrendColor;
+    if (metrics.improvementTrend > 0) {
+      improvementTrendColor = 'green';
+    } else if (metrics.improvementTrend < 0) {
+      improvementTrendColor = 'red';
+    } else {
+      improvementTrendColor = 'gray';
+    }
+
+    let improvementTrendSubtitle;
+    if (metrics.improvementTrend > 0) {
+      improvementTrendSubtitle = 'Mejorando';
+    } else if (metrics.improvementTrend < 0) {
+      improvementTrendSubtitle = 'Necesita atención';
+    } else {
+      improvementTrendSubtitle = 'Estable';
+    }
+
+
+
   if (childrenLoading || logsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -210,16 +248,16 @@ export default function ReportsPage() {
           value={metrics.averageMood.toFixed(1)}
           suffix="/5"
           icon={Heart}
-          color={metrics.averageMood >= 4 ? 'green' : metrics.averageMood >= 3 ? 'orange' : 'red'}
+          color={averageMoodColor}
           subtitle="Promedio del período"
         />
 
         <MetricCard
           title="Tendencia"
           value={metrics.improvementTrend > 0 ? '+' : ''}
-          icon={metrics.improvementTrend > 0 ? TrendingUp : metrics.improvementTrend < 0 ? TrendingUp : Target}
-          color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
-          subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}
+          icon={improvementTrendIcon}
+          color={improvementTrendColor}
+          subtitle={improvementTrendSubtitle}
         />
 
         <MetricCard
