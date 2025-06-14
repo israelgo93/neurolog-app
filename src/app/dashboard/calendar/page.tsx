@@ -11,6 +11,20 @@ import { Calendar as CalendarIcon, Plus, Clock, Users, ChevronLeft, ChevronRight
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+// Función helper para generar valores aleatorios de forma segura
+function getSecureRandomValue(): number {
+  // Usar crypto.getRandomValues() si está disponible (navegador)
+  if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    // Convertir a un valor entre 0 y 1
+    return array[0] / (0xffffffff + 1);
+  }
+  
+  // Fallback para entornos donde crypto no está disponible
+  return Math.random();
+}
+
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -115,7 +129,7 @@ export default function CalendarPage() {
               >
                 {format(day, 'd')}
                 {/* Placeholder for events */}
-                {Math.random() > 0.8 && (
+                {getSecureRandomValue() > 0.8 && (
                   <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
                 )}
               </div>
