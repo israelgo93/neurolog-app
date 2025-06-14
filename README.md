@@ -1,8 +1,7 @@
 # NeuroLog - Registro Diario para Niños con NEE
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=security_rating)
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
 
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=bugs)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
