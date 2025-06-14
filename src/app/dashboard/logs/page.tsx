@@ -43,7 +43,6 @@ import {
   EditIcon,
   EyeIcon,
   EyeOffIcon,
-  HeartIcon,
   ClockIcon,
   TagIcon,
   MapPinIcon,
