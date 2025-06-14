@@ -415,7 +415,7 @@ function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { children, loading: childrenLoading, stats: childrenStats } = useChildren();
+  const { children, loading: childrenLoading } = useChildren();
   const { logs, loading: logsLoading, stats } = useLogs();
 
   const greeting = () => {
