@@ -96,7 +96,7 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={child.avatar_url || undefined} />
+              <AvatarImage src={child.avatar_url ?? undefined} />
               <AvatarFallback className="bg-blue-100 text-blue-600">
                 {child.name.charAt(0).toUpperCase()}
               </AvatarFallback>
@@ -248,7 +248,7 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
               placeholder="Años"
               min="0"
               max="25"
-              value={filters.max_age || ''}
+              value={filters.max_age ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 max_age: e.target.value ? parseInt(e.target.value) : undefined 
