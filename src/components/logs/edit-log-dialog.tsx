@@ -221,7 +221,7 @@ export function EditLogDialog({ log, open, onOpenChange }: EditLogDialogProps) {
               <Label>Intensidad</Label>
               <Select 
                 value={formData.intensity_level} 
-                onValueChange={(value) => handleInputChange('intensity_level', value as any)}
+                onValueChange={(value) => handleInputChange('intensity_level', value)}
                 disabled={loading}
               >
                 <SelectTrigger>
