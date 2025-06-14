@@ -327,19 +327,22 @@ function StatisticsCards({ children }: Readonly<{ children: ChildWithRelation[] 
 function LoadingSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, i) => (
-        <Card key={i} className="animate-pulse">
-          <CardHeader>
-            <div className="flex items-center space-x-4">
-              <div className="rounded-full bg-gray-200 h-12 w-12"></div>
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-24"></div>
-                <div className="h-3 bg-gray-200 rounded w-16"></div>
+      {[...Array(6)].map(() => {
+        const uniqueKey = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+        return (
+          <Card key={uniqueKey} className="animate-pulse">
+            <CardHeader>
+              <div className="flex items-center space-x-4">
+                <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  <div className="h-3 bg-gray-200 rounded w-16"></div>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-        </Card>
-      ))}
+            </CardHeader>
+          </Card>
+        );
+      })}
     </div>
   );
 }
