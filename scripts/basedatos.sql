@@ -43,18 +43,87 @@ DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 
 -- ================================================================
--- 2. CREAR TABLAS PRINCIPALES
+-- 2. FUNCIONES AUXILIARES PARA CONSTANTES (EVITAR DUPLICACIÓN)
+-- ================================================================
+-- Solución SonarQube: En lugar de duplicar literales como 'parent', 'medium', etc.
+-- múltiples veces en diferentes bloques DO, creamos funciones auxiliares reutilizables.
+-- 
+-- ANTES (No conforme - duplicación):
+-- Declarar co_role_parent CONSTANT TEXT := 'parent' en cada bloque DO por separado
+-- 
+-- DESPUÉS (Conforme - función auxiliar):
+-- Crear una función get_role_parent() que retorna 'parent' y usarla en todos los bloques
+--
+
+-- Función para obtener rol 'parent' (usado en múltiples lugares)
+CREATE OR REPLACE FUNCTION get_role_parent() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'parent';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener rol 'teacher'
+CREATE OR REPLACE FUNCTION get_role_teacher() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'teacher';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener rol 'specialist'
+CREATE OR REPLACE FUNCTION get_role_specialist() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'specialist';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener rol 'admin'
+CREATE OR REPLACE FUNCTION get_role_admin() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'admin';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener rol 'observer'
+CREATE OR REPLACE FUNCTION get_role_observer() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'observer';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener rol 'family'
+CREATE OR REPLACE FUNCTION get_role_family() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'family';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener fragmento de Primary Key UUID
+CREATE OR REPLACE FUNCTION get_primary_key_fragment() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener fragmento de Created At
+CREATE OR REPLACE FUNCTION get_created_at_fragment() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'created_at TIMESTAMPTZ DEFAULT NOW(), ';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener intensidad 'medium'
+CREATE OR REPLACE FUNCTION get_intensity_medium() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'medium';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- ================================================================
+-- 3. CREAR TABLAS PRINCIPALES
 -- ================================================================
 
 -- TABLA: profiles (usuarios del sistema)
 DO $$
-DECLARE
-  co_role_parent CONSTANT TEXT := 'parent';
-  co_role_teacher CONSTANT TEXT := 'teacher';
-  co_role_specialist CONSTANT TEXT := 'specialist';
-  co_role_admin CONSTANT TEXT := 'admin';
-  co_primary_key CONSTANT TEXT := 'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ';
-  co_created_at CONSTANT TEXT := 'created_at TIMESTAMPTZ DEFAULT NOW(), ';
 BEGIN
   EXECUTE format('CREATE TABLE profiles (' ||
     'id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY, ' ||
@@ -70,9 +139,9 @@ BEGIN
     'account_locked_until TIMESTAMPTZ, ' ||
     'timezone TEXT DEFAULT ''America/Guayaquil'', ' ||
     'preferences JSONB DEFAULT ''{}'', ' ||
-    co_created_at ||
+    get_created_at_fragment() ||
     'updated_at TIMESTAMPTZ DEFAULT NOW()' ||
-    ')', co_role_parent, co_role_teacher, co_role_specialist, co_role_admin, co_role_parent);
+    ')', get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_admin(), get_role_parent());
 END $$;
 
 -- TABLA: categories (categorías de registros)
@@ -108,17 +177,9 @@ CREATE TABLE children (
 
 -- TABLA: user_child_relations (relaciones usuario-niño)
 DO $$
-DECLARE
-  co_role_parent CONSTANT TEXT := 'parent';
-  co_role_teacher CONSTANT TEXT := 'teacher';
-  co_role_specialist CONSTANT TEXT := 'specialist';
-  co_role_observer CONSTANT TEXT := 'observer';
-  co_role_family CONSTANT TEXT := 'family';
-  co_primary_key CONSTANT TEXT := 'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ';
-  co_created_at CONSTANT TEXT := 'created_at TIMESTAMPTZ DEFAULT NOW(), ';
 BEGIN
   EXECUTE format('CREATE TABLE user_child_relations (' ||
-    co_primary_key ||
+    get_primary_key_fragment() ||
     'user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL, ' ||
     'child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL, ' ||
     'relationship_type TEXT CHECK (relationship_type IN (%L, %L, %L, %L, %L)) NOT NULL, ' ||
@@ -132,22 +193,19 @@ BEGIN
     'is_active BOOLEAN DEFAULT TRUE, ' ||
     'notes TEXT, ' ||
     'notification_preferences JSONB DEFAULT ''{}'', ' ||
-    co_created_at ||
+    get_created_at_fragment() ||
     'UNIQUE(user_id, child_id, relationship_type)' ||
-    ')', co_role_parent, co_role_teacher, co_role_specialist, co_role_observer, co_role_family);
+    ')', get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_observer(), get_role_family());
 END $$;
 
 -- TABLA: daily_logs (registros diarios)
 DO $$
 DECLARE
   co_intensity_low CONSTANT TEXT := 'low';
-  co_intensity_medium CONSTANT TEXT := 'medium';
   co_intensity_high CONSTANT TEXT := 'high';
-  co_primary_key CONSTANT TEXT := 'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ';
-  co_created_at CONSTANT TEXT := 'created_at TIMESTAMPTZ DEFAULT NOW(), ';
 BEGIN
   EXECUTE format('CREATE TABLE daily_logs (' ||
-    co_primary_key ||
+    get_primary_key_fragment() ||
     'child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL, ' ||
     'category_id UUID REFERENCES categories(id), ' ||
     'title TEXT NOT NULL CHECK (length(trim(title)) >= 2), ' ||
@@ -169,9 +227,9 @@ BEGIN
     'parent_feedback TEXT, ' ||
     'follow_up_required BOOLEAN DEFAULT FALSE, ' ||
     'follow_up_date DATE, ' ||
-    co_created_at ||
+    get_created_at_fragment() ||
     'updated_at TIMESTAMPTZ DEFAULT NOW()' ||
-    ')', co_intensity_low, co_intensity_medium, co_intensity_high, co_intensity_medium);
+    ')', co_intensity_low, get_intensity_medium(), co_intensity_high, get_intensity_medium());
 END $$;
 
 -- TABLA: audit_logs (auditoría del sistema)
@@ -182,13 +240,11 @@ DECLARE
   co_op_delete CONSTANT TEXT := 'DELETE';
   co_op_select CONSTANT TEXT := 'SELECT';
   co_intensity_low CONSTANT TEXT := 'low';
-  co_intensity_medium CONSTANT TEXT := 'medium';
   co_intensity_high CONSTANT TEXT := 'high';
   co_risk_critical CONSTANT TEXT := 'critical';
-  co_primary_key CONSTANT TEXT := 'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ';
 BEGIN
   EXECUTE format('CREATE TABLE audit_logs (' ||
-    co_primary_key ||
+    get_primary_key_fragment() ||
     'table_name TEXT NOT NULL, ' ||
     'operation TEXT CHECK (operation IN (%L, %L, %L, %L)) NOT NULL, ' ||
     'record_id TEXT, ' ||
@@ -202,7 +258,7 @@ BEGIN
     'session_id TEXT, ' ||
     'risk_level TEXT CHECK (risk_level IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
     'created_at TIMESTAMPTZ DEFAULT NOW()' ||
-    ')', co_op_insert, co_op_update, co_op_delete, co_op_select, co_intensity_low, co_intensity_medium, co_intensity_high, co_risk_critical, co_intensity_low);
+    ')', co_op_insert, co_op_update, co_op_delete, co_op_select, co_intensity_low, get_intensity_medium(), co_intensity_high, co_risk_critical, co_intensity_low);
 END $$;
 
 -- ================================================================
@@ -251,15 +307,13 @@ $$ LANGUAGE plpgsql;
 -- Función para crear perfil automáticamente cuando se registra usuario
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
-DECLARE
-  co_role_parent CONSTANT TEXT := 'parent';
 BEGIN
   INSERT INTO profiles (id, email, full_name, role)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', co_role_parent)
+    COALESCE(NEW.raw_user_meta_data->>'role', get_role_parent())
   );
   RETURN NEW;
 END;
@@ -388,8 +442,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Vista para niños accesibles por usuario
 DO $$
-DECLARE
-  co_role_parent CONSTANT TEXT := 'parent';
 BEGIN
   EXECUTE format('CREATE OR REPLACE VIEW user_accessible_children AS ' ||
     'SELECT c.*, %L::TEXT as relationship_type, ' ||
@@ -398,7 +450,7 @@ BEGIN
     'NULL::TIMESTAMPTZ as expires_at, p.full_name as creator_name ' ||
     'FROM children c JOIN profiles p ON c.created_by = p.id ' ||
     'WHERE c.created_by = auth.uid() AND c.is_active = true', 
-    co_role_parent);
+    get_role_parent());
 END $$;
 
 -- Función auxiliar para calcular logs por período
