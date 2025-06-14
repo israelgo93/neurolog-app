@@ -90,6 +90,34 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
+-- Función para obtener intensidad 'low'
+CREATE OR REPLACE FUNCTION get_intensity_low() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'low';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener intensidad 'medium' (usado en múltiples lugares)
+CREATE OR REPLACE FUNCTION get_intensity_medium() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'medium';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener intensidad 'high'
+CREATE OR REPLACE FUNCTION get_intensity_high() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'high';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener nivel de riesgo 'critical'
+CREATE OR REPLACE FUNCTION get_risk_critical() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'critical';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 -- ================================================================
 -- 3. CREAR TABLAS PRINCIPALES
 -- ================================================================
@@ -175,50 +203,60 @@ BEGIN
 END $$;
 
 -- TABLA: daily_logs (registros diarios)
-CREATE TABLE daily_logs (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
-  category_id UUID REFERENCES categories(id),
-  title TEXT NOT NULL CHECK (length(trim(title)) >= 2),
-  content TEXT NOT NULL,
-  mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10),
-  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium',
-  logged_by UUID REFERENCES profiles(id) NOT NULL,
-  log_date DATE DEFAULT CURRENT_DATE,
-  is_private BOOLEAN DEFAULT FALSE,
-  is_deleted BOOLEAN DEFAULT FALSE,
-  is_flagged BOOLEAN DEFAULT FALSE,
-  attachments JSONB DEFAULT '[]',
-  tags TEXT[] DEFAULT '{}',
-  location TEXT,
-  weather TEXT,
-  reviewed_by UUID REFERENCES profiles(id),
-  reviewed_at TIMESTAMPTZ,
-  specialist_notes TEXT,
-  parent_feedback TEXT,
-  follow_up_required BOOLEAN DEFAULT FALSE,
-  follow_up_date DATE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$
+BEGIN
+  EXECUTE format('CREATE TABLE daily_logs (' ||
+    'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ' ||
+    'child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL, ' ||
+    'category_id UUID REFERENCES categories(id), ' ||
+    'title TEXT NOT NULL CHECK (length(trim(title)) >= 2), ' ||
+    'content TEXT NOT NULL, ' ||
+    'mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10), ' ||
+    'intensity_level TEXT CHECK (intensity_level IN (%L, %L, %L)) DEFAULT %L, ' ||
+    'logged_by UUID REFERENCES profiles(id) NOT NULL, ' ||
+    'log_date DATE DEFAULT CURRENT_DATE, ' ||
+    'is_private BOOLEAN DEFAULT FALSE, ' ||
+    'is_deleted BOOLEAN DEFAULT FALSE, ' ||
+    'is_flagged BOOLEAN DEFAULT FALSE, ' ||
+    'attachments JSONB DEFAULT ''[]'', ' ||
+    'tags TEXT[] DEFAULT ''{}'', ' ||
+    'location TEXT, ' ||
+    'weather TEXT, ' ||
+    'reviewed_by UUID REFERENCES profiles(id), ' ||
+    'reviewed_at TIMESTAMPTZ, ' ||
+    'specialist_notes TEXT, ' ||
+    'parent_feedback TEXT, ' ||
+    'follow_up_required BOOLEAN DEFAULT FALSE, ' ||
+    'follow_up_date DATE, ' ||
+    'created_at TIMESTAMPTZ DEFAULT NOW(), ' ||
+    'updated_at TIMESTAMPTZ DEFAULT NOW()' ||
+    ');',
+    get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_intensity_medium()
+  );
+END $$;
 
 -- TABLA: audit_logs (auditoría del sistema)
-CREATE TABLE audit_logs (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  table_name TEXT NOT NULL,
-  operation TEXT CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE', 'SELECT')) NOT NULL,
-  record_id TEXT,
-  user_id UUID REFERENCES profiles(id),
-  user_role TEXT,
-  old_values JSONB,
-  new_values JSONB,
-  changed_fields TEXT[],
-  ip_address INET,
-  user_agent TEXT,
-  session_id TEXT,
-  risk_level TEXT CHECK (risk_level IN ('low', 'medium', 'high', 'critical')) DEFAULT 'low',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$
+BEGIN
+  EXECUTE format('CREATE TABLE audit_logs (' ||
+    'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ' ||
+    'table_name TEXT NOT NULL, ' ||
+    'operation TEXT CHECK (operation IN (''INSERT'', ''UPDATE'', ''DELETE'', ''SELECT'')) NOT NULL, ' ||
+    'record_id TEXT, ' ||
+    'user_id UUID REFERENCES profiles(id), ' ||
+    'user_role TEXT, ' ||
+    'old_values JSONB, ' ||
+    'new_values JSONB, ' ||
+    'changed_fields TEXT[], ' ||
+    'ip_address INET, ' ||
+    'user_agent TEXT, ' ||
+    'session_id TEXT, ' ||
+    'risk_level TEXT CHECK (risk_level IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
+    'created_at TIMESTAMPTZ DEFAULT NOW()' ||
+    ');',
+    get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_risk_critical(), get_intensity_low()
+  );
+END $$;
 
 -- ================================================================
 -- 3. CREAR ÍNDICES PARA PERFORMANCE
@@ -353,13 +391,12 @@ BEGIN
     'SELECT',
     resource_id,
     auth.uid(),
-    (SELECT role FROM profiles WHERE id = auth.uid()),
-    jsonb_build_object(
+    (SELECT role FROM profiles WHERE id = auth.uid()),    jsonb_build_object(
       'action_type', action_type,
       'details', action_details,
       'timestamp', NOW()
     ),
-    'medium'
+    get_intensity_medium()
   );
 EXCEPTION
   WHEN OTHERS THEN
