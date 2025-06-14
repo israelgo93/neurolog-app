@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -25,9 +25,9 @@ import {
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import type { ChildWithRelation, ChildFilters, RelationshipType } from '@/types';
-import { 
-  PlusIcon, 
-  SearchIcon, 
+import {
+  PlusIcon,
+  SearchIcon,
   FilterIcon,
   MoreVerticalIcon,
   EditIcon,
@@ -62,7 +62,7 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
     const today = new Date();
     const age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
       return age - 1;
     }
@@ -104,8 +104,8 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
             <div>
               <h3 className="font-semibold text-lg">{child.name}</h3>
               <div className="flex items-center space-x-2">
-                <Badge 
-                  variant="secondary" 
+                <Badge
+                  variant="secondary"
                   className={getRelationshipColor(child.relationship_type)}
                 >
                   {getRelationshipLabel(child.relationship_type)}
@@ -118,7 +118,7 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
               </div>
             </div>
           </div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
@@ -148,7 +148,7 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
           </DropdownMenu>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Información básica */}
         <div className="grid grid-cols-2 gap-4 text-sm">
@@ -160,7 +160,7 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
               </span>
             </div>
           )}
-          
+
           {child.diagnosis && (
             <div className="flex items-center space-x-2">
               <HeartIcon className="h-4 w-4 text-gray-400" />
@@ -220,11 +220,11 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
           </div>
 
           {/* Relación */}
-          <Select 
-            value={filters.relationship_type || 'all'} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
-              relationship_type: value === 'all' ? undefined : value as RelationshipType 
+          <Select
+            value={filters.relationship_type || 'all'}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
+              relationship_type: value === 'all' ? undefined : value as RelationshipType
             })}
           >
             <SelectTrigger>
@@ -242,19 +242,25 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
 
           {/* Rango de edad */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Edad máxima</label>
+            <label htmlFor="max-age" className="text-sm font-medium">
+              Edad máxima
+            </label>
             <Input
+              id="max-age"
               type="number"
               placeholder="Años"
               min="0"
               max="25"
               value={filters.max_age || ''}
-              onChange={(e) => onFiltersChange({ 
-                ...filters, 
-                max_age: e.target.value ? parseInt(e.target.value) : undefined 
-              })}
+              onChange={(e) =>
+                onFiltersChange({
+                  ...filters,
+                  max_age: e.target.value ? parseInt(e.target.value) : undefined,
+                })
+              }
             />
           </div>
+
         </div>
       </CardContent>
     </Card>
@@ -267,11 +273,11 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
 
 export default function ChildrenPage() {
   const { user } = useAuth();
-  const { children, loading, error, filterChildren } = useChildren({ 
+  const { children, loading, error, filterChildren } = useChildren({
     includeInactive: false,
-    realtime: true 
+    realtime: true
   });
-  
+
   const [filters, setFilters] = useState<ChildFilters>({});
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -314,13 +320,13 @@ export default function ChildrenPage() {
             Gestiona y visualiza el progreso de los niños bajo tu cuidado
           </p>
         </div>
-        
+
         <div className="flex space-x-3">
           <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
             <RefreshCwIcon className="h-4 w-4 mr-2" />
             Actualizar
           </Button>
-          
+
           <Button asChild>
             <Link href="/dashboard/children/new">
               <PlusIcon className="h-4 w-4 mr-2" />
@@ -343,7 +349,7 @@ export default function ChildrenPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -444,7 +450,7 @@ export default function ChildrenPage() {
                 <p className="text-gray-600 mb-6">
                   No hay niños que coincidan con los filtros seleccionados
                 </p>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setFilters({})}
                 >
