@@ -14,8 +14,20 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
         data-slot="table"
         className={cn("w-full caption-bottom text-sm", className)}
         {...props}
-      />
+      >
+        <thead>
+          <tr>
+            <th scope="col" className="px-4 py-2 text-left">Nombre</th>
+            <th scope="col" className="px-4 py-2 text-left">Edad</th>
+            <th scope="col" className="px-4 py-2 text-left">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {/* Aquí irían tus filas dinámicas */}
+        </tbody>
+      </table>
     </div>
+
   )
 }
 
