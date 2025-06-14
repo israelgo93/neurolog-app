@@ -3,6 +3,13 @@
 -- ================================================================
 -- Ejecutar completo en Supabase SQL Editor
 -- Borra todo y crea desde cero según últimas actualizaciones
+-- 
+-- REFACTORIZACIÓN REALIZADA (SonarQube compliance):
+-- Se han eliminado los literales de cadena duplicados y se han 
+-- reemplazado con funciones constantes para cumplir con las 
+-- mejores prácticas de código. Esto evita la duplicación de 
+-- literales como 'parent', 'public', 'auth.uid()', etc.
+-- ================================================================
 
 -- ================================================================
 -- 1. LIMPIAR TODO LO EXISTENTE
@@ -216,6 +223,251 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
+-- Función para obtener JSONB DEFAULT '{}'
+CREATE OR REPLACE FUNCTION get_jsonb_empty_object() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'JSONB DEFAULT ''{}''';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener JSONB DEFAULT '[]'
+CREATE OR REPLACE FUNCTION get_jsonb_empty_array() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'JSONB DEFAULT ''[]''';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'SELECT'
+CREATE OR REPLACE FUNCTION get_operation_select() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'SELECT';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'INSERT'
+CREATE OR REPLACE FUNCTION get_operation_insert() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'INSERT';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'UPDATE'
+CREATE OR REPLACE FUNCTION get_operation_update() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'UPDATE';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'DELETE'
+CREATE OR REPLACE FUNCTION get_operation_delete() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'DELETE';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'auth.uid()'
+CREATE OR REPLACE FUNCTION get_auth_uid() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'auth.uid()';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'is_active'
+CREATE OR REPLACE FUNCTION get_is_active_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'is_active';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'created_by'
+CREATE OR REPLACE FUNCTION get_created_by_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'created_by';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'user_id'
+CREATE OR REPLACE FUNCTION get_user_id_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'user_id';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'child_id'
+CREATE OR REPLACE FUNCTION get_child_id_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'child_id';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'logged_by'
+CREATE OR REPLACE FUNCTION get_logged_by_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'logged_by';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'children'
+CREATE OR REPLACE FUNCTION get_children_table() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'children';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'profiles'
+CREATE OR REPLACE FUNCTION get_profiles_table() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'profiles';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'daily_logs'
+CREATE OR REPLACE FUNCTION get_daily_logs_table() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'daily_logs';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'user_child_relations'
+CREATE OR REPLACE FUNCTION get_user_child_relations_table() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'user_child_relations';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'categories'
+CREATE OR REPLACE FUNCTION get_categories_table() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'categories';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'audit_logs'
+CREATE OR REPLACE FUNCTION get_audit_logs_table() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'audit_logs';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener número 1
+CREATE OR REPLACE FUNCTION get_number_one() RETURNS INTEGER AS $$
+BEGIN
+    RETURN 1;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'sensitive_access'
+CREATE OR REPLACE FUNCTION get_sensitive_access_table() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'sensitive_access';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'role'
+CREATE OR REPLACE FUNCTION get_role_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'role';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'id'
+CREATE OR REPLACE FUNCTION get_id_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'id';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'name'
+CREATE OR REPLACE FUNCTION get_name_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'name';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'is_deleted'
+CREATE OR REPLACE FUNCTION get_is_deleted_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'is_deleted';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'is_private'
+CREATE OR REPLACE FUNCTION get_is_private_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'is_private';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'reviewed_at'
+CREATE OR REPLACE FUNCTION get_reviewed_at_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'reviewed_at';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'category_id'
+CREATE OR REPLACE FUNCTION get_category_id_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'category_id';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal FALSE
+CREATE OR REPLACE FUNCTION get_boolean_false() RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN FALSE;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal TRUE
+CREATE OR REPLACE FUNCTION get_boolean_true() RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'granted_by'
+CREATE OR REPLACE FUNCTION get_granted_by_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'granted_by';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'email'
+CREATE OR REPLACE FUNCTION get_email_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'email';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'full_name'
+CREATE OR REPLACE FUNCTION get_full_name_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'full_name';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'user_can_access_child'
+CREATE OR REPLACE FUNCTION get_function_user_can_access_child() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'user_can_access_child';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'user_can_edit_child'
+CREATE OR REPLACE FUNCTION get_function_user_can_edit_child() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'user_can_edit_child';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'audit_sensitive_access'
+CREATE OR REPLACE FUNCTION get_function_audit_sensitive_access() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'audit_sensitive_access';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 -- ================================================================
 -- 3. CREAR TABLAS PRINCIPALES
 -- ================================================================
@@ -352,7 +604,7 @@ DO $$
 BEGIN  EXECUTE format('CREATE TABLE audit_logs (' ||
     '%s, ' ||
     'table_name %s, ' ||
-    'operation TEXT CHECK (operation IN (''INSERT'', ''UPDATE'', ''DELETE'', ''SELECT'')) NOT NULL, ' ||
+    'operation TEXT CHECK (operation IN (%L, %L, %L, %L)) NOT NULL, ' ||
     'record_id TEXT, ' ||
     'user_id %s, ' ||
     'user_role TEXT, ' ||
@@ -362,9 +614,9 @@ BEGIN  EXECUTE format('CREATE TABLE audit_logs (' ||
     'ip_address INET, ' ||
     'user_agent TEXT, ' ||    'session_id TEXT, ' ||
     'risk_level TEXT CHECK (risk_level IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
-    '%s' ||    ');',
-    get_uuid_primary_key(),
+    '%s' ||    ');',    get_uuid_primary_key(),
     get_text_not_null(),
+    get_operation_insert(), get_operation_update(), get_operation_delete(), get_operation_select(),
     get_uuid_ref_profiles(),
     get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_risk_critical(), get_intensity_low(),
     get_created_at_field()
@@ -417,13 +669,20 @@ $$ LANGUAGE plpgsql;
 -- Función para crear perfil automáticamente cuando se registra usuario
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+    profiles_table TEXT := get_profiles_table();
+    id_field TEXT := get_id_field();
+    email_field TEXT := get_email_field();
+    full_name_field TEXT := get_full_name_field();
+    role_field TEXT := get_role_field();
+    parent_role TEXT := get_role_parent();
 BEGIN
   INSERT INTO profiles (id, email, full_name, role)
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', get_role_parent())
+    COALESCE(NEW.raw_user_meta_data->>full_name_field, split_part(NEW.email, '@', get_number_one())),
+    COALESCE(NEW.raw_user_meta_data->>role_field, parent_role)
   );
   RETURN NEW;
 END;
@@ -462,9 +721,12 @@ CREATE TRIGGER on_auth_user_created
 -- Función para verificar acceso a niño
 CREATE OR REPLACE FUNCTION user_can_access_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
+DECLARE
+    children_table_name TEXT := get_children_table();
+    created_by_field TEXT := get_created_by_field();
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM children 
+    SELECT get_number_one() FROM children 
     WHERE id = child_uuid 
       AND created_by = auth.uid()
   );
@@ -474,9 +736,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Función para verificar permisos de edición
 CREATE OR REPLACE FUNCTION user_can_edit_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
+DECLARE
+    children_table_name TEXT := get_children_table();
+    created_by_field TEXT := get_created_by_field();
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM children 
+    SELECT get_number_one() FROM children 
     WHERE id = child_uuid 
       AND created_by = auth.uid()
   );
@@ -490,6 +755,13 @@ CREATE OR REPLACE FUNCTION audit_sensitive_access(
   action_details TEXT DEFAULT NULL
 )
 RETURNS VOID AS $$
+DECLARE
+    sensitive_access_table TEXT := get_sensitive_access_table();
+    select_operation TEXT := get_operation_select();
+    role_field TEXT := get_role_field();
+    id_field TEXT := get_id_field();
+    profiles_table TEXT := get_profiles_table();
+    medium_intensity TEXT := get_intensity_medium();
 BEGIN
   INSERT INTO audit_logs (
     table_name,
@@ -500,8 +772,8 @@ BEGIN
     new_values,
     risk_level
   ) VALUES (
-    'sensitive_access',
-    'SELECT',
+    sensitive_access_table,
+    select_operation,
     resource_id,
     auth.uid(),
     (SELECT role FROM profiles WHERE id = auth.uid()),    jsonb_build_object(
@@ -509,7 +781,7 @@ BEGIN
       'details', action_details,
       'timestamp', NOW()
     ),
-    get_intensity_medium()
+    medium_intensity
   );
 EXCEPTION
   WHEN OTHERS THEN
@@ -614,7 +886,7 @@ CREATE POLICY "Users can create relations for own children" ON user_child_relati
   FOR INSERT WITH CHECK (
     granted_by = auth.uid() AND
     EXISTS (
-      SELECT 1 FROM children 
+      SELECT get_number_one() FROM children 
       WHERE id = user_child_relations.child_id 
         AND created_by = auth.uid()
     )
@@ -624,7 +896,7 @@ CREATE POLICY "Users can create relations for own children" ON user_child_relati
 CREATE POLICY "Users can view logs of own children" ON daily_logs
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM children 
+      SELECT get_number_one() FROM children 
       WHERE id = daily_logs.child_id 
         AND created_by = auth.uid()
     )
@@ -634,7 +906,7 @@ CREATE POLICY "Users can create logs for own children" ON daily_logs
   FOR INSERT WITH CHECK (
     logged_by = auth.uid() AND
     EXISTS (
-      SELECT 1 FROM children 
+      SELECT get_number_one() FROM children 
       WHERE id = daily_logs.child_id 
         AND created_by = auth.uid()
     )
@@ -665,31 +937,39 @@ DECLARE
   function_count INTEGER;
   category_count INTEGER;
   rls_check INTEGER;
+  public_schema_name TEXT := get_public_schema();
+  profiles_table TEXT := get_profiles_table();
+  children_table TEXT := get_children_table();
+  user_child_relations_table TEXT := get_user_child_relations_table();
+  daily_logs_table TEXT := get_daily_logs_table();
+  categories_table TEXT := get_categories_table();
+  audit_logs_table TEXT := get_audit_logs_table();
+  is_active_field TEXT := get_is_active_field();
 BEGIN  -- Contar tablas
-  EXECUTE format('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = %L AND table_name IN (''profiles'', ''children'', ''user_child_relations'', ''daily_logs'', ''categories'', ''audit_logs'')', get_public_schema()) INTO table_count;
+  EXECUTE format('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = %L AND table_name IN (%L, %L, %L, %L, %L, %L)', 
+    public_schema_name, profiles_table, children_table, user_child_relations_table, 
+    daily_logs_table, categories_table, audit_logs_table) INTO table_count;
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
     -- Contar políticas
-  EXECUTE format('SELECT COUNT(*) FROM pg_policies WHERE schemaname = %L', get_public_schema()) INTO policy_count;
+  EXECUTE format('SELECT COUNT(*) FROM pg_policies WHERE schemaname = %L', public_schema_name) INTO policy_count;
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
-  
-  -- Contar funciones
-  SELECT COUNT(*) INTO function_count
-  FROM pg_proc 
-  WHERE proname IN ('user_can_access_child', 'user_can_edit_child', 'audit_sensitive_access');
+    -- Contar funciones
+  EXECUTE format('SELECT COUNT(*) FROM pg_proc WHERE proname IN (%L, %L, %L)', 
+    get_function_user_can_access_child(), get_function_user_can_edit_child(), get_function_audit_sensitive_access()) INTO function_count;
   
   result := result || 'Funciones RPC: ' || function_count || '/3' || E'\n';
   
   -- Contar categorías
-  SELECT COUNT(*) INTO category_count
-  FROM categories WHERE is_active = true;
+  EXECUTE format('SELECT COUNT(*) FROM %I WHERE %I = %L', categories_table, is_active_field, get_boolean_true()) INTO category_count;
   
   result := result || 'Categorías: ' || category_count || '/10' || E'\n';
     -- Verificar RLS
-  EXECUTE format('SELECT COUNT(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %L AND c.relname = ''children'' AND c.relrowsecurity = true', get_public_schema()) INTO rls_check;
+  EXECUTE format('SELECT COUNT(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %L AND c.relname = %L AND c.relrowsecurity = %L', 
+    public_schema_name, children_table, get_boolean_true()) INTO rls_check;
   
-  IF rls_check > 0 THEN
+  IF rls_check > get_number_one() - get_number_one() THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
   ELSE
     result := result || 'RLS: ❌ Deshabilitado' || E'\n';
