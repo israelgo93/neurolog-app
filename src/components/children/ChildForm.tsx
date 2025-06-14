@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,10 +27,9 @@ import {
 } from '@/components/ui/form';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
-import { uploadFile, getPublicUrl, STORAGE_BUCKETS } from '@/lib/supabase';
+import { uploadFile, getPublicUrl } from '@/lib/supabase';
 import type { Child, ChildInsert, ChildUpdate, EmergencyContact } from '@/types';
 import { 
-  CalendarIcon, 
   ImageIcon, 
   PlusIcon, 
   TrashIcon, 
@@ -89,30 +88,30 @@ type ChildFormData = z.infer<typeof childFormSchema>;
 // ================================================================
 
 interface ChildFormProps {
-  child?: Child;
-  mode: 'create' | 'edit';
-  onSuccess?: (child: Child) => void;
-  onCancel?: () => void;
+  readonly child?: Child;
+  readonly mode: 'create' | 'edit';
+  readonly onSuccess?: (child: Child) => void;
+  readonly onCancel?: () => void;
 }
 
 interface EmergencyContactFormProps {
-  contacts: EmergencyContact[];
-  onChange: (contacts: EmergencyContact[]) => void;
+  readonly contacts: EmergencyContact[];
+  readonly onChange: (contacts: EmergencyContact[]) => void;
 }
 
 interface MedicalInfoFormProps {
-  medicalInfo: any;
-  onChange: (info: any) => void;
+  readonly medicalInfo: any;
+  readonly onChange: (info: any) => void;
 }
 
 interface EducationalInfoFormProps {
-  educationalInfo: any;
-  onChange: (info: any) => void;
+  readonly educationalInfo: any;
+  readonly onChange: (info: any) => void;
 }
 
 interface PrivacySettingsFormProps {
-  settings: any;
-  onChange: (settings: any) => void;
+  readonly settings: any;
+  readonly onChange: (settings: any) => void;
 }
 
 // ================================================================
@@ -232,7 +231,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
 
   const addItem = (field: string, value: string, setter: (value: string) => void) => {
     if (value.trim()) {
-      const currentItems = medicalInfo[field] || [];
+      const currentItems = medicalInfo[field] ?? [];
       onChange({
         ...medicalInfo,
         [field]: [...currentItems, value.trim()]
@@ -242,7 +241,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
   };
 
   const removeItem = (field: string, index: number) => {
-    const currentItems = medicalInfo[field] || [];
+    const currentItems = medicalInfo[field] ?? [];
     onChange({
       ...medicalInfo,
       [field]: currentItems.filter((_: any, i: number) => i !== index)
@@ -318,7 +317,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
         </Label>
         <ItemsList 
           field="allergies" 
-          items={medicalInfo.allergies || []} 
+          items={medicalInfo.allergies ?? []} 
           placeholder="Agregar alergia..." 
         />
       </div>
@@ -327,7 +326,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
         <Label className="text-base font-medium mb-3 block">Medicamentos</Label>
         <ItemsList 
           field="medications" 
-          items={medicalInfo.medications || []} 
+          items={medicalInfo.medications ?? []} 
           placeholder="Agregar medicamento..." 
         />
       </div>
@@ -336,7 +335,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
         <Label className="text-base font-medium mb-3 block">Condiciones Médicas</Label>
         <ItemsList 
           field="conditions" 
-          items={medicalInfo.conditions || []} 
+          items={medicalInfo.conditions ?? []} 
           placeholder="Agregar condición..." 
         />
       </div>
@@ -345,7 +344,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
         <Label htmlFor="emergency-notes">Notas de Emergencia</Label>
         <Textarea
           id="emergency-notes"
-          value={medicalInfo.emergency_notes || ''}
+          value={medicalInfo.emergency_notes ?? ''}
           onChange={(e) => onChange({
             ...medicalInfo,
             emergency_notes: e.target.value
@@ -364,7 +363,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
 
   const addItem = (field: string, value: string, setter: (value: string) => void) => {
     if (value.trim()) {
-      const currentItems = educationalInfo[field] || [];
+      const currentItems = educationalInfo[field] ?? [];
       onChange({
         ...educationalInfo,
         [field]: [...currentItems, value.trim()]
@@ -374,7 +373,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
   };
 
   const removeItem = (field: string, index: number) => {
-    const currentItems = educationalInfo[field] || [];
+    const currentItems = educationalInfo[field] ?? [];
     onChange({
       ...educationalInfo,
       [field]: currentItems.filter((_: any, i: number) => i !== index)
@@ -388,7 +387,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
           <Label htmlFor="school">Institución Educativa</Label>
           <Input
             id="school"
-            value={educationalInfo.school || ''}
+            value={educationalInfo.school ?? ''}
             onChange={(e) => onChange({
               ...educationalInfo,
               school: e.target.value
@@ -401,7 +400,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
           <Label htmlFor="grade">Grado/Nivel</Label>
           <Input
             id="grade"
-            value={educationalInfo.grade || ''}
+            value={educationalInfo.grade ?? ''}
             onChange={(e) => onChange({
               ...educationalInfo,
               grade: e.target.value
@@ -415,7 +414,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
         <Label htmlFor="teacher">Docente Principal</Label>
         <Input
           id="teacher"
-          value={educationalInfo.teacher || ''}
+          value={educationalInfo.teacher ?? ''}
           onChange={(e) => onChange({
             ...educationalInfo,
             teacher: e.target.value
@@ -431,7 +430,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
         </Label>
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            {(educationalInfo.iep_goals || []).map((goal: string, index: number) => (
+            {(educationalInfo.iep_goals ?? []).map((goal: string, index: number) => (
               <Badge key={goal} variant="secondary" className="text-sm">
                 {goal}
                 <Button
@@ -475,7 +474,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
         <Label className="text-base font-medium mb-3 block">Acomodaciones</Label>
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            {(educationalInfo.accommodations || []).map((accommodation: string, index: number) => (
+            {(educationalInfo.accommodations ?? []).map((accommodation: string, index: number) => (
               <Badge key={accommodation} variant="secondary" className="text-sm">
                 {accommodation}
                 <Button
@@ -606,26 +605,26 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
   const form = useForm<ChildFormData>({
     resolver: zodResolver(childFormSchema),
     defaultValues: {
-      name: child?.name || '',
-      birth_date: child?.birth_date || '',
-      diagnosis: child?.diagnosis || '',
-      notes: child?.notes || '',
-      avatar_url: child?.avatar_url || '',
-      emergency_contact: child?.emergency_contact || [],
-      medical_info: child?.medical_info || {
+      name: child?.name ?? '',
+      birth_date: child?.birth_date ?? '',
+      diagnosis: child?.diagnosis ?? '',
+      notes: child?.notes ?? '',
+      avatar_url: child?.avatar_url ?? '',
+      emergency_contact: child?.emergency_contact ?? [],
+      medical_info: child?.medical_info ?? {
         allergies: [],
         medications: [],
         conditions: [],
         emergency_notes: ''
       },
-      educational_info: child?.educational_info || {
+      educational_info: child?.educational_info ?? {
         school: '',
         grade: '',
         teacher: '',
         iep_goals: [],
         accommodations: []
       },
-      privacy_settings: child?.privacy_settings || {
+      privacy_settings: child?.privacy_settings ?? {
         share_with_specialists: true,
         share_progress_reports: true,
         allow_photo_sharing: false,
