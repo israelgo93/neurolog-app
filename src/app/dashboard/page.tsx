@@ -256,19 +256,31 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
               
               {/* Progress bar de actividad */}
               <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Actividad semanal</span>
-                  <span>{child.weekly_logs || 0}/7</span>
-                </div>
-                <Progress 
-                  value={((child.weekly_logs || 0) / 7) * 100} 
-                  className="h-2"
-                  indicatorClassName={
-                    (child.weekly_logs || 0) >= 5 ? "bg-green-500" :
-                    (child.weekly_logs || 0) >= 3 ? "bg-yellow-500" : "bg-red-500"
-                  }
-                />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Actividad semanal</span>
+                <span>{child.weekly_logs || 0}/7</span>
               </div>
+              {(() => {
+                // Extrae el cálculo a una variable antes del JSX
+                const logs = child.weekly_logs || 0;
+                let indicatorClass = "";
+                if (logs >= 5) {
+                  indicatorClass = "bg-green-500";
+                } else if (logs >= 3) {
+                  indicatorClass = "bg-yellow-500";
+                } else {
+                  indicatorClass = "bg-red-500";
+                }
+                return (
+                  <Progress 
+                    value={(logs / 7) * 100}
+                    className="h-2"
+                    indicatorClassName={indicatorClass}
+                  />
+                );
+              })()}
+</div>
+
             </CardContent>
           </Card>
         ))}
