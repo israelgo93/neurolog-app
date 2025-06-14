@@ -314,7 +314,9 @@ export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
     }, {} as Record<string, number>);
     const categories = Object.entries(categoryCount);
     if (categories.length === 0) return null;
-    const [mostUsedCategory, count] = categories.sort(([, a], [, b]) => b - a)[0];
+
+    const [mostUsedCategory, count] = categories
+      .toSorted(([, a], [, b]) => b - a)[0];
     return {
       type: 'info',
       icon: Target,
