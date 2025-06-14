@@ -141,10 +141,16 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
   }
 
   // Calcular correlación entre estado de ánimo e intensidad
+  const intensityLevelToNumber = (log: any) => {
+    if (log.intensity_level === 'low') return 1;
+    if (log.intensity_level === 'medium') return 2;
+    return 3;
+  };
+
   const moodIntensityCorr = calculateCorrelation(
     logs.filter(l => l.mood_score && l.intensity_level),
     'mood_score',
-    log => log.intensity_level === 'low' ? 1 : log.intensity_level === 'medium' ? 2 : 3
+    intensityLevelToNumber
   );
 
   // Calcular correlación entre categorías y estado de ánimo
