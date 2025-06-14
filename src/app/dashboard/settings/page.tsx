@@ -29,10 +29,16 @@ export default function SettingsPage() {
   const { toast } = useToast()
   
   // ✅ Estado del perfil inicializado correctamente desde el usuario
-  const [profileData, setProfileData] = useState({
+  type UserRole = 'parent' | 'teacher' | 'specialist' | 'admin';
+
+  const [profileData, setProfileData] = useState<{
+    full_name: string;
+    email: string;
+    role: UserRole;
+  }>({
     full_name: '',
     email: '',
-    role: 'parent' as const
+    role: 'parent'
   })
 
   const [preferences, setPreferences] = useState({
@@ -242,7 +248,7 @@ export default function SettingsPage() {
             <Label htmlFor="role">Rol en la aplicación</Label>
             <Select 
               value={profileData.role} 
-              onValueChange={(value) => setProfileData(prev => ({ ...prev, role: value }))}
+              onValueChange={(value) => setProfileData(prev => ({ ...prev, role: value as UserRole }))}
               disabled={!isEditing}
             >
               <SelectTrigger>
