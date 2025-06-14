@@ -61,9 +61,7 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
         
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
-              Formato
-            </label>
+            <label className="text-sm font-medium text-gray-700 mb-2 block" htmlFor="formatSelect">Formato</label>
             <Select value={format} onValueChange={setFormat}>
               <SelectTrigger>
                 <SelectValue />
@@ -71,11 +69,10 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
               <SelectContent>
                 <SelectItem value="pdf">PDF - Reporte visual</SelectItem>
                 <SelectItem value="excel">Excel - Datos y gráficos</SelectItem>
-                <SelectItem value="csv">CSV - Solo datos</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
+        </div>
           <div className="space-y-3">
             <label className="text-sm font-medium text-gray-700 block">
               Incluir en el reporte
