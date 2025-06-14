@@ -53,8 +53,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-          Registro especializado para 
-          <span className="text-blue-600"> niños con NEE</span>
+          Registro especializado para<span className="text-blue-600"> niños con NEE</span>
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
           Una plataforma integral para el seguimiento y documentación del desarrollo 
@@ -83,8 +82,8 @@ export default function HomePage() {
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, index) => (
-            <Card key={index} className="text-center">
+          {features.map((feature) => (
+            <Card key={feature.title} className="text-center">
               <CardHeader>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <feature.icon className="h-6 w-6 text-blue-600" />

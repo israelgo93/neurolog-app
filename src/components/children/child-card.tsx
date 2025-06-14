@@ -26,7 +26,7 @@ interface ChildWithRelation {
 }
 
 interface ChildCardProps {
-  child: ChildWithRelation
+  readonly child: ChildWithRelation
 }
 
 export function ChildCard({ child }: ChildCardProps) {

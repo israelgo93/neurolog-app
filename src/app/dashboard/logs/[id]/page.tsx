@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -25,36 +25,40 @@ import {
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useLogs } from '@/hooks/use-logs';
 import type { LogWithDetails, IntensityLevel } from '@/types';
-import { 
-  EditIcon,
+
+export type UserRole = 'admin' | 'teacher' | 'specialist' | 'parent' | 'family';
+import {
   MoreVerticalIcon,
   CalendarIcon,
-  HeartIcon,
   MapPinIcon,
   CloudIcon,
   FileIcon,
   MessageSquareIcon,
   AlertCircleIcon,
   CheckCircleIcon,
-  EyeIcon,
   EyeOffIcon,
   ClockIcon,
   ArrowLeftIcon,
   UserIcon,
   TagIcon,
-  ThermometerIcon,
   ReplyIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-
 export default function LogDetailPage() {
+  const { user } = useAuth();
+  // 'logs' eliminado de la desestructuración
+  const { loading, getLogById, addParentFeedback, markAsReviewed } = useLogs();
   const params = useParams();
   const router = useRouter();
-  const logId = params.id as string;
-  const { user } = useAuth();
-  const { logs, loading, getLogById, addParentFeedback, markAsReviewed } = useLogs();
-  
+  const logId = params?.id as string | undefined;
+
+  // Ensure user.role is typed correctly
+  // Assume user.role can be any UserRole (including 'parent' and 'family')
+  const userRole = user?.role as UserRole | undefined;
+
+  // Use userRole for role checks to ensure correct type narrowing
+
   const [log, setLog] = useState<LogWithDetails | null>(null);
   const [feedback, setFeedback] = useState('');
   const [specialistNotes, setSpecialistNotes] = useState('');
@@ -106,14 +110,16 @@ export default function LogDetailPage() {
 
   const handleAddFeedback = async () => {
     if (!feedback.trim()) return;
-    
+
     try {
       await addParentFeedback(log.id, feedback);
       setFeedback('');
       setIsAddingFeedback(false);
       // Refresh log data
-      const updatedLog = getLogById(logId);
-      setLog(updatedLog || null);
+      if (logId) {
+        const updatedLog = getLogById(logId);
+        setLog(updatedLog || null);
+      }
     } catch (error) {
       console.error('Error adding feedback:', error);
     }
@@ -125,15 +131,28 @@ export default function LogDetailPage() {
       setSpecialistNotes('');
       setIsReviewing(false);
       // Refresh log data
-      const updatedLog = getLogById(logId);
-      setLog(updatedLog || null);
+      if (logId) {
+        const updatedLog = getLogById(logId);
+        setLog(updatedLog || null);
+      }
     } catch (error) {
       console.error('Error marking as reviewed:', error);
     }
   };
 
-  const canReview = user?.role === 'specialist' && !log.reviewed_by;
-  const canAddFeedback = user?.role === 'parent' || user?.role === 'family';
+  const canReview = userRole === 'specialist' && !log?.reviewed_by;
+  const canAddFeedback = userRole === 'parent' || userRole === 'family';
+  let moodDescription = '';
+  if (log?.mood_score !== undefined && log?.mood_score !== null) {
+    if (log.mood_score <= 2) {
+      moodDescription = 'Necesita atención';
+    } else if (log.mood_score <= 3) {
+      moodDescription = 'Normal';
+    } else {
+      moodDescription = 'Muy positivo';
+    }
+  }
+  // -------------------------------------------------------------
 
   return (
     <div className="space-y-6">
@@ -146,21 +165,16 @@ export default function LogDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Registro de {log.child_name}
+              Registro de {log.child?.name}
             </h1>
             <p className="text-gray-600">
-              {format(new Date(log.created_at), 'dd MMMM yyyy \'a las\' HH:mm', { locale: es })}
+              {format(new Date(log.created_at), "dd MMMM yyyy 'a las' HH:mm", { locale: es })}
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
-          {log.can_edit && (
-            <Button variant="outline" size="sm">
-              <EditIcon className="h-4 w-4 mr-2" />
-              Editar
-            </Button>
-          )}
+          {/* Editar button removed because 'can_edit' does not exist on LogWithDetails */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
@@ -202,18 +216,22 @@ export default function LogDetailPage() {
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
-                  <div 
+                  <div
                     className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: log.category_color }}
+                    style={{ backgroundColor: typeof log.category === 'object' && log.category?.color ? log.category.color : undefined }}
                   />
                   <div>
-                    <CardTitle className="text-lg">{log.category_name || 'Sin categoría'}</CardTitle>
+                    <CardTitle className="text-lg">
+                      {typeof log.category === 'string'
+                        ? log.category
+                        : log.category?.name ?? 'Sin categoría'}
+                    </CardTitle>
                     <CardDescription>
-                      Registrado por {log.logged_by_name}
+                      Registrado por {log.logged_by}
                     </CardDescription>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   {log.is_private && (
                     <Badge variant="secondary">
@@ -231,7 +249,7 @@ export default function LogDetailPage() {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-6">
               {/* Content */}
               <div>
@@ -247,10 +265,7 @@ export default function LogDetailPage() {
                     <span className="text-2xl">{getMoodEmoji(log.mood_score)}</span>
                     <div>
                       <p className="text-lg font-semibold text-gray-900">{log.mood_score}/5</p>
-                      <p className="text-sm text-gray-600">
-                        {log.mood_score <= 2 ? 'Necesita atención' : 
-                         log.mood_score <= 3 ? 'Normal' : 'Muy positivo'}
-                      </p>
+                      <p className="text-sm text-gray-600">{moodDescription}</p>
                     </div>
                   </div>
                 </div>
@@ -261,8 +276,9 @@ export default function LogDetailPage() {
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-2">Etiquetas</h4>
                   <div className="flex flex-wrap gap-2">
-                    {log.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline">
+                    {/* Usar el valor del tag como key */}
+                    {log.tags.map((tag) => (
+                      <Badge key={tag} variant="outline">
                         <TagIcon className="h-3 w-3 mr-1" />
                         {tag}
                       </Badge>
@@ -317,7 +333,7 @@ export default function LogDetailPage() {
                     <h4 className="text-sm font-medium text-green-900">Revisado por especialista</h4>
                   </div>
                   <p className="text-sm text-green-700 mt-1">
-                    Revisado por {log.reviewer_name} el {format(new Date(log.reviewed_at!), 'dd MMM yyyy', { locale: es })}
+                    Revisado por {log.reviewed_by} el {format(new Date(log.reviewed_at!), 'dd MMM yyyy', { locale: es })}
                   </p>
                   {log.specialist_notes && (
                     <div className="mt-3">
@@ -425,12 +441,12 @@ export default function LogDetailPage() {
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Niño</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={log.child_avatar_url} />
+                      <AvatarImage src={log.child?.avatar_url ?? undefined} />
                       <AvatarFallback className="text-xs">
-                        {log.child_name?.charAt(0)}
+                        {log.child?.name?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <p className="text-sm font-medium text-gray-900">{log.child_name}</p>
+                    <p className="text-sm font-medium text-gray-900">{log.child?.name}</p>
                   </div>
                 </div>
 
@@ -438,12 +454,12 @@ export default function LogDetailPage() {
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Registrado por</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={log.logged_by_avatar} />
+                      {/* Si tienes un campo válido para el avatar del usuario que registró, reemplázalo aquí. Si no, solo muestra el fallback */}
                       <AvatarFallback className="text-xs">
-                        {log.logged_by_name?.charAt(0)}
+                        {log.logged_by?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <p className="text-sm font-medium text-gray-900">{log.logged_by_name}</p>
+                    <p className="text-sm font-medium text-gray-900">{log.logged_by}</p>
                   </div>
                 </div>
 

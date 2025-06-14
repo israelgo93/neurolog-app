@@ -11,6 +11,15 @@ import { cn } from '@/lib/utils';
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
+// Definir los iconos FUERA del componente principal
+const IconLeft = (props: React.SVGProps<SVGSVGElement>) => (
+  <ChevronLeftIcon className="h-4 w-4" {...props} />
+);
+
+const IconRight = (props: React.SVGProps<SVGSVGElement>) => (
+  <ChevronRightIcon className="h-4 w-4" {...props} />
+);
+
 function Calendar({
   className,
   classNames,
@@ -60,13 +69,15 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeftIcon className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRightIcon className="h-4 w-4" />,
+        IconLeft,
+        IconRight,
+        ...props.components,
       }}
       {...props}
     />
   );
 }
+
 Calendar.displayName = 'Calendar';
 
 export { Calendar };

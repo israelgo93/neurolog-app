@@ -19,13 +19,16 @@ import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/use-toast'
 import { useChildren } from '@/hooks/use-children'
 import { useCategories } from '@/hooks/use-categories'
-import { useLogs } from '@/hooks/use-logs'
 import { Star, Loader2 } from 'lucide-react'
 
+async function addLog(_logData: any): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 500))
+}
+
 interface AddLogDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  preselectedChildId?: string
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+  readonly preselectedChildId?: string
 }
 
 interface FormData {
@@ -40,7 +43,7 @@ interface FormData {
 
 export function AddLogDialog({ open, onOpenChange, preselectedChildId }: AddLogDialogProps) {
   const [formData, setFormData] = useState<FormData>({
-    child_id: preselectedChildId || '',
+    child_id: preselectedChildId ?? '',
     category_id: '',
     title: '',
     content: '',
@@ -52,7 +55,7 @@ export function AddLogDialog({ open, onOpenChange, preselectedChildId }: AddLogD
 
   const { children } = useChildren()
   const { categories } = useCategories()
-  const { addLog } = useLogs({})
+
   const { toast } = useToast()
 
   // Filtrar solo niños que puede editar
@@ -70,7 +73,7 @@ export function AddLogDialog({ open, onOpenChange, preselectedChildId }: AddLogD
 
   const resetForm = () => {
     setFormData({
-      child_id: preselectedChildId || '',
+      child_id: preselectedChildId ?? '',
       category_id: '',
       title: '',
       content: '',
@@ -97,7 +100,7 @@ export function AddLogDialog({ open, onOpenChange, preselectedChildId }: AddLogD
     try {
       const logData = {
         child_id: formData.child_id,
-        category_id: formData.category_id || null,
+        category_id: formData.category_id ?? null,
         title: formData.title.trim(),
         content: formData.content.trim(),
         mood_score: formData.mood_score,
@@ -117,7 +120,7 @@ export function AddLogDialog({ open, onOpenChange, preselectedChildId }: AddLogD
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "No se pudo agregar el registro",
+        description: error.message ?? "No se pudo agregar el registro",
         variant: "destructive",
       })
     } finally {

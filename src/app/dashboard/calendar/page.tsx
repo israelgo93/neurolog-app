@@ -104,7 +104,7 @@ export default function CalendarPage() {
             
             {/* Calendar days */}
             {calendarDays.map((day) => (
-              <div
+                <div
                 key={day.toISOString()}
                 className={`
                   relative p-2 sm:p-3 text-center text-xs sm:text-sm cursor-pointer 
@@ -112,13 +112,36 @@ export default function CalendarPage() {
                   ${isSameMonth(day, currentDate) ? 'text-gray-900' : 'text-gray-400'}
                   ${isToday(day) ? 'bg-blue-100 text-blue-900 font-semibold' : ''}
                 `}
-              >
+                >
                 {format(day, 'd')}
                 {/* Placeholder for events */}
-                {Math.random() > 0.8 && (
-                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
-                )}
-              </div>
+                {
+                  (() => {
+                    // Use crypto.getRandomValues for secure random
+                    if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+                      const array = new Uint32Array(1);
+                      window.crypto.getRandomValues(array);
+                      return array[0] % 10 > 8 ? (
+                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
+                      ) : null;
+                    }
+                    // Fallback for environments without crypto
+                    // Use crypto.getRandomValues as a fallback if available, otherwise do not render
+                    let randomValue = 0;
+                    if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+                      const array = new Uint32Array(1);
+                      window.crypto.getRandomValues(array);
+                      randomValue = array[0] % 10;
+                    } else {
+                      // If crypto is not available, do not render the event dot
+                      return null;
+                    }
+                    return randomValue > 8 ? (
+                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
+                    ) : null;
+                  })()
+                }
+                </div>
             ))}
           </div>
         </CardContent>
