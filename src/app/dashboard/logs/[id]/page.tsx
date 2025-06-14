@@ -204,7 +204,7 @@ export default function LogDetailPage() {
                     style={{ backgroundColor: log.category_color }}
                   />
                   <div>
-                    <CardTitle className="text-lg">{log.category_name || 'Sin categoría'}</CardTitle>
+                    <CardTitle className="text-lg">{log.category_name ?? 'Sin categoría'}</CardTitle>
                     <CardDescription>
                       Registrado por {log.logged_by_name}
                     </CardDescription>
