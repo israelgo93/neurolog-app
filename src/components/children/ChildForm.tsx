@@ -88,35 +88,99 @@ type ChildFormData = z.infer<typeof childFormSchema>;
 // ================================================================
 
 interface ChildFormProps {
-  child?: Child;
-  mode: 'create' | 'edit';
-  onSuccess?: (child: Child) => void;
-  onCancel?: () => void;
+  readonly child?: Child;
+  readonly mode: 'create' | 'edit';
+  readonly onSuccess?: (child: Child) => void;
+  readonly onCancel?: () => void;
 }
 
 interface EmergencyContactFormProps {
-  contacts: EmergencyContact[];
-  onChange: (contacts: EmergencyContact[]) => void;
+  readonly contacts: EmergencyContact[];
+  readonly onChange: (contacts: EmergencyContact[]) => void;
 }
 
 interface MedicalInfoFormProps {
-  medicalInfo: any;
-  onChange: (info: any) => void;
+  readonly medicalInfo: any;
+  readonly onChange: (info: any) => void;
 }
 
 interface EducationalInfoFormProps {
-  educationalInfo: any;
-  onChange: (info: any) => void;
+  readonly educationalInfo: any;
+  readonly onChange: (info: any) => void;
 }
 
 interface PrivacySettingsFormProps {
-  settings: any;
-  onChange: (settings: any) => void;
+  readonly settings: any;
+  readonly onChange: (settings: any) => void;
 }
 
 // ================================================================
 // COMPONENTES AUXILIARES
 // ================================================================
+
+// Component moved outside to avoid recreation on re-renders
+interface ItemsListProps {
+  readonly field: string;
+  readonly items: string[];
+  readonly placeholder: string;
+  readonly onAddItem: (field: string, value: string) => void;
+  readonly onRemoveItem: (field: string, index: number) => void;
+  readonly getFieldValue: (field: string) => string;
+  readonly setFieldValue: (field: string, value: string) => void;
+}
+
+function ItemsList({ 
+  field, 
+  items, 
+  placeholder, 
+  onAddItem, 
+  onRemoveItem, 
+  getFieldValue, 
+  setFieldValue 
+}: ItemsListProps) {
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {items.map((item, index) => (
+          <Badge key={`${field}-${item}-${index}`} variant="secondary" className="text-sm">
+            {item}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto p-0 ml-2"
+              onClick={() => onRemoveItem(field, index)}
+            >
+              <TrashIcon className="h-3 w-3" />
+            </Button>
+          </Badge>
+        ))}
+      </div>
+      
+      <div className="flex space-x-2">
+        <Input
+          placeholder={placeholder}
+          value={getFieldValue(field)}
+          onChange={(e) => setFieldValue(field, e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onAddItem(field, getFieldValue(field));
+            }
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onAddItem(field, getFieldValue(field))}
+        >
+          <PlusIcon className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps) {
   const addContact = () => {
@@ -234,26 +298,20 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
     return newCondition;
   };
 
-  const getFieldSetter = (field: string) => {
-    if (field === 'allergies') return setNewAllergy;
-    if (field === 'medications') return setNewMedication;
-    return setNewCondition;
-  };
-
   const setFieldValue = (field: string, value: string) => {
     if (field === 'allergies') setNewAllergy(value);
     else if (field === 'medications') setNewMedication(value);
     else setNewCondition(value);
   };
 
-  const addItem = (field: string, value: string, setter: (value: string) => void) => {
+  const addItem = (field: string, value: string) => {
     if (value.trim()) {
       const currentItems = medicalInfo[field] ?? [];
       onChange({
         ...medicalInfo,
         [field]: [...currentItems, value.trim()]
       });
-      setter('');
+      setFieldValue(field, '');
     }
   };
 
@@ -264,55 +322,6 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
       [field]: currentItems.filter((_: any, i: number) => i !== index)
     });
   };
-
-  const ItemsList = ({ field, items, placeholder }: { field: string, items: string[], placeholder: string }) => (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        {items.map((item, index) => (
-          <Badge key={`${field}-${item}-${index}`} variant="secondary" className="text-sm">
-            {item}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-auto p-0 ml-2"
-              onClick={() => removeItem(field, index)}
-            >
-              <TrashIcon className="h-3 w-3" />
-            </Button>
-          </Badge>
-        ))}
-      </div>
-      
-      <div className="flex space-x-2">
-        <Input
-          placeholder={placeholder}
-          value={getFieldValue(field)}
-          onChange={(e) => setFieldValue(field, e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              const value = getFieldValue(field);
-              const setter = getFieldSetter(field);
-              addItem(field, value, setter);
-            }
-          }}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const value = getFieldValue(field);
-            const setter = getFieldSetter(field);
-            addItem(field, value, setter);
-          }}
-        >
-          <PlusIcon className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-6">
@@ -325,6 +334,10 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           field="allergies" 
           items={medicalInfo.allergies ?? []} 
           placeholder="Agregar alergia..." 
+          onAddItem={addItem}
+          onRemoveItem={removeItem}
+          getFieldValue={getFieldValue}
+          setFieldValue={setFieldValue}
         />
       </div>
 
@@ -334,6 +347,10 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           field="medications" 
           items={medicalInfo.medications ?? []} 
           placeholder="Agregar medicamento..." 
+          onAddItem={addItem}
+          onRemoveItem={removeItem}
+          getFieldValue={getFieldValue}
+          setFieldValue={setFieldValue}
         />
       </div>
 
@@ -343,6 +360,10 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           field="conditions" 
           items={medicalInfo.conditions ?? []} 
           placeholder="Agregar condición..." 
+          onAddItem={addItem}
+          onRemoveItem={removeItem}
+          getFieldValue={getFieldValue}
+          setFieldValue={setFieldValue}
         />
       </div>
 
