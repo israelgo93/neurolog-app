@@ -117,11 +117,19 @@ CREATE TABLE user_child_relations (
   UNIQUE(user_id, child_id, relationship_type)
 );
 
--- Definir tipo ENUM para los niveles de intensidad solo una vez
+-- Definir constante para los niveles de intensidad
 DO $$
+DECLARE
+  intensity_levels CONSTANT TEXT[] := ARRAY['low', 'medium', 'high'];
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'intensity_level_enum') THEN
-    CREATE TYPE intensity_level_enum AS ENUM ('low', 'medium', 'high');
+    EXECUTE format('CREATE TYPE intensity_level_enum AS ENUM (%s)', 
+      array_to_string(
+        ARRAY(
+          SELECT quote_literal(level) FROM unnest(intensity_levels) AS level
+        ), ', '
+      )
+    );
   END IF;
 END$$;
 
@@ -489,11 +497,12 @@ DECLARE
   policy_count INTEGER;
   function_count INTEGER;
   category_count INTEGER;
+  v_schema CONSTANT TEXT := 'public';
 BEGIN
   -- Contar tablas
   SELECT COUNT(*) INTO table_count
   FROM information_schema.tables 
-  WHERE table_schema = 'public' 
+  WHERE table_schema = v_schema
     AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
@@ -501,7 +510,7 @@ BEGIN
   -- Contar políticas
   SELECT COUNT(*) INTO policy_count
   FROM pg_policies 
-  WHERE schemaname = 'public';
+  WHERE schemaname = v_schema;
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
   
@@ -521,7 +530,7 @@ BEGIN
   -- Verificar RLS
   IF (SELECT COUNT(*) FROM pg_class c 
       JOIN pg_namespace n ON n.oid = c.relnamespace 
-      WHERE n.nspname = 'public' 
+      WHERE n.nspname = v_schema
         AND c.relname = 'children' 
         AND c.relrowsecurity = true) > 0 THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
