@@ -522,7 +522,6 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 // ================================================================
 
 export default function LogsPage() {
-  const { user } = useAuth();
   const { children } = useChildren({ includeInactive: false });
   const { 
     logs, 
