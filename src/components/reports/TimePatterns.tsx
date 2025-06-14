@@ -26,18 +26,18 @@ interface AdvancedInsightsProps {
 // TIMEPATTERNS COMPONENT
 // ================================================================
 
-export function TimePatterns({ logs }: TimePatternsProps) {
+export function TimePatterns({ logs }: Readonly<TimePatternsProps>) {
   // Analizar patrones por hora del día
   const hourlyPattern = logs.reduce((acc, log) => {
     const hour = new Date(log.created_at).getHours();
-    acc[hour] = (acc[hour] || 0) + 1;
+    acc[hour] = (acc[hour] ?? 0) + 1;
     return acc;
   }, {} as Record<number, number>);
 
   // Analizar patrones por día de la semana
   const weeklyPattern = logs.reduce((acc, log) => {
     const day = new Date(log.created_at).getDay();
-    acc[day] = (acc[day] || 0) + 1;
+    acc[day] = (acc[day] ?? 0) + 1;
     return acc;
   }, {} as Record<number, number>);
 
@@ -93,7 +93,7 @@ export function TimePatterns({ logs }: TimePatternsProps) {
         <h4 className="text-sm font-medium mb-2">Distribución por días de la semana</h4>
         <div className="flex space-x-1">
           {dayNames.map((day, index) => {
-            const count = weeklyPattern[index] || 0;
+            const count = weeklyPattern[index] ?? 0;
             const values = Object.values(weeklyPattern);
             const maxCount = values.length > 0 ? Math.max(...values) : 0;
             const intensity = maxCount > 0 ? (count / maxCount) * 100 : 0;
@@ -122,7 +122,7 @@ export function TimePatterns({ logs }: TimePatternsProps) {
 // CORRELATION ANALYSIS COMPONENT
 // ================================================================
 
-export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
+export function CorrelationAnalysis({ logs }: Readonly<CorrelationAnalysisProps>) {
   // Función helper para calcular correlación
   function calculateCorrelation(data: any[], field1: string, field2Func: (item: any) => number): number {
     if (data.length < 2) return 0;
@@ -158,10 +158,7 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
   const categoryMoodCorr = logs.reduce((acc, log) => {
     if (!log.mood_score || !log.category_name) return acc;
     
-    if (!acc[log.category_name]) {
-      acc[log.category_name] = { total: 0, count: 0 };
-    }
-    
+    acc[log.category_name] ??= { total: 0, count: 0 };
     acc[log.category_name].total += log.mood_score;
     acc[log.category_name].count += 1;
     
@@ -255,7 +252,7 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
 // ADVANCED INSIGHTS COMPONENT
 // ================================================================
 
-export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
+export function AdvancedInsights({ logs }: Readonly<AdvancedInsightsProps>) {
   // Helper functions to reduce complexity
   const getFrequencyInsight = () => {
     if (logs.length === 0) return null;
@@ -283,7 +280,7 @@ export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
     } else {
       icon = AlertTriangle;
     }
-    let recommendation = 'Estado de ánimo estable';
+    let recommendation;
     
     if (frequency < 50) {
       recommendation = 'Intenta mantener registros más regulares para obtener mejores insights';
@@ -342,7 +339,7 @@ export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
   const getCategoryInsight = () => {
     const categoryCount = logs.reduce((acc, log) => {
       if (log.category_name) {
-        acc[log.category_name] = (acc[log.category_name] || 0) + 1;
+        acc[log.category_name] = (acc[log.category_name] ?? 0) + 1;
       }
       return acc;
     }, {} as Record<string, number>);
@@ -393,40 +390,52 @@ export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
   return (
     <div className="space-y-4">
       {insights.map((insight) => {
-        const bgColor =
-          insight.type === 'success'
-            ? 'bg-green-100'
-            : insight.type === 'warning'
-            ? 'bg-yellow-100'
-            : 'bg-blue-100';
+        let bgColor = 'bg-blue-100';
+        if (insight.type === 'success') {
+          bgColor = 'bg-green-100';
+        } else if (insight.type === 'warning') {
+          bgColor = 'bg-yellow-100';
+        }
+        // Extract variant for Badge to avoid nested ternary in JSX
+        let badgeVariant = 'secondary';
+        if (insight.type === 'success') {
+          badgeVariant = 'default';
+        } else if (insight.type === 'warning') {
+          badgeVariant = 'destructive';
+        }
+
+        // Extract label for Badge to avoid nested ternary in JSX
+        let badgeLabel = 'Info';
+        if (insight.type === 'success') {
+          badgeLabel = 'Positivo';
+        } else if (insight.type === 'warning') {
+          badgeLabel = 'Atención';
+        }
+
         return (
           <Card key={insight.title} className="border-l-4 border-l-blue-500">
             <CardContent className="pt-4">
               <div className="flex items-start space-x-3">
                 <div className={`p-2 rounded-lg ${bgColor}`}>
-                  {React.createElement(insight.icon, {
-                    className: `h-5 w-5 ${
-                      insight.type === 'success'
-                        ? 'text-green-600'
-                        : insight.type === 'warning'
-                        ? 'text-yellow-600'
-                        : 'text-blue-600'
-                    }`
-                  })}
+                  {(() => {
+                    let iconColor = 'text-blue-600';
+                    if (insight.type === 'success') {
+                      iconColor = 'text-green-600';
+                    } else if (insight.type === 'warning') {
+                      iconColor = 'text-yellow-600';
+                    }
+                    return React.createElement(insight.icon, {
+                      className: `h-5 w-5 ${iconColor}`
+                    });
+                  })()}
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">{insight.title}</h4>
                   <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
                   <p className="text-sm text-gray-500 mt-2 italic">{insight.recommendation}</p>
                 </div>
-                <Badge variant={
-                  insight.type === 'success' ? 'default' :
-                  insight.type === 'warning' ? 'destructive' :
-                  'secondary'
-                }>
-                  {insight.type === 'success' ? 'Positivo' :
-                  insight.type === 'warning' ? 'Atención' :
-                  'Info'}
+                <Badge variant={badgeVariant}>
+                  {badgeLabel}
                 </Badge>
               </div>
             </CardContent>

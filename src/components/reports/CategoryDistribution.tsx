@@ -8,14 +8,14 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 interface CategoryDistributionProps {
-  data: any[];
+  readonly data: readonly any[];
 }
 
 export function CategoryDistribution({ data }: CategoryDistributionProps) {
   // Procesar datos para el gráfico
   const categoryCount = data.reduce((acc, log) => {
-    const category = log.category_name || 'Sin categoría';
-    acc[category] = (acc[category] || 0) + 1;
+    const category = log.category_name ?? 'Sin categoría';
+    acc[category] = (acc[category] ?? 0) + 1;
     return acc;
   }, {});
 

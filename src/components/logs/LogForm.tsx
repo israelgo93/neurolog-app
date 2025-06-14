@@ -35,7 +35,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
-import { supabase, uploadFile, getPublicUrl, STORAGE_BUCKETS } from '@/lib/supabase';
+import { supabase, uploadFile, getPublicUrl } from '@/lib/supabase';
 import type { 
   DailyLog, 
   LogInsert, 
