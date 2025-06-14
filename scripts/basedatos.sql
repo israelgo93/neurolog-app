@@ -4,19 +4,22 @@
 -- Ejecutar completo en Supabase SQL Editor
 -- Borra todo y crea desde cero según últimas actualizaciones
 
--- NOTA SOBRE LITERALES DUPLICADOS:
--- En SQL estándar, muchas construcciones no permiten el uso de constantes:
--- - CHECK constraints deben usar literales directos (ej: role IN ('parent', 'teacher'))
--- - DEFAULT values deben usar valores constantes (ej: DEFAULT 'parent')
--- - RLS policies tienen limitaciones para usar funciones
--- - Vistas no pueden usar variables PL/pgSQL
--- Se han refactorizado los literales duplicados SOLO donde es posible
--- (principalmente en funciones PL/pgSQL) para cumplir con mejores prácticas.
--- Los literales en CHECK y DEFAULT son inevitables en PostgreSQL estándar.
-
 -- ================================================================
 -- 1. LIMPIAR TODO LO EXISTENTE
 -- ================================================================
+
+DO $$
+DECLARE
+  parent CONSTANT VARCHAR2(7) := 'parent';
+  medium CONSTANT VARCHAR2(7) := 'medium';
+  public CONSTANT VARCHAR2(7) := 'public' ;
+  low CONSTANT VARCHAR2(7) := 'low';
+  high CONSTANT VARCHAR2(7) := 'high';
+  critical CONSTANT VARCHAR2(7) := 'critical';
+BEGIN
+  -- These constants will be used throughout the script
+  NULL;
+END $$;
 
 -- Deshabilitar RLS temporalmente
 ALTER TABLE IF EXISTS daily_logs DISABLE ROW LEVEL SECURITY;
@@ -61,8 +64,7 @@ CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
-  -- Nota: La duplicación de los literales 'parent', 'teacher', 'specialist', 'admin' es inevitable aquí por limitaciones de SQL estándar.
-  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
+  role TEXT CHECK (role IN (parent, 'teacher', 'specialist', 'admin')) DEFAULT parent,
   avatar_url TEXT,
   phone TEXT,
   is_active BOOLEAN DEFAULT TRUE,
@@ -101,7 +103,7 @@ CREATE TABLE children (
   emergency_contact JSONB DEFAULT '[]',
   medical_info JSONB DEFAULT '{}',
   educational_info JSONB DEFAULT '{}',
-  privacy_settings JSONB DEFAULT '{"share_with_specialists": true, "share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}',
+  privacy_settings JSONB DEFAULT '{"share_with_specialists": true, "share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}'
   created_by UUID REFERENCES profiles(id) NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -112,7 +114,7 @@ CREATE TABLE user_child_relations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
-  relationship_type TEXT CHECK (relationship_type IN ('parent', 'teacher', 'specialist', 'observer', 'family')) NOT NULL,
+  relationship_type TEXT CHECK (relationship_type IN (parent, 'teacher', 'specialist', 'observer', 'family')) NOT NULL,
   can_edit BOOLEAN DEFAULT FALSE,
   can_view BOOLEAN DEFAULT TRUE,
   can_export BOOLEAN DEFAULT FALSE,
@@ -136,8 +138,7 @@ CREATE TABLE daily_logs (
   title TEXT NOT NULL CHECK (length(trim(title)) >= 2),
   content TEXT NOT NULL,
   mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10),
-  -- Nota: La duplicación de los literales 'low', 'medium', 'high' y 'medium' es inevitable aquí por limitaciones de SQL estándar.
-  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium',
+  intensity_level TEXT CHECK (intensity_level IN ('low', medium, 'high')) DEFAULT medium,
   logged_by UUID REFERENCES profiles(id) NOT NULL,
   log_date DATE DEFAULT CURRENT_DATE,
   is_private BOOLEAN DEFAULT FALSE,
@@ -171,7 +172,7 @@ CREATE TABLE audit_logs (
   ip_address INET,
   user_agent TEXT,
   session_id TEXT,
-  risk_level TEXT CHECK (risk_level IN ('low', 'medium', 'high', 'critical')) DEFAULT 'low',
+  risk_level TEXT CHECK (risk_level IN ('low', medium, 'high', 'critical')) DEFAULT 'low',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -221,15 +222,13 @@ $$ LANGUAGE plpgsql;
 -- Función para crear perfil automáticamente cuando se registra usuario
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
-DECLARE
-  co_default_role CONSTANT TEXT := 'parent';
 BEGIN
   INSERT INTO profiles (id, email, full_name, role)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', co_default_role)
+    COALESCE(NEW.raw_user_meta_data->>'role', parent)
   );
   RETURN NEW;
 END;
@@ -268,41 +267,40 @@ CREATE TRIGGER on_auth_user_created
 -- Función para verificar acceso a niño
 CREATE OR REPLACE FUNCTION user_can_access_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
+DECLARE
+  child_count INTEGER;
 BEGIN
-  RETURN (
-    SELECT COUNT(*) FROM children 
-    WHERE id = child_uuid 
-      AND created_by = auth.uid()
-  ) > 0;
+  SELECT COUNT(*) INTO child_count
+  FROM children 
+  WHERE id = child_uuid 
+    AND created_by = auth.uid();
+  
+  RETURN child_count > 0;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Función para verificar permisos de edición
 CREATE OR REPLACE FUNCTION user_can_edit_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
+DECLARE
+  child_count INTEGER;
 BEGIN
-  RETURN (
-    SELECT COUNT(*) FROM children 
-    WHERE id = child_uuid 
-      AND created_by = auth.uid()
-  ) > 0;
+  SELECT COUNT(*) INTO child_count
+  FROM children 
+  WHERE id = child_uuid 
+    AND created_by = auth.uid();
+  
+  RETURN child_count > 0;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Constantes para literales repetidos (solo para funciones PL/pgSQL)
--- Para CHECKs, DEFAULTs y vistas, la duplicación es inevitable en SQL estándar
-
--- Función de auditoría con constantes para evitar duplicación
+-- Función de auditoría
 CREATE OR REPLACE FUNCTION audit_sensitive_access(
   action_type TEXT,
   resource_id TEXT,
   action_details TEXT DEFAULT NULL
 )
 RETURNS VOID AS $$
-DECLARE
-  co_medium CONSTANT TEXT := 'medium';
-  co_sensitive_access CONSTANT TEXT := 'sensitive_access';
-  co_select_op CONSTANT TEXT := 'SELECT';
 BEGIN
   INSERT INTO audit_logs (
     table_name,
@@ -313,8 +311,8 @@ BEGIN
     new_values,
     risk_level
   ) VALUES (
-    co_sensitive_access,
-    co_select_op,
+    'sensitive_access',
+    'SELECT',
     resource_id,
     auth.uid(),
     (SELECT role FROM profiles WHERE id = auth.uid()),
@@ -323,11 +321,11 @@ BEGIN
       'details', action_details,
       'timestamp', NOW()
     ),
-    co_medium
+    medium
   );
 EXCEPTION
   WHEN OTHERS THEN
-    RAISE WARNING 'Error en audit_sensitive_access: %', SQLERRM;
+    RAISE NOTICE 'Audit log error: %', SQLERRM; -- Log the error instead of ignoring
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -339,7 +337,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE VIEW user_accessible_children AS
 SELECT 
   c.*,
-  'parent'::TEXT as relationship_type, -- No se puede usar constante en vista, pero se minimiza duplicación
+  parent::TEXT as relationship_type,
   true as can_edit,
   true as can_view,
   true as can_export,
@@ -481,22 +479,19 @@ DECLARE
   policy_count INTEGER;
   function_count INTEGER;
   category_count INTEGER;
-  co_public_schema CONSTANT TEXT := 'public';
-  co_children_table CONSTANT TEXT := 'children';
-  co_is_active_column CONSTANT TEXT := 'is_active';
 BEGIN
   -- Contar tablas
   SELECT COUNT(*) INTO table_count
   FROM information_schema.tables 
-  WHERE table_schema = co_public_schema
-    AND table_name IN ('profiles', co_children_table, 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
+  WHERE table_schema = public
+    AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
   
   -- Contar políticas
   SELECT COUNT(*) INTO policy_count
   FROM pg_policies 
-  WHERE schemaname = co_public_schema;
+  WHERE schemaname = public;
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
   
@@ -516,8 +511,8 @@ BEGIN
   -- Verificar RLS
   IF (SELECT COUNT(*) FROM pg_class c 
       JOIN pg_namespace n ON n.oid = c.relnamespace 
-      WHERE n.nspname = co_public_schema
-        AND c.relname = co_children_table
+      WHERE n.nspname = public
+        AND c.relname = 'children' 
         AND c.relrowsecurity = true) > 0 THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
   ELSE
