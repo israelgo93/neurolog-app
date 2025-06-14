@@ -311,7 +311,28 @@ BEGIN
   );
 EXCEPTION
   WHEN OTHERS THEN
-    NULL; -- No fallar por errores de auditoría
+    INSERT INTO audit_logs (
+      table_name,
+      operation,
+      record_id,
+      user_id,
+      user_role,
+      new_values,
+      risk_level
+    ) VALUES (
+      'audit_sensitive_access_error',
+      'ERROR',
+      resource_id,
+      auth.uid(),
+      (SELECT role FROM profiles WHERE id = auth.uid()),
+      jsonb_build_object(
+        'action_type', action_type,
+        'details', action_details,
+        'timestamp', NOW(),
+        'error_message', SQLERRM
+      ),
+      'high'
+    );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
