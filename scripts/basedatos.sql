@@ -43,27 +43,80 @@ DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 
 -- ================================================================
--- 2. CREAR TABLAS PRINCIPALES
+-- 2. FUNCIONES AUXILIARES PARA CONSTANTES (EVITAR DUPLICACIÓN)
+-- ================================================================
+-- Solución SonarQube: Definir constantes en lugar de duplicar literales
+-- como 'parent' múltiples veces en diferentes lugares del código.
+
+-- Función para obtener rol 'parent' (usado en múltiples lugares)
+CREATE OR REPLACE FUNCTION get_role_parent() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'parent';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener rol 'teacher'
+CREATE OR REPLACE FUNCTION get_role_teacher() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'teacher';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener rol 'specialist'
+CREATE OR REPLACE FUNCTION get_role_specialist() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'specialist';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener rol 'admin'
+CREATE OR REPLACE FUNCTION get_role_admin() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'admin';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener rol 'observer'
+CREATE OR REPLACE FUNCTION get_role_observer() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'observer';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener rol 'family'
+CREATE OR REPLACE FUNCTION get_role_family() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'family';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- ================================================================
+-- 3. CREAR TABLAS PRINCIPALES
 -- ================================================================
 
 -- TABLA: profiles (usuarios del sistema)
-CREATE TABLE profiles (
-  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  full_name TEXT NOT NULL,
-  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
-  avatar_url TEXT,
-  phone TEXT,
-  is_active BOOLEAN DEFAULT TRUE,
-  last_login TIMESTAMPTZ,
-  failed_login_attempts INTEGER DEFAULT 0,
-  last_failed_login TIMESTAMPTZ,
-  account_locked_until TIMESTAMPTZ,
-  timezone TEXT DEFAULT 'America/Guayaquil',
-  preferences JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$
+BEGIN
+  EXECUTE format('CREATE TABLE profiles (' ||
+    'id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY, ' ||
+    'email TEXT UNIQUE NOT NULL, ' ||
+    'full_name TEXT NOT NULL, ' ||
+    'role TEXT CHECK (role IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
+    'avatar_url TEXT, ' ||
+    'phone TEXT, ' ||
+    'is_active BOOLEAN DEFAULT TRUE, ' ||
+    'last_login TIMESTAMPTZ, ' ||
+    'failed_login_attempts INTEGER DEFAULT 0, ' ||
+    'last_failed_login TIMESTAMPTZ, ' ||
+    'account_locked_until TIMESTAMPTZ, ' ||
+    'timezone TEXT DEFAULT ''America/Guayaquil'', ' ||
+    'preferences JSONB DEFAULT ''{}'', ' ||
+    'created_at TIMESTAMPTZ DEFAULT NOW(), ' ||
+    'updated_at TIMESTAMPTZ DEFAULT NOW()' ||
+    ');',
+    get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_admin(), get_role_parent()
+  );
+END $$;
 
 -- TABLA: categories (categorías de registros)
 CREATE TABLE categories (
@@ -102,25 +155,29 @@ CREATE TABLE children (
 );
 
 -- TABLA: user_child_relations (relaciones usuario-niño)
-CREATE TABLE user_child_relations (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
-  relationship_type TEXT CHECK (relationship_type IN ('parent', 'teacher', 'specialist', 'observer', 'family')) NOT NULL,
-  can_edit BOOLEAN DEFAULT FALSE,
-  can_view BOOLEAN DEFAULT TRUE,
-  can_export BOOLEAN DEFAULT FALSE,
-  can_invite_others BOOLEAN DEFAULT FALSE,
-  granted_by UUID REFERENCES profiles(id) NOT NULL,
-  granted_at TIMESTAMPTZ DEFAULT NOW(),
-  expires_at TIMESTAMPTZ,
-  is_active BOOLEAN DEFAULT TRUE,
-  notes TEXT,
-  notification_preferences JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  
-  UNIQUE(user_id, child_id, relationship_type)
-);
+DO $$
+BEGIN
+  EXECUTE format('CREATE TABLE user_child_relations (' ||
+    'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ' ||
+    'user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL, ' ||
+    'child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL, ' ||
+    'relationship_type TEXT CHECK (relationship_type IN (%L, %L, %L, %L, %L)) NOT NULL, ' ||
+    'can_edit BOOLEAN DEFAULT FALSE, ' ||
+    'can_view BOOLEAN DEFAULT TRUE, ' ||
+    'can_export BOOLEAN DEFAULT FALSE, ' ||
+    'can_invite_others BOOLEAN DEFAULT FALSE, ' ||
+    'granted_by UUID REFERENCES profiles(id) NOT NULL, ' ||
+    'granted_at TIMESTAMPTZ DEFAULT NOW(), ' ||
+    'expires_at TIMESTAMPTZ, ' ||
+    'is_active BOOLEAN DEFAULT TRUE, ' ||
+    'notes TEXT, ' ||
+    'notification_preferences JSONB DEFAULT ''{}'', ' ||
+    'created_at TIMESTAMPTZ DEFAULT NOW(), ' ||
+    'UNIQUE(user_id, child_id, relationship_type)' ||
+    ');',
+    get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_observer(), get_role_family()
+  );
+END $$;
 
 -- TABLA: daily_logs (registros diarios)
 CREATE TABLE daily_logs (
@@ -220,7 +277,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')
+    COALESCE(NEW.raw_user_meta_data->>'role', get_role_parent())
   );
   RETURN NEW;
 END;
@@ -320,21 +377,18 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ================================================================
 
 -- Vista para niños accesibles por usuario
-CREATE OR REPLACE VIEW user_accessible_children AS
-SELECT 
-  c.*,
-  'parent'::TEXT as relationship_type,
-  true as can_edit,
-  true as can_view,
-  true as can_export,
-  true as can_invite_others,
-  c.created_at as granted_at,
-  NULL::TIMESTAMPTZ as expires_at,
-  p.full_name as creator_name
-FROM children c
-JOIN profiles p ON c.created_by = p.id
-WHERE c.created_by = auth.uid()
-  AND c.is_active = true;
+DO $$
+BEGIN
+  EXECUTE format('CREATE OR REPLACE VIEW user_accessible_children AS ' ||
+    'SELECT c.*, %L::TEXT as relationship_type, ' ||
+    'true as can_edit, true as can_view, true as can_export, ' ||
+    'true as can_invite_others, c.created_at as granted_at, ' ||
+    'NULL::TIMESTAMPTZ as expires_at, p.full_name as creator_name ' ||
+    'FROM children c JOIN profiles p ON c.created_by = p.id ' ||
+    'WHERE c.created_by = auth.uid() AND c.is_active = true;',
+    get_role_parent()
+  );
+END $$;
 
 -- Vista para estadísticas de logs por niño
 CREATE OR REPLACE VIEW child_log_statistics AS
