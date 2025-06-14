@@ -141,6 +141,8 @@ function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps)
     onChange(newContacts);
   };
 
+
+  
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -246,8 +248,23 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
       [field]: currentItems.filter((_: any, i: number) => i !== index)
     });
   };
+  
+  const ItemsList = ({ field, items, placeholder }: { field: string, items: string[], placeholder: string }) => {
+  // Lógica para determinar value y setter en base a field
+  let value = '';
+  let setter = (_: string) => {};
+  if (field === 'allergies') {
+    value = newAllergy;
+    setter = setNewAllergy;
+  } else if (field === 'medications') {
+    value = newMedication;
+    setter = setNewMedication;
+  } else {
+    value = newCondition;
+    setter = setNewCondition;
+  }
 
-  const ItemsList = ({ field, items, placeholder }: { field: string, items: string[], placeholder: string }) => (
+  return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         {items.map((item, index) => (
@@ -269,17 +286,11 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
       <div className="flex space-x-2">
         <Input
           placeholder={placeholder}
-          value={field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition}
-          onChange={(e) => {
-            if (field === 'allergies') setNewAllergy(e.target.value);
-            else if (field === 'medications') setNewMedication(e.target.value);
-            else setNewCondition(e.target.value);
-          }}
-          onKeyPress={(e) => {
+          value={value}
+          onChange={e => setter(e.target.value)}
+          onKeyPress={e => {
             if (e.key === 'Enter') {
               e.preventDefault();
-              const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-              const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
               addItem(field, value, setter);
             }
           }}
@@ -288,17 +299,15 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => {
-            const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-            const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
-            addItem(field, value, setter);
-          }}
+          onClick={() => addItem(field, value, setter)}
         >
           <PlusIcon className="h-4 w-4" />
         </Button>
       </div>
     </div>
   );
+};
+
 
   return (
     <div className="space-y-6">
