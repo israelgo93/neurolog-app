@@ -11,6 +11,9 @@ import { Calendar as CalendarIcon, Plus, Clock, Users, ChevronLeft, ChevronRight
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+// Contador global para el fallback determinístico
+let fallbackCounter = 0;
+
 // Función helper para generar valores aleatorios de forma segura
 function getSecureRandomValue(): number {
   // Usar crypto.getRandomValues() si está disponible (navegador)
@@ -21,8 +24,11 @@ function getSecureRandomValue(): number {
     return array[0] / (0xffffffff + 1);
   }
   
-  // Fallback para entornos donde crypto no está disponible
-  return Math.random();
+  // Fallback determinístico más seguro
+  const timestamp = Date.now();
+  fallbackCounter = (fallbackCounter + 1) % 1000; // Resetear después de 1000
+  const deterministicValue = ((timestamp % 1000) + fallbackCounter) / 1000;
+  return deterministicValue % 1;
 }
 
 export default function CalendarPage() {
