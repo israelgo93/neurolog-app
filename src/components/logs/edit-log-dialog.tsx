@@ -32,9 +32,9 @@ interface LogData {
 }
 
 interface EditLogDialogProps {
-  log: LogData
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  readonly log: LogData
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
 }
 
 interface FormData {
@@ -70,7 +70,7 @@ export function EditLogDialog({ log, open, onOpenChange }: EditLogDialogProps) {
         mood_score: log.mood_score,
         intensity_level: log.intensity_level,
         log_date: log.log_date,
-        category_id: log.category_id || ''
+        category_id: log.category_id ?? ''
       })
     }
   }, [open, log])
@@ -114,7 +114,7 @@ export function EditLogDialog({ log, open, onOpenChange }: EditLogDialogProps) {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "No se pudo actualizar el registro",
+        description: error.message ?? "No se pudo actualizar el registro",
         variant: "destructive",
       })
     } finally {
