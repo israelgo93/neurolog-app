@@ -432,7 +432,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
             {(educationalInfo.iep_goals || []).map((goal: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-sm">
+              <Badge key={goal} variant="secondary" className="text-sm">
                 {goal}
                 <Button
                   type="button"
