@@ -174,17 +174,45 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
--- Función para obtener JSONB DEFAULT '{}'
-CREATE OR REPLACE FUNCTION get_jsonb_empty_object() RETURNS TEXT AS $$
+-- Función para obtener TEXT NOT NULL
+CREATE OR REPLACE FUNCTION get_text_not_null() RETURNS TEXT AS $$
 BEGIN
-    RETURN 'JSONB DEFAULT ''{}''';
+    RETURN 'TEXT NOT NULL';
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
--- Función para obtener JSONB DEFAULT '[]'
-CREATE OR REPLACE FUNCTION get_jsonb_empty_array() RETURNS TEXT AS $$
+-- Función para obtener UUID REFERENCES profiles(id)
+CREATE OR REPLACE FUNCTION get_uuid_ref_profiles() RETURNS TEXT AS $$
 BEGIN
-    RETURN 'JSONB DEFAULT ''[]''';
+    RETURN 'UUID REFERENCES profiles(id)';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener UUID REFERENCES profiles(id) NOT NULL
+CREATE OR REPLACE FUNCTION get_uuid_ref_profiles_not_null() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'UUID REFERENCES profiles(id) NOT NULL';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL
+CREATE OR REPLACE FUNCTION get_uuid_ref_profiles_cascade() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL
+CREATE OR REPLACE FUNCTION get_uuid_ref_children_cascade() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener UUID REFERENCES categories(id)
+CREATE OR REPLACE FUNCTION get_uuid_ref_categories() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'UUID REFERENCES categories(id)';
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
@@ -195,20 +223,20 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 -- TABLA: profiles (usuarios del sistema)
 DO $$
 BEGIN  EXECUTE format('CREATE TABLE profiles (' ||
-    '%s, ' ||
-    'email TEXT UNIQUE NOT NULL, ' ||
-    'full_name TEXT NOT NULL, ' ||
+    '%s, ' ||    'email TEXT UNIQUE NOT NULL, ' ||
+    'full_name %s, ' ||
     'role TEXT CHECK (role IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
-    'avatar_url TEXT, ' ||
-    'phone TEXT, ' ||
-    'is_active BOOLEAN DEFAULT TRUE, ' ||
+    'avatar_url TEXT, ' ||    'phone TEXT, ' ||
+    'is_active BOOLEAN %s, ' ||
     'last_login TIMESTAMPTZ, ' ||
     'failed_login_attempts INTEGER DEFAULT 0, ' ||
     'last_failed_login TIMESTAMPTZ, ' ||
     'account_locked_until TIMESTAMPTZ, ' ||    'timezone TEXT DEFAULT ''America/Guayaquil'', ' ||
     'preferences %s, ' ||
-    '%s, %s' ||
-    ');',    get_profiles_primary_key(),
+    '%s, %s' ||    ');',
+    get_profiles_primary_key(),
+    get_text_not_null(),
+    get_default_true(),
     get_jsonb_empty_object(),
     get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_admin(), get_role_parent(),
     get_created_at_field(), get_updated_at_field()
@@ -221,13 +249,14 @@ BEGIN  EXECUTE format('CREATE TABLE categories (' ||
     '%s, ' ||
     'name TEXT UNIQUE NOT NULL, ' ||
     'description TEXT, ' ||
-    'color TEXT DEFAULT ''#3B82F6'', ' ||
-    'icon TEXT DEFAULT ''circle'', ' ||
-    'is_active BOOLEAN DEFAULT TRUE, ' ||
+    'color TEXT DEFAULT ''#3B82F6'', ' ||    'icon TEXT DEFAULT ''circle'', ' ||
+    'is_active BOOLEAN %s, ' ||
     'sort_order INTEGER DEFAULT 0, ' ||
-    'created_by UUID REFERENCES profiles(id), ' ||
+    'created_by %s, ' ||
     '%s' ||    ');',
     get_uuid_primary_key(),
+    get_default_true(),
+    get_uuid_ref_profiles(),
     get_created_at_field()
   );
 END $$;
@@ -236,19 +265,21 @@ END $$;
 DO $$
 BEGIN  EXECUTE format('CREATE TABLE children (' ||
     '%s, ' ||
-    'name TEXT NOT NULL CHECK (length(trim(name)) >= 2), ' ||
+    'name %s CHECK (length(trim(name)) >= 2), ' ||
     'birth_date DATE, ' ||
-    'diagnosis TEXT, ' ||
-    'notes TEXT, ' ||
-    'is_active BOOLEAN DEFAULT TRUE, ' ||
-    'avatar_url TEXT, ' ||    'emergency_contact %s, ' ||
+    'diagnosis TEXT, ' ||    'notes TEXT, ' ||
+    'is_active BOOLEAN %s, ' ||
+    'avatar_url TEXT, ' ||'emergency_contact %s, ' ||
     'medical_info %s, ' ||
     'educational_info %s, ' ||
     'privacy_settings JSONB DEFAULT ''{"share_with_specialists": true, "share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}'', ' ||
-    'created_by UUID REFERENCES profiles(id) NOT NULL, ' ||
+    'created_by %s, ' ||
     '%s, %s' ||    ');',
     get_uuid_primary_key(),
+    get_text_not_null(),
+    get_default_true(),
     get_jsonb_empty_array(), get_jsonb_empty_object(), get_jsonb_empty_object(),
+    get_uuid_ref_profiles_not_null(),
     get_created_at_field(), get_updated_at_field()
   );
 END $$;
@@ -256,15 +287,14 @@ END $$;
 -- TABLA: user_child_relations (relaciones usuario-niño)
 DO $$
 BEGIN  EXECUTE format('CREATE TABLE user_child_relations (' ||
-    '%s, ' ||
-    'user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL, ' ||
-    'child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL, ' ||
+    '%s, ' ||    'user_id %s, ' ||
+    'child_id %s, ' ||
     'relationship_type TEXT CHECK (relationship_type IN (%L, %L, %L, %L, %L)) NOT NULL, ' ||
     'can_edit BOOLEAN %s, ' ||
     'can_view BOOLEAN %s, ' ||
     'can_export BOOLEAN %s, ' ||
     'can_invite_others BOOLEAN %s, ' ||
-    'granted_by UUID REFERENCES profiles(id) NOT NULL, ' ||
+    'granted_by %s, ' ||
     '%s, ' ||
     'expires_at TIMESTAMPTZ, ' ||
     'is_active BOOLEAN %s, ' ||
@@ -273,7 +303,10 @@ BEGIN  EXECUTE format('CREATE TABLE user_child_relations (' ||
     '%s, ' ||
     'UNIQUE(user_id, child_id, relationship_type)' ||    ');',
     get_uuid_primary_key(),
-    get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_observer(), get_role_family(),    get_default_false(), get_default_true(), get_default_false(), get_default_false(),
+    get_uuid_ref_profiles_cascade(), get_uuid_ref_children_cascade(),
+    get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_observer(), get_role_family(),
+    get_default_false(), get_default_true(), get_default_false(), get_default_false(),
+    get_uuid_ref_profiles_not_null(),
     get_granted_at_field(), get_default_true(), get_jsonb_empty_object(), get_created_at_field()
   );
 END $$;
@@ -281,14 +314,12 @@ END $$;
 -- TABLA: daily_logs (registros diarios)
 DO $$
 BEGIN  EXECUTE format('CREATE TABLE daily_logs (' ||
-    '%s, ' ||
-    'child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL, ' ||
-    'category_id UUID REFERENCES categories(id), ' ||
-    'title TEXT NOT NULL CHECK (length(trim(title)) >= 2), ' ||
-    'content TEXT NOT NULL, ' ||
+    '%s, ' ||    'child_id %s, ' ||
+    'category_id %s, ' ||'title %s CHECK (length(trim(title)) >= 2), ' ||
+    'content %s, ' ||
     'mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10), ' ||
     'intensity_level TEXT CHECK (intensity_level IN (%L, %L, %L)) DEFAULT %L, ' ||
-    'logged_by UUID REFERENCES profiles(id) NOT NULL, ' ||
+    'logged_by %s, ' ||
     'log_date DATE DEFAULT CURRENT_DATE, ' ||    'is_private BOOLEAN %s, ' ||
     'is_deleted BOOLEAN %s, ' ||
     'is_flagged BOOLEAN %s, ' ||
@@ -296,16 +327,22 @@ BEGIN  EXECUTE format('CREATE TABLE daily_logs (' ||
     'tags TEXT[] DEFAULT ''{}'', ' ||
     'location TEXT, ' ||
     'weather TEXT, ' ||
-    'reviewed_by UUID REFERENCES profiles(id), ' ||
+    'reviewed_by %s, ' ||
     'reviewed_at TIMESTAMPTZ, ' ||
     'specialist_notes TEXT, ' ||
     'parent_feedback TEXT, ' ||
     'follow_up_required BOOLEAN %s, ' ||
     'follow_up_date DATE, ' ||
-    '%s, %s' ||    ');',    get_uuid_primary_key(),
+    '%s, %s' ||    ');',
+    get_uuid_primary_key(),
+    get_uuid_ref_children_cascade(), get_uuid_ref_categories(),
+    get_text_not_null(), get_text_not_null(),
     get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_intensity_medium(),
-    get_default_false(), get_default_false(), get_default_false(), get_default_false(),
+    get_uuid_ref_profiles_not_null(),
+    get_default_false(), get_default_false(), get_default_false(),
     get_jsonb_empty_array(),
+    get_uuid_ref_profiles(),
+    get_default_false(),
     get_created_at_field(), get_updated_at_field()
   );
 END $$;
@@ -314,10 +351,10 @@ END $$;
 DO $$
 BEGIN  EXECUTE format('CREATE TABLE audit_logs (' ||
     '%s, ' ||
-    'table_name TEXT NOT NULL, ' ||
+    'table_name %s, ' ||
     'operation TEXT CHECK (operation IN (''INSERT'', ''UPDATE'', ''DELETE'', ''SELECT'')) NOT NULL, ' ||
     'record_id TEXT, ' ||
-    'user_id UUID REFERENCES profiles(id), ' ||
+    'user_id %s, ' ||
     'user_role TEXT, ' ||
     'old_values JSONB, ' ||
     'new_values JSONB, ' ||
@@ -327,6 +364,8 @@ BEGIN  EXECUTE format('CREATE TABLE audit_logs (' ||
     'risk_level TEXT CHECK (risk_level IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
     '%s' ||    ');',
     get_uuid_primary_key(),
+    get_text_not_null(),
+    get_uuid_ref_profiles(),
     get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_risk_critical(), get_intensity_low(),
     get_created_at_field()
   );
