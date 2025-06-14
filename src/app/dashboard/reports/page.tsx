@@ -70,21 +70,9 @@ function calculateImprovementTrend(logs: any[]): number {
   return secondAvg - firstAvg;
 }
 
-export default function ReportsPage() {
-  const { user } = useAuth();
-  const { children, loading: childrenLoading } = useChildren();
-  const { logs, stats, loading: logsLoading } = useLogs();
-  
-  const [selectedChild, setSelectedChild] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subMonths(new Date(), 3),
-    to: new Date()
-  });
-  const [activeTab, setActiveTab] = useState('overview');
-  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-
-  // Filtrar logs según selecciones
-  const filteredLogs = logs.filter(log => {
+// Helper functions to reduce complexity in the main component
+const filterLogs = (logs: any[], selectedChild: string, dateRange?: DateRange) => {
+  return logs.filter(log => {
     if (selectedChild !== 'all' && log.child_id !== selectedChild) {
       return false;
     }
@@ -99,18 +87,44 @@ export default function ReportsPage() {
     
     return true;
   });
+};
 
-  // Calcular métricas
-  const metrics = {
+const calculateMetrics = (filteredLogs: any[]) => {
+  const moodLogs = filteredLogs.filter(l => l.mood_score);
+  const hasMoodData = moodLogs.length > 0;
+  
+  return {
     totalLogs: filteredLogs.length,
-    averageMood: filteredLogs.filter(l => l.mood_score).length > 0 
-      ? (filteredLogs.filter(l => l.mood_score).reduce((sum, l) => sum + l.mood_score, 0) / filteredLogs.filter(l => l.mood_score).length)
+    averageMood: hasMoodData
+      ? (moodLogs.reduce((sum, l) => sum + l.mood_score, 0) / moodLogs.length)
       : 0,
     improvementTrend: calculateImprovementTrend(filteredLogs),
     activeCategories: new Set(filteredLogs.map(l => l.category_name).filter(Boolean)).size,
     followUpsRequired: filteredLogs.filter(l => l.follow_up_required).length,
     activeDays: new Set(filteredLogs.map(l => new Date(l.created_at).toDateString())).size
   };
+};
+
+export default function ReportsPage() {
+  // Call useAuth() without destructuring unused variables
+  useAuth();
+  const { children, loading: childrenLoading } = useChildren();
+  const { logs, loading: logsLoading } = useLogs();
+  
+  const [selectedChild, setSelectedChild] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subMonths(new Date(), 3),
+    to: new Date()
+  });
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+
+  const filteredLogs = filterLogs(logs, selectedChild, dateRange);
+  const metrics = calculateMetrics(filteredLogs);
+  
+  // Extract nested ternary into separate variables for better readability
+  const lowerMoodColor = metrics.averageMood >= 3 ? 'orange' : 'red';
+  const moodColor = metrics.averageMood >= 4 ? 'green' : lowerMoodColor;
 
   if (childrenLoading || logsLoading) {
     return (
@@ -119,6 +133,10 @@ export default function ReportsPage() {
       </div>
     );
   }
+
+  // Extract nested ternary operations into independent variables
+  const trendIcon = metrics.improvementTrend > 0 ? TrendingUp : 
+                   (metrics.improvementTrend < 0 ? TrendingUp : Target);
 
   return (
     <div className="space-y-6">
@@ -144,9 +162,9 @@ export default function ReportsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Niño</label>
+              <label htmlFor="child-select" className="text-sm font-medium mb-2 block">Niño</label>
               <Select value={selectedChild} onValueChange={setSelectedChild}>
-                <SelectTrigger>
+                <SelectTrigger id="child-select">
                   <SelectValue placeholder="Seleccionar niño" />
                 </SelectTrigger>
                 <SelectContent>
@@ -161,8 +179,9 @@ export default function ReportsPage() {
             </div>
             
             <div>
-              <label className="text-sm font-medium mb-2 block">Período</label>
+              <label htmlFor="date-range-picker" className="text-sm font-medium mb-2 block">Período</label>
               <DatePickerWithRange 
+                id="date-range-picker"
                 date={dateRange}
                 onDateChange={setDateRange}
               />
@@ -201,13 +220,13 @@ export default function ReportsPage() {
           value={metrics.averageMood.toFixed(1)}
           suffix="/5"
           icon={Heart}
-          color={metrics.averageMood >= 4 ? 'green' : metrics.averageMood >= 3 ? 'orange' : 'red'}
-          subtitle="Promedio del período"
-        />
-        
         <MetricCard
           title="Tendencia"
           value={metrics.improvementTrend > 0 ? '+' : ''}
+          icon={trendIcon}
+          color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
+          subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}
+        />
           icon={metrics.improvementTrend > 0 ? TrendingUp : metrics.improvementTrend < 0 ? TrendingUp : Target}
           color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
           subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}

@@ -26,18 +26,18 @@ interface AdvancedInsightsProps {
 // TIMEPATTERNS COMPONENT
 // ================================================================
 
-export function TimePatterns({ logs }: TimePatternsProps) {
+export function TimePatterns({ logs }: Readonly<TimePatternsProps>) {
   // Analizar patrones por hora del día
   const hourlyPattern = logs.reduce((acc, log) => {
     const hour = new Date(log.created_at).getHours();
-    acc[hour] = (acc[hour] || 0) + 1;
+    acc[hour] = (acc[hour] ?? 0) + 1;
     return acc;
   }, {} as Record<number, number>);
 
   // Analizar patrones por día de la semana
   const weeklyPattern = logs.reduce((acc, log) => {
     const day = new Date(log.created_at).getDay();
-    acc[day] = (acc[day] || 0) + 1;
+    acc[day] = (acc[day] ?? 0) + 1;
     return acc;
   }, {} as Record<number, number>);
 
@@ -93,7 +93,7 @@ export function TimePatterns({ logs }: TimePatternsProps) {
         <h4 className="text-sm font-medium mb-2">Distribución por días de la semana</h4>
         <div className="flex space-x-1">
           {dayNames.map((day, index) => {
-            const count = weeklyPattern[index] || 0;
+            const count = weeklyPattern[index] ?? 0;
             const values = Object.values(weeklyPattern);
             const maxCount = values.length > 0 ? Math.max(...values) : 0;
             const intensity = maxCount > 0 ? (count / maxCount) * 100 : 0;
@@ -122,7 +122,7 @@ export function TimePatterns({ logs }: TimePatternsProps) {
 // CORRELATION ANALYSIS COMPONENT
 // ================================================================
 
-export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
+export function CorrelationAnalysis({ logs }: Readonly<CorrelationAnalysisProps>) {
   // Función helper para calcular correlación
   function calculateCorrelation(data: any[], field1: string, field2Func: (item: any) => number): number {
     if (data.length < 2) return 0;
@@ -130,8 +130,8 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
     const x = data.map(item => item[field1]);
     const y = data.map(field2Func);
     
-    const meanX = x.reduce((a, b) => a + b) / x.length;
-    const meanY = y.reduce((a, b) => a + b) / y.length;
+    const meanX = x.reduce((a, b) => a + b, 0) / x.length;
+    const meanY = y.reduce((a, b) => a + b, 0) / y.length;
     
     const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
     const denomX = Math.sqrt(x.reduce((sum, xi) => sum + Math.pow(xi - meanX, 2), 0));
@@ -140,21 +140,25 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
     return denomX * denomY === 0 ? 0 : numerator / (denomX * denomY);
   }
 
+  // Helper to convert intensity_level to a numeric value
+  const intensityLevelToNumber = (log: any) => {
+    if (log.intensity_level === 'low') return 1;
+    if (log.intensity_level === 'medium') return 2;
+    return 3;
+  };
+
   // Calcular correlación entre estado de ánimo e intensidad
   const moodIntensityCorr = calculateCorrelation(
     logs.filter(l => l.mood_score && l.intensity_level),
     'mood_score',
-    log => log.intensity_level === 'low' ? 1 : log.intensity_level === 'medium' ? 2 : 3
+    intensityLevelToNumber
   );
 
   // Calcular correlación entre categorías y estado de ánimo
   const categoryMoodCorr = logs.reduce((acc, log) => {
     if (!log.mood_score || !log.category_name) return acc;
     
-    if (!acc[log.category_name]) {
-      acc[log.category_name] = { total: 0, count: 0 };
-    }
-    
+    acc[log.category_name] ??= { total: 0, count: 0 };
     acc[log.category_name].total += log.mood_score;
     acc[log.category_name].count += 1;
     
@@ -248,75 +252,126 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
 // ADVANCED INSIGHTS COMPONENT
 // ================================================================
 
-export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
-  const generateInsights = () => {
-    const insights = [];
+export function AdvancedInsights({ logs }: Readonly<AdvancedInsightsProps>) {
+  // Helper functions to reduce complexity
+  const getFrequencyInsight = () => {
+    if (logs.length === 0) return null;
     
-    // Análisis de frecuencia
-    if (logs.length > 0) {
-      const daysWithLogs = new Set(logs.map(log => 
-        new Date(log.created_at).toDateString()
-      )).size;
-      
-      const totalDays = 30; // últimos 30 días
-      const frequency = (daysWithLogs / totalDays) * 100;
-      
-      insights.push({
-        type: frequency > 80 ? 'success' : frequency > 50 ? 'warning' : 'info',
-        icon: frequency > 80 ? CheckCircle : frequency > 50 ? Target : AlertTriangle,
-        title: 'Consistencia en el registro',
-        description: `Registros en ${daysWithLogs} de ${totalDays} días (${frequency.toFixed(0)}%)`,
-        recommendation: frequency < 50 
-          ? 'Intenta mantener registros más regulares para obtener mejores insights'
-          : frequency < 80
-          ? 'Buen ritmo de registro, mantén la consistencia'
-          : 'Excelente consistencia en los registros'
-      });
+    const daysWithLogs = new Set(logs.map(log => 
+      new Date(log.created_at).toDateString()
+    )).size;
+    
+    const totalDays = 30; // últimos 30 días
+    const frequency = (daysWithLogs / totalDays) * 100;
+    
+    let type: string;
+    if (frequency > 80) {
+      type = 'success';
+    } else if (frequency > 50) {
+      type = 'warning';
+    } else {
+      type = 'info';
     }
+    let icon;
+    if (frequency > 80) {
+      icon = CheckCircle;
+    } else if (frequency > 50) {
+      icon = Target;
+    } else {
+      icon = AlertTriangle;
+    }
+    let recommendation;
+    
+    if (frequency < 50) {
+      recommendation = 'Intenta mantener registros más regulares para obtener mejores insights';
+    } else if (frequency < 80) {
+      recommendation = 'Buen ritmo de registro, mantén la consistencia';
+    } else {
+      recommendation = 'Excelente consistencia en los registros';
+    }
+    
+    return {
+      type,
+      icon,
+      title: 'Consistencia en el registro',
+      description: `Registros en ${daysWithLogs} de ${totalDays} días (${frequency.toFixed(0)}%)`,
+      recommendation
+    };
+  };
 
-    // Análisis de estado de ánimo
+  const getMoodTrendInsight = () => {
     const moodLogs = logs.filter(log => log.mood_score);
-    if (moodLogs.length > 5) {
-      const avgMood = moodLogs.reduce((sum, log) => sum + log.mood_score, 0) / moodLogs.length;
-      const recent = moodLogs.slice(0, 7);
-      const recentAvg = recent.reduce((sum, log) => sum + log.mood_score, 0) / recent.length;
-      
-      const trend = recentAvg - avgMood;
-      
-      insights.push({
-        type: trend > 0.5 ? 'success' : trend < -0.5 ? 'warning' : 'info',
-        icon: Brain,
-        title: 'Tendencia del estado de ánimo',
-        description: `Promedio general: ${avgMood.toFixed(1)}/5, últimos 7 días: ${recentAvg.toFixed(1)}/5`,
-        recommendation: trend > 0.5 
-          ? 'Tendencia positiva en el estado de ánimo reciente'
-          : trend < -0.5
-          ? 'Considera revisar factores que puedan estar afectando el bienestar'
-          : 'Estado de ánimo estable'
-      });
+    if (moodLogs.length <= 5) return null;
+    
+    const avgMood = moodLogs.reduce((sum, log) => sum + log.mood_score, 0) / moodLogs.length;
+    const recent = moodLogs.slice(0, 7);
+    const recentAvg = recent.reduce((sum, log) => sum + log.mood_score, 0) / recent.length;
+    
+    const trend = recentAvg - avgMood;
+    
+    let type: string;
+    if (trend > 0.5) {
+      type = 'success';
+    } else if (trend < -0.5) {
+      type = 'warning';
+    } else {
+      type = 'info';
     }
+    let recommendation;
+    
+    if (trend > 0.5) {
+      recommendation = 'Tendencia positiva en el estado de ánimo reciente';
+    } else if (trend < -0.5) {
+      recommendation = 'Considera revisar factores que puedan estar afectando el bienestar';
+    } else {
+      recommendation = 'Estado de ánimo estable';
+    }
+    
+    return {
+      type,
+      icon: Brain,
+      title: 'Tendencia del estado de ánimo',
+      description: `Promedio general: ${avgMood.toFixed(1)}/5, últimos 7 días: ${recentAvg.toFixed(1)}/5`,
+      recommendation
+    };
+  };
 
-    // Análisis de categorías
+  const getCategoryInsight = () => {
     const categoryCount = logs.reduce((acc, log) => {
       if (log.category_name) {
-        acc[log.category_name] = (acc[log.category_name] || 0) + 1;
+        acc[log.category_name] = (acc[log.category_name] ?? 0) + 1;
       }
       return acc;
     }, {} as Record<string, number>);
 
     const categories = Object.entries(categoryCount);
-    if (categories.length > 0) {
-      const mostUsedCategory = categories.sort(([,a], [,b]) => b - a)[0];
-      
-      insights.push({
-        type: 'info',
-        icon: Target,
-        title: 'Área de mayor atención',
-        description: `"${mostUsedCategory[0]}" representa ${((mostUsedCategory[1] / logs.length) * 100).toFixed(0)}% de los registros`,
-        recommendation: 'Esta categoría requiere mayor atención y seguimiento'
-      });
-    }
-
+    if (categories.length === 0) return null;
+    
+    const sortedCategories = categories.toSorted(([, a], [, b]) => b - a);
+    const mostUsedCategory = sortedCategories[0];
+    const percentage = ((mostUsedCategory[1] / logs.length) * 100).toFixed(0);
+    
+    return {
+      type: 'info',
+      icon: Target,
+      title: 'Área de mayor atención',
+      description: `"${mostUsedCategory[0]}" representa ${percentage}% de los registros`,
+      recommendation: 'Esta categoría requiere mayor atención y seguimiento'
+    };
+  };
+  
+  const generateInsights = () => {
+    const insights = [];
+    
+    const frequencyInsight = getFrequencyInsight();
+    if (frequencyInsight) insights.push(frequencyInsight);
+    
+    const moodTrendInsight = getMoodTrendInsight();
+    if (moodTrendInsight) insights.push(moodTrendInsight);
+    
+    const categoryInsight = getCategoryInsight();
+    if (categoryInsight) insights.push(categoryInsight);
+    
     return insights;
   };
 
@@ -334,41 +389,59 @@ export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
 
   return (
     <div className="space-y-4">
-      {insights.map((insight, index) => (
-        <Card key={index} className="border-l-4 border-l-blue-500">
-          <CardContent className="pt-4">
-            <div className="flex items-start space-x-3">
-              <div className={`p-2 rounded-lg ${
-                insight.type === 'success' ? 'bg-green-100' :
-                insight.type === 'warning' ? 'bg-yellow-100' :
-                'bg-blue-100'
-              }`}>
-                {React.createElement(insight.icon, {
-                  className: `h-5 w-5 ${
-                    insight.type === 'success' ? 'text-green-600' :
-                    insight.type === 'warning' ? 'text-yellow-600' :
-                    'text-blue-600'
-                  }`
-                })}
+      {insights.map((insight) => {
+        let bgColor = 'bg-blue-100';
+        if (insight.type === 'success') {
+          bgColor = 'bg-green-100';
+        } else if (insight.type === 'warning') {
+          bgColor = 'bg-yellow-100';
+        }
+        // Extract variant for Badge to avoid nested ternary in JSX
+        let badgeVariant = 'secondary';
+        if (insight.type === 'success') {
+          badgeVariant = 'default';
+        } else if (insight.type === 'warning') {
+          badgeVariant = 'destructive';
+        }
+
+        // Extract label for Badge to avoid nested ternary in JSX
+        let badgeLabel = 'Info';
+        if (insight.type === 'success') {
+          badgeLabel = 'Positivo';
+        } else if (insight.type === 'warning') {
+          badgeLabel = 'Atención';
+        }
+
+        return (
+          <Card key={insight.title} className="border-l-4 border-l-blue-500">
+            <CardContent className="pt-4">
+              <div className="flex items-start space-x-3">
+                <div className={`p-2 rounded-lg ${bgColor}`}>
+                  {(() => {
+                    let iconColor = 'text-blue-600';
+                    if (insight.type === 'success') {
+                      iconColor = 'text-green-600';
+                    } else if (insight.type === 'warning') {
+                      iconColor = 'text-yellow-600';
+                    }
+                    return React.createElement(insight.icon, {
+                      className: `h-5 w-5 ${iconColor}`
+                    });
+                  })()}
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900">{insight.title}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
+                  <p className="text-sm text-gray-500 mt-2 italic">{insight.recommendation}</p>
+                </div>
+                <Badge variant={badgeVariant}>
+                  {badgeLabel}
+                </Badge>
               </div>
-              <div className="flex-1">
-                <h4 className="font-medium text-gray-900">{insight.title}</h4>
-                <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
-                <p className="text-sm text-gray-500 mt-2 italic">{insight.recommendation}</p>
-              </div>
-              <Badge variant={
-                insight.type === 'success' ? 'default' :
-                insight.type === 'warning' ? 'destructive' :
-                'secondary'
-              }>
-                {insight.type === 'success' ? 'Positivo' :
-                 insight.type === 'warning' ? 'Atención' :
-                 'Info'}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

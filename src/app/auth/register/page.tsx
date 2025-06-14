@@ -36,7 +36,7 @@ export default function RegisterPage() {
 
   const validateForm = (): boolean => {
     if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden")
+      setError("Las contraseñas no coinciden en algo")
       return false
     }
 
@@ -85,7 +85,7 @@ export default function RegisterPage() {
 
     } catch (err: any) {
       console.error('Error signing up:', err)
-      setError(err.message || 'Error al crear la cuenta')
+      setError(err.message ?? 'Error al crear la cuenta')
     } finally {
       setLoading(false)
     }
