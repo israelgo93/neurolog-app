@@ -161,14 +161,12 @@ export default function ReportsPage() {
             </div>
             
             <div>
-  <label className="text-sm font-medium mb-2 block" htmlFor="dateRangePicker">Período</label>
-  <span id="dateRangePicker">
-    <DatePickerWithRange 
-      date={dateRange}
-      onDateChange={setDateRange}
-    />
-  </span>
-</div>
+              <label className="text-sm font-medium mb-2 block" >Período</label>
+              <DatePickerWithRange 
+                date={dateRange}
+                onDateChange={setDateRange}
+              />
+            </div>
 
             <div className="flex items-end">
               <Button 
