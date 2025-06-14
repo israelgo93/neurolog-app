@@ -153,31 +153,38 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
--- Función para obtener intensidad 'low'
-CREATE OR REPLACE FUNCTION get_intensity_low() RETURNS TEXT AS $$
+-- Función para obtener DEFAULT FALSE
+CREATE OR REPLACE FUNCTION get_default_false() RETURNS TEXT AS $$
 BEGIN
-    RETURN 'low';
+    RETURN 'DEFAULT FALSE';
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
--- Función para obtener intensidad 'medium' (usado en múltiples lugares)
-CREATE OR REPLACE FUNCTION get_intensity_medium() RETURNS TEXT AS $$
+-- Función para obtener DEFAULT TRUE
+CREATE OR REPLACE FUNCTION get_default_true() RETURNS TEXT AS $$
 BEGIN
-    RETURN 'medium';
+    RETURN 'DEFAULT TRUE';
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
--- Función para obtener intensidad 'high'
-CREATE OR REPLACE FUNCTION get_intensity_high() RETURNS TEXT AS $$
+-- Función para obtener PRIMARY KEY para profiles (con auth reference)
+CREATE OR REPLACE FUNCTION get_profiles_primary_key() RETURNS TEXT AS $$
 BEGIN
-    RETURN 'high';
+    RETURN 'id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY';
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
--- Función para obtener nivel de riesgo 'critical'
-CREATE OR REPLACE FUNCTION get_risk_critical() RETURNS TEXT AS $$
+-- Función para obtener JSONB DEFAULT '{}'
+CREATE OR REPLACE FUNCTION get_jsonb_empty_object() RETURNS TEXT AS $$
 BEGIN
-    RETURN 'critical';
+    RETURN 'JSONB DEFAULT ''{}''';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener JSONB DEFAULT '[]'
+CREATE OR REPLACE FUNCTION get_jsonb_empty_array() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'JSONB DEFAULT ''[]''';
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
@@ -187,9 +194,8 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
 -- TABLA: profiles (usuarios del sistema)
 DO $$
-BEGIN
-  EXECUTE format('CREATE TABLE profiles (' ||
-    'id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY, ' ||
+BEGIN  EXECUTE format('CREATE TABLE profiles (' ||
+    '%s, ' ||
     'email TEXT UNIQUE NOT NULL, ' ||
     'full_name TEXT NOT NULL, ' ||
     'role TEXT CHECK (role IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
@@ -200,75 +206,82 @@ BEGIN
     'failed_login_attempts INTEGER DEFAULT 0, ' ||
     'last_failed_login TIMESTAMPTZ, ' ||
     'account_locked_until TIMESTAMPTZ, ' ||    'timezone TEXT DEFAULT ''America/Guayaquil'', ' ||
-    'preferences JSONB DEFAULT ''{}'', ' ||
+    'preferences %s, ' ||
     '%s, %s' ||
-    ');',
+    ');',    get_profiles_primary_key(),
+    get_jsonb_empty_object(),
     get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_admin(), get_role_parent(),
     get_created_at_field(), get_updated_at_field()
   );
 END $$;
 
 -- TABLA: categories (categorías de registros)
-CREATE TABLE categories (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT UNIQUE NOT NULL,
-  description TEXT,
-  color TEXT DEFAULT '#3B82F6',
-  icon TEXT DEFAULT 'circle',
-  is_active BOOLEAN DEFAULT TRUE,
-  sort_order INTEGER DEFAULT 0,
-  created_by UUID REFERENCES profiles(id),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$
+BEGIN  EXECUTE format('CREATE TABLE categories (' ||
+    '%s, ' ||
+    'name TEXT UNIQUE NOT NULL, ' ||
+    'description TEXT, ' ||
+    'color TEXT DEFAULT ''#3B82F6'', ' ||
+    'icon TEXT DEFAULT ''circle'', ' ||
+    'is_active BOOLEAN DEFAULT TRUE, ' ||
+    'sort_order INTEGER DEFAULT 0, ' ||
+    'created_by UUID REFERENCES profiles(id), ' ||
+    '%s' ||    ');',
+    get_uuid_primary_key(),
+    get_created_at_field()
+  );
+END $$;
 
 -- TABLA: children (niños)
-CREATE TABLE children (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL CHECK (length(trim(name)) >= 2),
-  birth_date DATE,
-  diagnosis TEXT,
-  notes TEXT,
-  is_active BOOLEAN DEFAULT TRUE,
-  avatar_url TEXT,
-  emergency_contact JSONB DEFAULT '[]',
-  medical_info JSONB DEFAULT '{}',
-  educational_info JSONB DEFAULT '{}',
-  privacy_settings JSONB DEFAULT '{"share_with_specialists": true, "share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}',
-  created_by UUID REFERENCES profiles(id) NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$
+BEGIN  EXECUTE format('CREATE TABLE children (' ||
+    '%s, ' ||
+    'name TEXT NOT NULL CHECK (length(trim(name)) >= 2), ' ||
+    'birth_date DATE, ' ||
+    'diagnosis TEXT, ' ||
+    'notes TEXT, ' ||
+    'is_active BOOLEAN DEFAULT TRUE, ' ||
+    'avatar_url TEXT, ' ||    'emergency_contact %s, ' ||
+    'medical_info %s, ' ||
+    'educational_info %s, ' ||
+    'privacy_settings JSONB DEFAULT ''{"share_with_specialists": true, "share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}'', ' ||
+    'created_by UUID REFERENCES profiles(id) NOT NULL, ' ||
+    '%s, %s' ||    ');',
+    get_uuid_primary_key(),
+    get_jsonb_empty_array(), get_jsonb_empty_object(), get_jsonb_empty_object(),
+    get_created_at_field(), get_updated_at_field()
+  );
+END $$;
 
 -- TABLA: user_child_relations (relaciones usuario-niño)
 DO $$
-BEGIN
-  EXECUTE format('CREATE TABLE user_child_relations (' ||
-    'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ' ||
+BEGIN  EXECUTE format('CREATE TABLE user_child_relations (' ||
+    '%s, ' ||
     'user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL, ' ||
     'child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL, ' ||
     'relationship_type TEXT CHECK (relationship_type IN (%L, %L, %L, %L, %L)) NOT NULL, ' ||
-    'can_edit BOOLEAN DEFAULT FALSE, ' ||
-    'can_view BOOLEAN DEFAULT TRUE, ' ||
-    'can_export BOOLEAN DEFAULT FALSE, ' ||
-    'can_invite_others BOOLEAN DEFAULT FALSE, ' ||    'granted_by UUID REFERENCES profiles(id) NOT NULL, ' ||
+    'can_edit BOOLEAN %s, ' ||
+    'can_view BOOLEAN %s, ' ||
+    'can_export BOOLEAN %s, ' ||
+    'can_invite_others BOOLEAN %s, ' ||
+    'granted_by UUID REFERENCES profiles(id) NOT NULL, ' ||
     '%s, ' ||
     'expires_at TIMESTAMPTZ, ' ||
-    'is_active BOOLEAN DEFAULT TRUE, ' ||
+    'is_active BOOLEAN %s, ' ||
     'notes TEXT, ' ||
-    'notification_preferences JSONB DEFAULT ''{}'', ' ||
+    'notification_preferences %s, ' ||
     '%s, ' ||
-    'UNIQUE(user_id, child_id, relationship_type)' ||
-    ');',
-    get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_observer(), get_role_family(),
-    get_granted_at_field(), get_created_at_field()
+    'UNIQUE(user_id, child_id, relationship_type)' ||    ');',
+    get_uuid_primary_key(),
+    get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_observer(), get_role_family(),    get_default_false(), get_default_true(), get_default_false(), get_default_false(),
+    get_granted_at_field(), get_default_true(), get_jsonb_empty_object(), get_created_at_field()
   );
 END $$;
 
 -- TABLA: daily_logs (registros diarios)
 DO $$
-BEGIN
-  EXECUTE format('CREATE TABLE daily_logs (' ||
-    'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ' ||
+BEGIN  EXECUTE format('CREATE TABLE daily_logs (' ||
+    '%s, ' ||
     'child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL, ' ||
     'category_id UUID REFERENCES categories(id), ' ||
     'title TEXT NOT NULL CHECK (length(trim(title)) >= 2), ' ||
@@ -276,31 +289,31 @@ BEGIN
     'mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10), ' ||
     'intensity_level TEXT CHECK (intensity_level IN (%L, %L, %L)) DEFAULT %L, ' ||
     'logged_by UUID REFERENCES profiles(id) NOT NULL, ' ||
-    'log_date DATE DEFAULT CURRENT_DATE, ' ||
-    'is_private BOOLEAN DEFAULT FALSE, ' ||
-    'is_deleted BOOLEAN DEFAULT FALSE, ' ||
-    'is_flagged BOOLEAN DEFAULT FALSE, ' ||
-    'attachments JSONB DEFAULT ''[]'', ' ||
+    'log_date DATE DEFAULT CURRENT_DATE, ' ||    'is_private BOOLEAN %s, ' ||
+    'is_deleted BOOLEAN %s, ' ||
+    'is_flagged BOOLEAN %s, ' ||
+    'attachments %s, ' ||
     'tags TEXT[] DEFAULT ''{}'', ' ||
     'location TEXT, ' ||
     'weather TEXT, ' ||
     'reviewed_by UUID REFERENCES profiles(id), ' ||
     'reviewed_at TIMESTAMPTZ, ' ||
     'specialist_notes TEXT, ' ||
-    'parent_feedback TEXT, ' ||    'follow_up_required BOOLEAN DEFAULT FALSE, ' ||
+    'parent_feedback TEXT, ' ||
+    'follow_up_required BOOLEAN %s, ' ||
     'follow_up_date DATE, ' ||
-    '%s, %s' ||
-    ');',
+    '%s, %s' ||    ');',    get_uuid_primary_key(),
     get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_intensity_medium(),
+    get_default_false(), get_default_false(), get_default_false(), get_default_false(),
+    get_jsonb_empty_array(),
     get_created_at_field(), get_updated_at_field()
   );
 END $$;
 
 -- TABLA: audit_logs (auditoría del sistema)
 DO $$
-BEGIN
-  EXECUTE format('CREATE TABLE audit_logs (' ||
-    'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ' ||
+BEGIN  EXECUTE format('CREATE TABLE audit_logs (' ||
+    '%s, ' ||
     'table_name TEXT NOT NULL, ' ||
     'operation TEXT CHECK (operation IN (''INSERT'', ''UPDATE'', ''DELETE'', ''SELECT'')) NOT NULL, ' ||
     'record_id TEXT, ' ||
@@ -312,8 +325,8 @@ BEGIN
     'ip_address INET, ' ||
     'user_agent TEXT, ' ||    'session_id TEXT, ' ||
     'risk_level TEXT CHECK (risk_level IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
-    '%s' ||
-    ');',
+    '%s' ||    ');',
+    get_uuid_primary_key(),
     get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_risk_critical(), get_intensity_low(),
     get_created_at_field()
   );
@@ -612,19 +625,13 @@ DECLARE
   policy_count INTEGER;
   function_count INTEGER;
   category_count INTEGER;
-BEGIN
-  -- Contar tablas
-  SELECT COUNT(*) INTO table_count
-  FROM information_schema.tables 
-  WHERE table_schema = 'public' 
-    AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
+  rls_check INTEGER;
+BEGIN  -- Contar tablas
+  EXECUTE format('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = %L AND table_name IN (''profiles'', ''children'', ''user_child_relations'', ''daily_logs'', ''categories'', ''audit_logs'')', get_public_schema()) INTO table_count;
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
-  
-  -- Contar políticas
-  SELECT COUNT(*) INTO policy_count
-  FROM pg_policies 
-  WHERE schemaname = 'public';
+    -- Contar políticas
+  EXECUTE format('SELECT COUNT(*) FROM pg_policies WHERE schemaname = %L', get_public_schema()) INTO policy_count;
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
   
@@ -640,13 +647,10 @@ BEGIN
   FROM categories WHERE is_active = true;
   
   result := result || 'Categorías: ' || category_count || '/10' || E'\n';
+    -- Verificar RLS
+  EXECUTE format('SELECT COUNT(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %L AND c.relname = ''children'' AND c.relrowsecurity = true', get_public_schema()) INTO rls_check;
   
-  -- Verificar RLS
-  IF (SELECT COUNT(*) FROM pg_class c 
-      JOIN pg_namespace n ON n.oid = c.relnamespace 
-      WHERE n.nspname = 'public' 
-        AND c.relname = 'children' 
-        AND c.relrowsecurity = true) > 0 THEN
+  IF rls_check > 0 THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
   ELSE
     result := result || 'RLS: ❌ Deshabilitado' || E'\n';
