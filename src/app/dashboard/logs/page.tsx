@@ -43,7 +43,6 @@ import {
   EditIcon,
   EyeIcon,
   EyeOffIcon,
-  HeartIcon,
   ClockIcon,
   TagIcon,
   MapPinIcon,
@@ -65,11 +64,11 @@ import { es } from 'date-fns/locale';
 // ================================================================
 
 interface LogCardProps {
-  log: LogWithDetails;
-  onEdit: (log: LogWithDetails) => void;
-  onViewDetails: (log: LogWithDetails) => void;
-  onTogglePrivacy: (log: LogWithDetails) => void;
-  onAddFeedback: (log: LogWithDetails) => void;
+  readonly log: LogWithDetails;
+  readonly onEdit: (log: LogWithDetails) => void;
+  readonly onViewDetails: (log: LogWithDetails) => void;
+  readonly onTogglePrivacy: (log: LogWithDetails) => void;
+  readonly onAddFeedback: (log: LogWithDetails) => void;
 }
 
 function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }: LogCardProps) {
@@ -368,7 +367,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Buscar en título y contenido..."
-              value={filters.search_term || ''}
+              value={filters.search_term ?? ''}
               onChange={(e) => onFiltersChange({ ...filters, search_term: e.target.value })}
               className="pl-10"
             />
@@ -399,20 +398,20 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
           <Input
             type="date"
             placeholder="Desde"
-            value={filters.date_from || ''}
+            value={filters.date_from ?? ''}
             onChange={(e) => onFiltersChange({ ...filters, date_from: e.target.value })}
           />
 
           <Input
             type="date"
             placeholder="Hasta"
-            value={filters.date_to || ''}
+            value={filters.date_to ?? ''}
             onChange={(e) => onFiltersChange({ ...filters, date_to: e.target.value })}
           />
 
           {/* Review Status */}
           <Select 
-            value={filters.reviewed_status || 'all'} 
+            value={filters.reviewed_status ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               reviewed_status: value === 'all' ? undefined : value as any
@@ -433,7 +432,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Intensity Level */}
           <Select 
-            value={filters.intensity_level || 'all'} 
+            value={filters.intensity_level ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               intensity_level: value === 'all' ? undefined : value as IntensityLevel
@@ -457,7 +456,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               placeholder="Humor mín"
               min="1"
               max="5"
-              value={filters.mood_score_min || ''}
+              value={filters.mood_score_min ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 mood_score_min: e.target.value ? parseInt(e.target.value) : undefined 
@@ -468,7 +467,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               placeholder="Humor máx"
               min="1"
               max="5"
-              value={filters.mood_score_max || ''}
+              value={filters.mood_score_max ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 mood_score_max: e.target.value ? parseInt(e.target.value) : undefined 
@@ -542,8 +541,8 @@ export default function LogsPage() {
 
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<LogFilters>({
-    child_id: searchParams.get('child_id') || undefined,
-    category_id: searchParams.get('category_id') || undefined,
+    child_id: searchParams.get('child_id') ?? undefined,
+    category_id: searchParams.get('category_id') ?? undefined,
   });
 
   // Aplicar filtros
