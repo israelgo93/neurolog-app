@@ -389,12 +389,12 @@ if (metrics.averageMood >= 4) {
 // ================================================================
 
 interface MetricCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ComponentType<{ className?: string }>;
-  color: 'blue' | 'red' | 'purple' | 'green' | 'orange' | 'gray';
-  subtitle: string;
-  suffix?: string;
+  readonly title: string;
+  readonly value: string | number;
+  readonly icon: React.ComponentType<{ className?: string }>;
+  readonly color: 'blue' | 'red' | 'purple' | 'green' | 'orange' | 'gray';
+  readonly subtitle: string;
+  readonly suffix?: string;
 }
 
 function MetricCard({ title, value, icon: Icon, color, subtitle, suffix }: MetricCardProps) {
