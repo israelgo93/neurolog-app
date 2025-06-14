@@ -22,7 +22,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
 import type { 
@@ -55,9 +54,8 @@ export default function ChildDetailPage() {
   const params = useParams();
   const router = useRouter();
   const childId = params.id as string;
-  const { user } = useAuth();
-  const { children, loading: childLoading, getChildById } = useChildren();
-  const { logs, loading: logsLoading, stats } = useLogs({ childId });
+  const { loading: childLoading, getChildById } = useChildren();
+  const { logs } = useLogs({ childId });
   
   const [child, setChild] = useState<ChildWithRelation | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -65,7 +63,7 @@ export default function ChildDetailPage() {
   useEffect(() => {
     if (childId && !childLoading) {
       const foundChild = getChildById(childId);
-      setChild(foundChild || null);
+      setChild(foundChild ?? null);
     }
   }, [childId, childLoading, getChildById]);
 
@@ -235,7 +233,7 @@ export default function ChildDetailPage() {
             <div className="flex items-center space-x-2">
               <UsersIcon className="h-5 w-5 text-gray-600" />
               <div>
-                <p className="text-2xl font-bold text-gray-900">{child.user_relations?.length || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{child.user_relations?.length ?? 0}</p>
                 <p className="text-xs text-gray-600">Usuarios</p>
               </div>
             </div>
@@ -325,7 +323,7 @@ export default function ChildDetailPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {log.category_name || 'Sin categoría'}
+                            {log.category_name ?? 'Sin categoría'}
                           </p>
                           <span className="text-xs text-gray-500">
                             {format(new Date(log.created_at), 'dd MMM, HH:mm', { locale: es })}
@@ -392,7 +390,7 @@ export default function ChildDetailPage() {
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium text-gray-900">
-                            {relation.user_name || relation.user_email}
+                            {relation.user_name ?? relation.user_email}
                           </p>
                           <Badge 
                             variant="secondary" 
@@ -467,7 +465,7 @@ export default function ChildDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* TODO: Implementar lista detallada de logs con filtros */}
+              {/* Implementar lista detallada de logs con filtros */}
               <p className="text-gray-500">Vista detallada de registros próximamente...</p>
             </CardContent>
           </Card>
@@ -483,7 +481,7 @@ export default function ChildDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* TODO: Implementar gráficos de progreso */}
+              {/*Implementar gráficos de progreso */}
               <p className="text-gray-500">Gráficos de progreso próximamente...</p>
             </CardContent>
           </Card>
@@ -499,7 +497,7 @@ export default function ChildDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* TODO: Implementar gestión de equipo */}
+              {/* implementar gestión de equipo */}
               <p className="text-gray-500">Gestión de equipo próximamente...</p>
             </CardContent>
           </Card>
@@ -515,7 +513,7 @@ export default function ChildDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* TODO: Implementar configuración específica */}
+              {/* Implementar configuración específica */}
               <p className="text-gray-500">Configuración específica próximamente...</p>
             </CardContent>
           </Card>
