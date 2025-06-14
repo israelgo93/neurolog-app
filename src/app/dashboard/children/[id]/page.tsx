@@ -63,7 +63,7 @@ export default function ChildDetailPage() {
   useEffect(() => {
     if (childId && !childLoading) {
       const foundChild = getChildById(childId);
-      setChild(foundChild || null);
+      setChild(foundChild ?? null);
     }
   }, [childId, childLoading, getChildById]);
 
@@ -232,7 +232,7 @@ export default function ChildDetailPage() {
             <div className="flex items-center space-x-2">
               <UsersIcon className="h-5 w-5 text-gray-600" />
               <div>
-                <p className="text-2xl font-bold text-gray-900">{child.user_relations?.length || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{child.user_relations?.length ?? 0}</p>
                 <p className="text-xs text-gray-600">Usuarios</p>
               </div>
             </div>
@@ -389,7 +389,7 @@ export default function ChildDetailPage() {
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium text-gray-900">
-                            {relation.user_name || relation.user_email}
+                            {relation.user_name ?? relation.user_email}
                           </p>
                           <Badge 
                             variant="secondary" 
