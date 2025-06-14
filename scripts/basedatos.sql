@@ -117,19 +117,11 @@ CREATE TABLE user_child_relations (
   UNIQUE(user_id, child_id, relationship_type)
 );
 
--- Definir constante para los niveles de intensidad
+-- Definir constante global para los niveles de intensidad
 DO $$
-DECLARE
-  intensity_levels CONSTANT TEXT[] := ARRAY['low', 'medium', 'high'];
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'intensity_level_enum') THEN
-    EXECUTE format('CREATE TYPE intensity_level_enum AS ENUM (%s)', 
-      array_to_string(
-        ARRAY(
-          SELECT quote_literal(level) FROM unnest(intensity_levels) AS level
-        ), ', '
-      )
-    );
+    CREATE TYPE intensity_level_enum AS ENUM ('low', 'medium', 'high');
   END IF;
 END$$;
 
