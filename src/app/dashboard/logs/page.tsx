@@ -572,33 +572,35 @@ export default function LogsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex-1 space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
-            <div className="h-4 w-64 bg-gray-200 rounded animate-pulse" />
-          </div>
-          <div className="h-10 w-32 bg-gray-200 rounded animate-pulse" />
+  const skeletonKeys = ['skel1', 'skel2', 'skel3', 'skel4', 'skel5'];
+  return (
+    <div className="flex-1 space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
+          <div className="h-4 w-64 bg-gray-200 rounded animate-pulse" />
         </div>
-        
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i} className="p-6">
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-full" />
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <div className="h-10 w-32 bg-gray-200 rounded animate-pulse" />
       </div>
-    );
-  }
+      
+      <div className="space-y-4">
+        {skeletonKeys.map(key => (
+          <Card key={key} className="p-6">
+            <div className="flex items-start space-x-4">
+              <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-full" />
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
   if (error) {
     return (
