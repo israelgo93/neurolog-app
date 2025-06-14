@@ -1,19 +1,19 @@
 # NeuroLog - Registro Diario para Niños con NEE
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
 
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=bugs)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
-[![Security Hotspots](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=security_hotspots)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=bugs)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Security Hotspots](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=security_hotspots)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
 
-[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=coverage)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
-[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=TU_PROJECT_KEY&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=TU_PROJECT_KEY)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=coverage)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
 
 ## 📋 Descripción
 
