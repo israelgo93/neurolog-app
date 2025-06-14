@@ -361,7 +361,7 @@ function ErrorState({ error }: Readonly<{ error: string }>) {
   );
 }
 
-function EmptyState({ childrenCount, setFilters }: { childrenCount: number, setFilters: (f: ChildFilters) => void }) {
+function EmptyState({ childrenCount, setFilters }: Readonly<{ childrenCount: number, setFilters: (f: ChildFilters) => void }>) {
   return (
     <Card>
       <CardContent className="text-center py-12">
