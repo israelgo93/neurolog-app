@@ -202,7 +202,7 @@ CREATE INDEX idx_audit_table ON audit_logs(table_name);
 CREATE INDEX idx_audit_created ON audit_logs(created_at DESC);
 
 -- ================================================================
--- 4. CREAR FUNCIONES DE TRIGGERS
+-- 4. CREAR FUNCIONES DE TRIGGERS s
 -- ================================================================
 
 -- Función para actualizar updated_at automáticamente
