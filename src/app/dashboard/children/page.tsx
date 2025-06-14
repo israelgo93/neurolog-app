@@ -490,7 +490,9 @@ export default function ChildrenPage() {
             ))}
           </div>
         </>
-      : (
+      ) : (
+        
+        
         <Card>
           <CardContent className="text-center py-12">
             <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
