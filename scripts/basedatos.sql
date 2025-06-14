@@ -90,6 +90,55 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
+-- Función para obtener fragmento de timestamp NOW
+CREATE OR REPLACE FUNCTION get_now_timestamp() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'TIMESTAMPTZ DEFAULT NOW()';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener fragmento de PRIMARY KEY UUID
+CREATE OR REPLACE FUNCTION get_uuid_primary_key() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'id UUID DEFAULT gen_random_uuid() PRIMARY KEY';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener literal 'public'
+CREATE OR REPLACE FUNCTION get_public_schema() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'public';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener intensidad 'medium'
+CREATE OR REPLACE FUNCTION get_intensity_medium() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'medium';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener intensidad 'low'
+CREATE OR REPLACE FUNCTION get_intensity_low() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'low';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener intensidad 'high'
+CREATE OR REPLACE FUNCTION get_intensity_high() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'high';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener riesgo 'critical'
+CREATE OR REPLACE FUNCTION get_risk_critical() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'critical';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 -- Función para obtener intensidad 'low'
 CREATE OR REPLACE FUNCTION get_intensity_low() RETURNS TEXT AS $$
 BEGIN
@@ -136,11 +185,10 @@ BEGIN
     'last_login TIMESTAMPTZ, ' ||
     'failed_login_attempts INTEGER DEFAULT 0, ' ||
     'last_failed_login TIMESTAMPTZ, ' ||
-    'account_locked_until TIMESTAMPTZ, ' ||
-    'timezone TEXT DEFAULT ''America/Guayaquil'', ' ||
+    'account_locked_until TIMESTAMPTZ, ' ||    'timezone TEXT DEFAULT ''America/Guayaquil'', ' ||
     'preferences JSONB DEFAULT ''{}'', ' ||
-    'created_at TIMESTAMPTZ DEFAULT NOW(), ' ||
-    'updated_at TIMESTAMPTZ DEFAULT NOW()' ||
+    get_now_timestamp() || ', ' ||
+    'updated_at ' || get_now_timestamp() ||
     ');',
     get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_admin(), get_role_parent()
   );
@@ -188,14 +236,13 @@ BEGIN
     'can_edit BOOLEAN DEFAULT FALSE, ' ||
     'can_view BOOLEAN DEFAULT TRUE, ' ||
     'can_export BOOLEAN DEFAULT FALSE, ' ||
-    'can_invite_others BOOLEAN DEFAULT FALSE, ' ||
-    'granted_by UUID REFERENCES profiles(id) NOT NULL, ' ||
-    'granted_at TIMESTAMPTZ DEFAULT NOW(), ' ||
+    'can_invite_others BOOLEAN DEFAULT FALSE, ' ||    'granted_by UUID REFERENCES profiles(id) NOT NULL, ' ||
+    'granted_at ' || get_now_timestamp() || ', ' ||
     'expires_at TIMESTAMPTZ, ' ||
     'is_active BOOLEAN DEFAULT TRUE, ' ||
     'notes TEXT, ' ||
     'notification_preferences JSONB DEFAULT ''{}'', ' ||
-    'created_at TIMESTAMPTZ DEFAULT NOW(), ' ||
+    'created_at ' || get_now_timestamp() || ', ' ||
     'UNIQUE(user_id, child_id, relationship_type)' ||
     ');',
     get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_observer(), get_role_family()
@@ -225,11 +272,10 @@ BEGIN
     'reviewed_by UUID REFERENCES profiles(id), ' ||
     'reviewed_at TIMESTAMPTZ, ' ||
     'specialist_notes TEXT, ' ||
-    'parent_feedback TEXT, ' ||
-    'follow_up_required BOOLEAN DEFAULT FALSE, ' ||
+    'parent_feedback TEXT, ' ||    'follow_up_required BOOLEAN DEFAULT FALSE, ' ||
     'follow_up_date DATE, ' ||
-    'created_at TIMESTAMPTZ DEFAULT NOW(), ' ||
-    'updated_at TIMESTAMPTZ DEFAULT NOW()' ||
+    'created_at ' || get_now_timestamp() || ', ' ||
+    'updated_at ' || get_now_timestamp() ||
     ');',
     get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_intensity_medium()
   );
@@ -249,10 +295,9 @@ BEGIN
     'new_values JSONB, ' ||
     'changed_fields TEXT[], ' ||
     'ip_address INET, ' ||
-    'user_agent TEXT, ' ||
-    'session_id TEXT, ' ||
+    'user_agent TEXT, ' ||    'session_id TEXT, ' ||
     'risk_level TEXT CHECK (risk_level IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
-    'created_at TIMESTAMPTZ DEFAULT NOW()' ||
+    'created_at ' || get_now_timestamp() ||
     ');',
     get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_risk_critical(), get_intensity_low()
   );
