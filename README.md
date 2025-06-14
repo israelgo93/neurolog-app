@@ -1,5 +1,7 @@
 # NeuroLog - Registro Diario para Niños con NEE
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DweskZ_neurolog-app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DweskZ_neurolog-app)
+
 ## 📋 Descripción
 
 NeuroLog es una aplicación web **open source** orientada al registro y seguimiento diario de comportamientos, emociones y avances de niños con necesidades educativas especiales (NEE). 

@@ -26,7 +26,7 @@ interface LogWithDetails {
 }
 
 interface LogCardProps {
-  log: LogWithDetails
+  readonly log: LogWithDetails
 }
 
 export function LogCard({ log }: LogCardProps) {
@@ -40,7 +40,7 @@ export function LogCard({ log }: LogCardProps) {
 
   const moodStars = log.mood_score ? [...Array(5)].map((_, i) => (
     <Star
-      key={i}
+      key={`mood-star-${log.id}-${i}`}
       className={`h-3 w-3 ${
         i < log.mood_score! 
           ? 'text-yellow-400 fill-yellow-400' 

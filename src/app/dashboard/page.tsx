@@ -102,26 +102,28 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
     }
   ];
 
-  if (loading) {
-    return (
-      <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-3 sm:p-4 md:p-6">
-              <div className="flex items-center justify-between space-x-2">
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
-                  <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
-                  <Skeleton className="h-2 sm:h-3 w-14 sm:w-18" />
-                </div>
-                <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" />
+if (loading) {
+  const skeletonKeys = ['skelA', 'skelB', 'skelC', 'skelD'];
+  return (
+    <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
+      {skeletonKeys.map(key => (
+        <Card key={key} className="animate-pulse">
+          <CardContent className="p-3 sm:p-4 md:p-6">
+            <div className="flex items-center justify-between space-x-2">
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
+                <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
+                <Skeleton className="h-2 sm:h-3 w-14 sm:w-18" />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
+              <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 
   return (
     <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
@@ -254,19 +256,31 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
               
               {/* Progress bar de actividad */}
               <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Actividad semanal</span>
-                  <span>{child.weekly_logs || 0}/7</span>
-                </div>
-                <Progress 
-                  value={((child.weekly_logs || 0) / 7) * 100} 
-                  className="h-2"
-                  indicatorClassName={
-                    (child.weekly_logs || 0) >= 5 ? "bg-green-500" :
-                    (child.weekly_logs || 0) >= 3 ? "bg-yellow-500" : "bg-red-500"
-                  }
-                />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Actividad semanal</span>
+                <span>{child.weekly_logs || 0}/7</span>
               </div>
+              {(() => {
+                // Extrae el cálculo a una variable antes del JSX
+                const logs = child.weekly_logs || 0;
+                let indicatorClass = "";
+                if (logs >= 5) {
+                  indicatorClass = "bg-green-500";
+                } else if (logs >= 3) {
+                  indicatorClass = "bg-yellow-500";
+                } else {
+                  indicatorClass = "bg-red-500";
+                }
+                return (
+                  <Progress 
+                    value={(logs / 7) * 100}
+                    className="h-2"
+                    indicatorClassName={indicatorClass}
+                  />
+                );
+              })()}
+</div>
+
             </CardContent>
           </Card>
         ))}
@@ -367,15 +381,20 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
             </p>
             
             <div className="flex items-center justify-between mt-2">
-              <div className="text-xs text-gray-500">
-                <span className="font-medium">{log.child_name}</span>
-                <span className="mx-1">•</span>
-                <span>
-                  {isToday(new Date(log.created_at)) ? 'Hoy' :
-                   isYesterday(new Date(log.created_at)) ? 'Ayer' :
-                   format(new Date(log.created_at), 'dd MMM', { locale: es })}
-                </span>
-              </div>
+            <div className="text-xs text-gray-500">
+              <span className="font-medium">{log.child_name}</span>
+              <span className="mx-1">•</span>
+              <span>
+                {(() => {
+                  const fecha = new Date(log.created_at);
+                  if (isToday(fecha)) return 'Hoy';
+                  if (isYesterday(fecha)) return 'Ayer';
+                  return format(fecha, 'dd MMM', { locale: es });
+                })()}
+              </span>
+            </div>
+          </div>
+
               
               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="sm" asChild>

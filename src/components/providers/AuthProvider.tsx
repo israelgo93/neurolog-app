@@ -13,7 +13,6 @@ import React, {
   useCallback,
   useMemo 
 } from 'react';
-import { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase';
 import type { Profile, UserRole } from '@/types';
 
@@ -42,7 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // ================================================================
 
 interface AuthProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 // ================================================================
@@ -95,18 +94,18 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
         
         if (authUser?.user && !authError) {
           const userData = authUser.user;
-          const fullName = userData.user_metadata?.full_name || 
-                          userData.user_metadata?.name ||
-                          userData.email?.split('@')[0] || 
+          const fullName = userData.user_metadata?.full_name ?? 
+                          userData.user_metadata?.name ??
+                          userData.email?.split('@')[0] ?? 
                           'Usuario';
           
           const { data: newProfile, error: createError } = await supabase
             .from('profiles')
             .insert({
               id: userId,
-              email: userData.email || '',
+              email: userData.email ?? '',
               full_name: fullName,
-              role: userData.user_metadata?.role || 'parent',
+              role: userData.user_metadata?.role ?? 'parent',
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
@@ -195,7 +194,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       // El perfil se cargará automáticamente por el listener
     } catch (err: any) {
       console.error('❌ Sign in error:', err);
-      setError(err.message || 'Error al iniciar sesión');
+      setError(err.message ?? 'Error al iniciar sesión');
       throw err;
     } finally {
       setLoading(false);
@@ -226,7 +225,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       if (error) throw error;
     } catch (err: any) {
       console.error('❌ Sign up error:', err);
-      setError(err.message || 'Error al registrarse');
+      setError(err.message ?? 'Error al registrarse');
       throw err;
     } finally {
       setLoading(false);
@@ -246,7 +245,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       setError(null);
     } catch (err: any) {
       console.error('❌ Sign out error:', err);
-      setError(err.message || 'Error al cerrar sesión');
+      setError(err.message ?? 'Error al cerrar sesión');
       throw err;
     } finally {
       setLoading(false);
@@ -271,7 +270,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       setUser(prev => prev ? { ...prev, ...updates } : null);
     } catch (err: any) {
       console.error('❌ Update profile error:', err);
-      setError(err.message || 'Error al actualizar perfil');
+      setError(err.message ?? 'Error al actualizar perfil');
       throw err;
     } finally {
       setLoading(false);
@@ -286,7 +285,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       if (error) throw error;
     } catch (err: any) {
       console.error('❌ Reset password error:', err);
-      setError(err.message || 'Error al enviar email de recuperación');
+      setError(err.message ?? 'Error al enviar email de recuperación');
       throw err;
     }
   }, [supabase]);
@@ -365,60 +364,81 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       }
     };
 
-    /**
-     *  LISTENER DE AUTH MEJORADO - UNA SOLA SUBSCRIPCIÓN
-     */
-    const setupAuthListener = () => {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (!mountedRef.current) return;
+/**
+ *  LISTENER DE AUTH MEJORADO - UNA SOLA SUBSCRIPCIÓN
+ */
 
-          console.log('🔄 Auth state changed:', event);
+// Auxiliar para manejar el login
+const handleSignIn = async (session: any) => {
+  if (!session?.user || !mountedRef.current) return;
 
-          try {
-            if (event === 'SIGNED_IN' && session?.user) {
-              console.log('✅ User signed in, fetching profile...');
-              setLoading(true);
-              
-              await updateLastLogin(session.user.id);
-              
-              const profile = await fetchProfile(session.user.id);
-              if (profile && mountedRef.current) {
-                setUser(profile);
-                
-                const adminStatus = await checkAdminStatus(session.user.id);
-                if (mountedRef.current) {
-                  setIsAdmin(adminStatus);
-                }
-              }
-            } else if (event === 'SIGNED_OUT') {
-              console.log('👋 User signed out');
-              if (mountedRef.current) {
-                setUser(null);
-                setIsAdmin(false);
-                setError(null);
-              }
-            } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-              console.log('🔄 Token refreshed, maintaining user state');
-              // No necesitamos recargar el perfil en token refresh
-              // El usuario ya está cargado y el token se renovó automáticamente
-            }
-          } catch (err) {
-            console.error('❌ Error handling auth state change:', err);
-            if (mountedRef.current) {
-              setError('Error en el cambio de estado de autenticación');
-            }
-          } finally {
-            if (mountedRef.current) {
-              setLoading(false);
-            }
-          }
-        }
-      );
+  console.log('✅ User signed in, fetching profile...');
+  setLoading(true);
 
-      authSubscriptionRef.current = subscription;
-      return subscription;
-    };
+  await updateLastLogin(session.user.id);
+  const profile = await fetchProfile(session.user.id);
+
+  if (profile && mountedRef.current) {
+    setUser(profile);
+    const adminStatus = await checkAdminStatus(session.user.id);
+    if (mountedRef.current) setIsAdmin(adminStatus);
+  }
+};
+
+// Auxiliar para sign out
+const handleSignOut = () => {
+  if (!mountedRef.current) return;
+  console.log('👋 User signed out');
+  setUser(null);
+  setIsAdmin(false);
+  setError(null);
+};
+
+// Auxiliar para refresh
+const handleTokenRefreshed = (session: any) => {
+  if (session?.user) {
+    console.log('🔄 Token refreshed, maintaining user state');
+    // No necesitamos recargar el perfil en token refresh
+  }
+};
+
+const setupAuthListener = () => {
+  const handleAuthStateChange = async (event: string, session: any) => {
+    if (!mountedRef.current) return;
+    console.log('🔄 Auth state changed:', event);
+    setLoading(true);
+    try {
+      switch (event) {
+        case 'SIGNED_IN':
+          await handleSignIn(session);
+          break;
+        case 'SIGNED_OUT':
+          handleSignOut();
+          break;
+        case 'TOKEN_REFRESHED':
+          handleTokenRefreshed(session);
+          break;
+        default:
+          break;
+      }
+    } catch (err) {
+      console.error('❌ Error handling auth state change:', err);
+      if (mountedRef.current) {
+        setError('Error en el cambio de estado de autenticación');
+      }
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  };
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
+
+  authSubscriptionRef.current = subscription;
+  return subscription;
+};
+
 
     //  INICIALIZAR TODO
     initializeAuth();
