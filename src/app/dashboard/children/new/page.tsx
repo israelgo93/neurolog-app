@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Plus, Save, X } from 'lucide-react';
 import Link from 'next/link';
-import type { ChildInsert, EmergencyContact, MedicalInfo, EducationalInfo, PrivacySettings } from '@/types';
+import type { ChildInsert, EmergencyContact} from '@/types';
 
 export default function NewChildPage() {
   const router = useRouter();
