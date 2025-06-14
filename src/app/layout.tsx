@@ -54,15 +54,15 @@ function LayoutErrorFallback() {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  readonly children: React.ReactNode;
 }) {
   return (
     <html lang="es">
       <body className={inter.className}>
-        {/* ✅ ERROR BOUNDARY PRINCIPAL QUE ENVUELVE TODO */}
+        {/* ✅ ERROR BOUNDARY PRINCIPAL QUE ENVUELVE  */}
         <ErrorBoundary fallback={<LayoutErrorFallback />}>
           {/* ✅ AUTH PROVIDER PROTEGIDO POR ERROR BOUNDARY */}
-          <ErrorBoundary 
+          <ErrorBoundary
             fallback={
               <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center">
@@ -72,8 +72,8 @@ export default function RootLayout({
                   <p className="text-gray-600 mb-4">
                     Problema al cargar la sesión de usuario
                   </p>
-                  <button 
-                    onClick={() => window.location.href = '/auth/login'}
+                  <button
+                    onClick={() => (window.location.href = '/auth/login')}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                   >
                     Ir a Login
@@ -87,7 +87,7 @@ export default function RootLayout({
               <ErrorBoundary>
                 {children}
               </ErrorBoundary>
-              
+
               {/* ✅ TOASTER PARA NOTIFICACIONES */}
               <Toaster />
             </AuthProvider>
@@ -95,5 +95,5 @@ export default function RootLayout({
         </ErrorBoundary>
       </body>
     </html>
-  )
+  );
 }
