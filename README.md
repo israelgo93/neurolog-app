@@ -118,3 +118,5 @@ Si encuentras algún problema o tienes preguntas:
 ---
 
 **Nota:** NeuroLog está diseñado para complementar, no reemplazar, la evaluación profesional especializada.
+
+**Nota:** Hola
