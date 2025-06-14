@@ -1,6 +1,10 @@
 // src/lib/database.types.ts
 // Tipos generados automáticamente desde Supabase CLI
 // Actualizados para el nuevo schema de NeuroLog
+type Operation = 'INSERT' | 'UPDATE' | 'DELETE' | 'SELECT';
+type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+type RelationshipType = 'parent' | 'teacher' | 'specialist' | 'observer' | 'family';
+type RoleType = 'parent' | 'teacher' | 'specialist' | 'admin';
 
 export type Json =
   | string
@@ -17,7 +21,7 @@ export interface Database {
         Row: {
           id: string
           table_name: string
-          operation: 'INSERT' | 'UPDATE' | 'DELETE' | 'SELECT'
+          operation: Operation
           record_id: string | null
           user_id: string | null
           user_role: string | null
@@ -27,13 +31,13 @@ export interface Database {
           ip_address: string | null
           user_agent: string | null
           session_id: string | null
-          risk_level: 'low' | 'medium' | 'high' | 'critical'
+          risk_level: RiskLevel
           created_at: string
         }
         Insert: {
           id?: string
           table_name: string
-          operation: 'INSERT' | 'UPDATE' | 'DELETE' | 'SELECT'
+          operation: Operation
           record_id?: string | null
           user_id?: string | null
           user_role?: string | null
@@ -43,13 +47,13 @@ export interface Database {
           ip_address?: string | null
           user_agent?: string | null
           session_id?: string | null
-          risk_level?: 'low' | 'medium' | 'high' | 'critical'
+          risk_level?: RiskLevel
           created_at?: string
         }
         Update: {
           id?: string
           table_name?: string
-          operation?: 'INSERT' | 'UPDATE' | 'DELETE' | 'SELECT'
+          operation?: Operation
           record_id?: string | null
           user_id?: string | null
           user_role?: string | null
@@ -59,7 +63,7 @@ export interface Database {
           ip_address?: string | null
           user_agent?: string | null
           session_id?: string | null
-          risk_level?: 'low' | 'medium' | 'high' | 'critical'
+          risk_level?: RiskLevel
           created_at?: string
         }
         Relationships: [
@@ -180,7 +184,7 @@ export interface Database {
           title: string
           content: string
           mood_score: number | null
-          intensity_level: 'low' | 'medium' | 'high'
+          intensity_level: RiskLevel
           logged_by: string
           log_date: string
           is_private: boolean
@@ -283,7 +287,7 @@ export interface Database {
           id: string
           email: string
           full_name: string
-          role: 'parent' | 'teacher' | 'specialist' | 'admin'
+          role: RoleType | null
           avatar_url: string | null
           phone: string | null
           is_active: boolean
@@ -300,7 +304,7 @@ export interface Database {
           id: string
           email: string
           full_name: string
-          role?: 'parent' | 'teacher' | 'specialist' | 'admin'
+          role?: RoleType | null
           avatar_url?: string | null
           phone?: string | null
           is_active?: boolean
@@ -317,7 +321,7 @@ export interface Database {
           id?: string
           email?: string
           full_name?: string
-          role?: 'parent' | 'teacher' | 'specialist' | 'admin'
+          role?: RoleType | null
           avatar_url?: string | null
           phone?: string | null
           is_active?: boolean
@@ -344,7 +348,7 @@ export interface Database {
           id: string
           user_id: string
           child_id: string
-          relationship_type: 'parent' | 'teacher' | 'specialist' | 'observer' | 'family'
+          relationship_type: RelationshipType
           can_edit: boolean
           can_view: boolean
           can_export: boolean
@@ -361,7 +365,7 @@ export interface Database {
           id?: string
           user_id: string
           child_id: string
-          relationship_type: 'parent' | 'teacher' | 'specialist' | 'observer' | 'family'
+          relationship_type: RelationshipType
           can_edit?: boolean
           can_view?: boolean
           can_export?: boolean
@@ -378,7 +382,7 @@ export interface Database {
           id?: string
           user_id?: string
           child_id?: string
-          relationship_type?: 'parent' | 'teacher' | 'specialist' | 'observer' | 'family'
+          relationship_type?: RelationshipType
           can_edit?: boolean
           can_view?: boolean
           can_export?: boolean
@@ -452,7 +456,7 @@ export interface Database {
           created_by: string | null
           created_at: string | null
           updated_at: string | null
-          relationship_type: 'parent' | 'teacher' | 'specialist' | 'observer' | 'family' | null
+          relationship_type: RelationshipType | null
           can_edit: boolean | null
           can_view: boolean | null
           can_export: boolean | null
