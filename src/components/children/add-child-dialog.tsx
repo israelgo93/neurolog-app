@@ -88,7 +88,7 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "No se pudo agregar el niño",
+        description: error.message ?? "No se pudo agregar el niño",
         variant: "destructive",
       })
     } finally {
