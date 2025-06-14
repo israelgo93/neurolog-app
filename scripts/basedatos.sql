@@ -47,23 +47,33 @@ DROP TABLE IF EXISTS profiles CASCADE;
 -- ================================================================
 
 -- TABLA: profiles (usuarios del sistema)
-CREATE TABLE profiles (
-  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  full_name TEXT NOT NULL,
-  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
-  avatar_url TEXT,
-  phone TEXT,
-  is_active BOOLEAN DEFAULT TRUE,
-  last_login TIMESTAMPTZ,
-  failed_login_attempts INTEGER DEFAULT 0,
-  last_failed_login TIMESTAMPTZ,
-  account_locked_until TIMESTAMPTZ,
-  timezone TEXT DEFAULT 'America/Guayaquil',
-  preferences JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$
+DECLARE
+  co_role_parent CONSTANT TEXT := 'parent';
+  co_role_teacher CONSTANT TEXT := 'teacher';
+  co_role_specialist CONSTANT TEXT := 'specialist';
+  co_role_admin CONSTANT TEXT := 'admin';
+  co_primary_key CONSTANT TEXT := 'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ';
+  co_created_at CONSTANT TEXT := 'created_at TIMESTAMPTZ DEFAULT NOW(), ';
+BEGIN
+  EXECUTE format('CREATE TABLE profiles (' ||
+    'id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY, ' ||
+    'email TEXT UNIQUE NOT NULL, ' ||
+    'full_name TEXT NOT NULL, ' ||
+    'role TEXT CHECK (role IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
+    'avatar_url TEXT, ' ||
+    'phone TEXT, ' ||
+    'is_active BOOLEAN DEFAULT TRUE, ' ||
+    'last_login TIMESTAMPTZ, ' ||
+    'failed_login_attempts INTEGER DEFAULT 0, ' ||
+    'last_failed_login TIMESTAMPTZ, ' ||
+    'account_locked_until TIMESTAMPTZ, ' ||
+    'timezone TEXT DEFAULT ''America/Guayaquil'', ' ||
+    'preferences JSONB DEFAULT ''{}'', ' ||
+    co_created_at ||
+    'updated_at TIMESTAMPTZ DEFAULT NOW()' ||
+    ')', co_role_parent, co_role_teacher, co_role_specialist, co_role_admin, co_role_parent);
+END $$;
 
 -- TABLA: categories (categorías de registros)
 CREATE TABLE categories (
@@ -90,83 +100,110 @@ CREATE TABLE children (
   emergency_contact JSONB DEFAULT '[]',
   medical_info JSONB DEFAULT '{}',
   educational_info JSONB DEFAULT '{}',
-  privacy_settings JSONB DEFAULT '{
-    "share_with_specialists": true,
-    "share_progress_reports": true,
-    "allow_photo_sharing": false,
-    "data_retention_months": 36
-  }',
+  privacy_settings JSONB DEFAULT '{"share_with_specialists": true, "share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}',
   created_by UUID REFERENCES profiles(id) NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- TABLA: user_child_relations (relaciones usuario-niño)
-CREATE TABLE user_child_relations (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
-  relationship_type TEXT CHECK (relationship_type IN ('parent', 'teacher', 'specialist', 'observer', 'family')) NOT NULL,
-  can_edit BOOLEAN DEFAULT FALSE,
-  can_view BOOLEAN DEFAULT TRUE,
-  can_export BOOLEAN DEFAULT FALSE,
-  can_invite_others BOOLEAN DEFAULT FALSE,
-  granted_by UUID REFERENCES profiles(id) NOT NULL,
-  granted_at TIMESTAMPTZ DEFAULT NOW(),
-  expires_at TIMESTAMPTZ,
-  is_active BOOLEAN DEFAULT TRUE,
-  notes TEXT,
-  notification_preferences JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  
-  UNIQUE(user_id, child_id, relationship_type)
-);
+DO $$
+DECLARE
+  co_role_parent CONSTANT TEXT := 'parent';
+  co_role_teacher CONSTANT TEXT := 'teacher';
+  co_role_specialist CONSTANT TEXT := 'specialist';
+  co_role_observer CONSTANT TEXT := 'observer';
+  co_role_family CONSTANT TEXT := 'family';
+  co_primary_key CONSTANT TEXT := 'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ';
+  co_created_at CONSTANT TEXT := 'created_at TIMESTAMPTZ DEFAULT NOW(), ';
+BEGIN
+  EXECUTE format('CREATE TABLE user_child_relations (' ||
+    co_primary_key ||
+    'user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL, ' ||
+    'child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL, ' ||
+    'relationship_type TEXT CHECK (relationship_type IN (%L, %L, %L, %L, %L)) NOT NULL, ' ||
+    'can_edit BOOLEAN DEFAULT FALSE, ' ||
+    'can_view BOOLEAN DEFAULT TRUE, ' ||
+    'can_export BOOLEAN DEFAULT FALSE, ' ||
+    'can_invite_others BOOLEAN DEFAULT FALSE, ' ||
+    'granted_by UUID REFERENCES profiles(id) NOT NULL, ' ||
+    'granted_at TIMESTAMPTZ DEFAULT NOW(), ' ||
+    'expires_at TIMESTAMPTZ, ' ||
+    'is_active BOOLEAN DEFAULT TRUE, ' ||
+    'notes TEXT, ' ||
+    'notification_preferences JSONB DEFAULT ''{}'', ' ||
+    co_created_at ||
+    'UNIQUE(user_id, child_id, relationship_type)' ||
+    ')', co_role_parent, co_role_teacher, co_role_specialist, co_role_observer, co_role_family);
+END $$;
 
 -- TABLA: daily_logs (registros diarios)
-CREATE TABLE daily_logs (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
-  category_id UUID REFERENCES categories(id),
-  title TEXT NOT NULL CHECK (length(trim(title)) >= 2),
-  content TEXT NOT NULL,
-  mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10),
-  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium',
-  logged_by UUID REFERENCES profiles(id) NOT NULL,
-  log_date DATE DEFAULT CURRENT_DATE,
-  is_private BOOLEAN DEFAULT FALSE,
-  is_deleted BOOLEAN DEFAULT FALSE,
-  is_flagged BOOLEAN DEFAULT FALSE,
-  attachments JSONB DEFAULT '[]',
-  tags TEXT[] DEFAULT '{}',
-  location TEXT,
-  weather TEXT,
-  reviewed_by UUID REFERENCES profiles(id),
-  reviewed_at TIMESTAMPTZ,
-  specialist_notes TEXT,
-  parent_feedback TEXT,
-  follow_up_required BOOLEAN DEFAULT FALSE,
-  follow_up_date DATE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$
+DECLARE
+  co_intensity_low CONSTANT TEXT := 'low';
+  co_intensity_medium CONSTANT TEXT := 'medium';
+  co_intensity_high CONSTANT TEXT := 'high';
+  co_primary_key CONSTANT TEXT := 'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ';
+  co_created_at CONSTANT TEXT := 'created_at TIMESTAMPTZ DEFAULT NOW(), ';
+BEGIN
+  EXECUTE format('CREATE TABLE daily_logs (' ||
+    co_primary_key ||
+    'child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL, ' ||
+    'category_id UUID REFERENCES categories(id), ' ||
+    'title TEXT NOT NULL CHECK (length(trim(title)) >= 2), ' ||
+    'content TEXT NOT NULL, ' ||
+    'mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10), ' ||
+    'intensity_level TEXT CHECK (intensity_level IN (%L, %L, %L)) DEFAULT %L, ' ||
+    'logged_by UUID REFERENCES profiles(id) NOT NULL, ' ||
+    'log_date DATE DEFAULT CURRENT_DATE, ' ||
+    'is_private BOOLEAN DEFAULT FALSE, ' ||
+    'is_deleted BOOLEAN DEFAULT FALSE, ' ||
+    'is_flagged BOOLEAN DEFAULT FALSE, ' ||
+    'attachments JSONB DEFAULT ''[]'', ' ||
+    'tags TEXT[] DEFAULT ''{}'', ' ||
+    'location TEXT, ' ||
+    'weather TEXT, ' ||
+    'reviewed_by UUID REFERENCES profiles(id), ' ||
+    'reviewed_at TIMESTAMPTZ, ' ||
+    'specialist_notes TEXT, ' ||
+    'parent_feedback TEXT, ' ||
+    'follow_up_required BOOLEAN DEFAULT FALSE, ' ||
+    'follow_up_date DATE, ' ||
+    co_created_at ||
+    'updated_at TIMESTAMPTZ DEFAULT NOW()' ||
+    ')', co_intensity_low, co_intensity_medium, co_intensity_high, co_intensity_medium);
+END $$;
 
 -- TABLA: audit_logs (auditoría del sistema)
-CREATE TABLE audit_logs (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  table_name TEXT NOT NULL,
-  operation TEXT CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE', 'SELECT')) NOT NULL,
-  record_id TEXT,
-  user_id UUID REFERENCES profiles(id),
-  user_role TEXT,
-  old_values JSONB,
-  new_values JSONB,
-  changed_fields TEXT[],
-  ip_address INET,
-  user_agent TEXT,
-  session_id TEXT,
-  risk_level TEXT CHECK (risk_level IN ('low', 'medium', 'high', 'critical')) DEFAULT 'low',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$
+DECLARE
+  co_op_insert CONSTANT TEXT := 'INSERT';
+  co_op_update CONSTANT TEXT := 'UPDATE';
+  co_op_delete CONSTANT TEXT := 'DELETE';
+  co_op_select CONSTANT TEXT := 'SELECT';
+  co_intensity_low CONSTANT TEXT := 'low';
+  co_intensity_medium CONSTANT TEXT := 'medium';
+  co_intensity_high CONSTANT TEXT := 'high';
+  co_risk_critical CONSTANT TEXT := 'critical';
+  co_primary_key CONSTANT TEXT := 'id UUID DEFAULT gen_random_uuid() PRIMARY KEY, ';
+BEGIN
+  EXECUTE format('CREATE TABLE audit_logs (' ||
+    co_primary_key ||
+    'table_name TEXT NOT NULL, ' ||
+    'operation TEXT CHECK (operation IN (%L, %L, %L, %L)) NOT NULL, ' ||
+    'record_id TEXT, ' ||
+    'user_id UUID REFERENCES profiles(id), ' ||
+    'user_role TEXT, ' ||
+    'old_values JSONB, ' ||
+    'new_values JSONB, ' ||
+    'changed_fields TEXT[], ' ||
+    'ip_address INET, ' ||
+    'user_agent TEXT, ' ||
+    'session_id TEXT, ' ||
+    'risk_level TEXT CHECK (risk_level IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
+    'created_at TIMESTAMPTZ DEFAULT NOW()' ||
+    ')', co_op_insert, co_op_update, co_op_delete, co_op_select, co_intensity_low, co_intensity_medium, co_intensity_high, co_risk_critical, co_intensity_low);
+END $$;
 
 -- ================================================================
 -- 3. CREAR ÍNDICES PARA PERFORMANCE
@@ -214,13 +251,15 @@ $$ LANGUAGE plpgsql;
 -- Función para crear perfil automáticamente cuando se registra usuario
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  co_role_parent CONSTANT TEXT := 'parent';
 BEGIN
   INSERT INTO profiles (id, email, full_name, role)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')
+    COALESCE(NEW.raw_user_meta_data->>'role', co_role_parent)
   );
   RETURN NEW;
 END;
@@ -253,30 +292,54 @@ CREATE TRIGGER on_auth_user_created
   EXECUTE FUNCTION handle_new_user();
 
 -- ================================================================
--- 6. CREAR FUNCIONES RPC
+-- 6. CREAR FUNCIONES RPC Y AUXILIARES
 -- ================================================================
 
--- Función para verificar acceso a niño
+-- Función para verificar acceso a niño (simplificada)
 CREATE OR REPLACE FUNCTION user_can_access_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM children 
-    WHERE id = child_uuid 
-      AND created_by = auth.uid()
-  );
+  RETURN (SELECT created_by = auth.uid() FROM children WHERE id = child_uuid);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Función para verificar permisos de edición
+-- Función para verificar permisos de edición (simplificada)
 CREATE OR REPLACE FUNCTION user_can_edit_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM children 
-    WHERE id = child_uuid 
-      AND created_by = auth.uid()
-  );
+  RETURN (SELECT created_by = auth.uid() FROM children WHERE id = child_uuid);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función auxiliar para verificar si el usuario es propietario del niño
+CREATE OR REPLACE FUNCTION user_owns_child(child_uuid UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN (SELECT created_by = auth.uid() FROM children WHERE id = child_uuid);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función auxiliar para verificar si el usuario puede crear relaciones
+CREATE OR REPLACE FUNCTION user_can_create_relation(child_uuid UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN user_owns_child(child_uuid);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función auxiliar para verificar si el usuario puede ver logs
+CREATE OR REPLACE FUNCTION user_can_view_child_logs(child_uuid UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN user_owns_child(child_uuid);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función auxiliar para verificar si el usuario puede crear logs
+CREATE OR REPLACE FUNCTION user_can_create_child_logs(child_uuid UUID, logger_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN (logger_id = auth.uid()) AND user_owns_child(child_uuid);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -287,6 +350,9 @@ CREATE OR REPLACE FUNCTION audit_sensitive_access(
   action_details TEXT DEFAULT NULL
 )
 RETURNS VOID AS $$
+DECLARE
+  co_op_select CONSTANT TEXT := 'SELECT';
+  co_risk_medium CONSTANT TEXT := 'medium';
 BEGIN
   INSERT INTO audit_logs (
     table_name,
@@ -298,7 +364,7 @@ BEGIN
     risk_level
   ) VALUES (
     'sensitive_access',
-    'SELECT',
+    co_op_select,
     resource_id,
     auth.uid(),
     (SELECT role FROM profiles WHERE id = auth.uid()),
@@ -307,11 +373,12 @@ BEGIN
       'details', action_details,
       'timestamp', NOW()
     ),
-    'medium'
+    co_risk_medium
   );
 EXCEPTION
   WHEN OTHERS THEN
-    NULL; -- No fallar por errores de auditoría
+    -- Registrar el error en los logs del sistema
+    RAISE LOG 'Error en audit_sensitive_access: %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -320,39 +387,98 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ================================================================
 
 -- Vista para niños accesibles por usuario
-CREATE OR REPLACE VIEW user_accessible_children AS
-SELECT 
-  c.*,
-  'parent'::TEXT as relationship_type,
-  true as can_edit,
-  true as can_view,
-  true as can_export,
-  true as can_invite_others,
-  c.created_at as granted_at,
-  NULL::TIMESTAMPTZ as expires_at,
-  p.full_name as creator_name
-FROM children c
-JOIN profiles p ON c.created_by = p.id
-WHERE c.created_by = auth.uid()
-  AND c.is_active = true;
+DO $$
+DECLARE
+  co_role_parent CONSTANT TEXT := 'parent';
+BEGIN
+  EXECUTE format('CREATE OR REPLACE VIEW user_accessible_children AS ' ||
+    'SELECT c.*, %L::TEXT as relationship_type, ' ||
+    'true as can_edit, true as can_view, true as can_export, ' ||
+    'true as can_invite_others, c.created_at as granted_at, ' ||
+    'NULL::TIMESTAMPTZ as expires_at, p.full_name as creator_name ' ||
+    'FROM children c JOIN profiles p ON c.created_by = p.id ' ||
+    'WHERE c.created_by = auth.uid() AND c.is_active = true', 
+    co_role_parent);
+END $$;
 
--- Vista para estadísticas de logs por niño
+-- Función auxiliar para calcular logs por período
+CREATE OR REPLACE FUNCTION get_logs_in_period(child_uuid UUID, days_back INTEGER)
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN (
+    SELECT COUNT(*) 
+    FROM daily_logs 
+    WHERE child_id = child_uuid 
+      AND NOT is_deleted 
+      AND log_date >= CURRENT_DATE - (days_back || ' days')::INTERVAL
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función auxiliar para calcular logs privados
+CREATE OR REPLACE FUNCTION get_private_logs_count(child_uuid UUID)
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN (
+    SELECT COUNT(*) 
+    FROM daily_logs 
+    WHERE child_id = child_uuid 
+      AND NOT is_deleted 
+      AND is_private
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función auxiliar para calcular logs revisados
+CREATE OR REPLACE FUNCTION get_reviewed_logs_count(child_uuid UUID)
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN (
+    SELECT COUNT(*) 
+    FROM daily_logs 
+    WHERE child_id = child_uuid 
+      AND NOT is_deleted 
+      AND reviewed_at IS NOT NULL
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función auxiliar para obtener estadísticas básicas
+CREATE OR REPLACE FUNCTION get_basic_child_stats(child_uuid UUID)
+RETURNS TABLE(
+  total_logs INTEGER,
+  avg_mood_score NUMERIC,
+  last_log_date DATE,
+  categories_used INTEGER
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    COUNT(dl.id)::INTEGER,
+    ROUND(AVG(dl.mood_score), 2),
+    MAX(dl.log_date),
+    COUNT(DISTINCT dl.category_id)::INTEGER
+  FROM daily_logs dl
+  WHERE dl.child_id = child_uuid AND NOT dl.is_deleted;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Vista simplificada de estadísticas (complejidad reducida)
 CREATE OR REPLACE VIEW child_log_statistics AS
 SELECT 
   c.id as child_id,
   c.name as child_name,
-  COUNT(dl.id) as total_logs,
-  COUNT(CASE WHEN dl.log_date >= CURRENT_DATE - INTERVAL '7 days' THEN 1 END) as logs_this_week,
-  COUNT(CASE WHEN dl.log_date >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as logs_this_month,
-  ROUND(AVG(dl.mood_score), 2) as avg_mood_score,
-  MAX(dl.log_date) as last_log_date,
-  COUNT(DISTINCT dl.category_id) as categories_used,
-  COUNT(CASE WHEN dl.is_private THEN 1 END) as private_logs,
-  COUNT(CASE WHEN dl.reviewed_at IS NOT NULL THEN 1 END) as reviewed_logs
+  stats.total_logs,
+  get_logs_in_period(c.id, 7) as logs_this_week,
+  get_logs_in_period(c.id, 30) as logs_this_month,
+  stats.avg_mood_score,
+  stats.last_log_date,
+  stats.categories_used,
+  get_private_logs_count(c.id) as private_logs,
+  get_reviewed_logs_count(c.id) as reviewed_logs
 FROM children c
-LEFT JOIN daily_logs dl ON c.id = dl.child_id AND dl.is_deleted = false
-WHERE c.created_by = auth.uid()
-GROUP BY c.id, c.name;
+CROSS JOIN LATERAL get_basic_child_stats(c.id) as stats
+WHERE c.created_by = auth.uid();
 
 -- ================================================================
 -- 8. INSERTAR DATOS INICIALES
@@ -393,53 +519,30 @@ CREATE POLICY "Users can update own profile" ON profiles
 CREATE POLICY "Users can insert own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
--- POLÍTICAS PARA CHILDREN (SIMPLES, SIN RECURSIÓN)
+-- POLÍTICAS PARA CHILDREN (SIMPLIFICADAS)
 CREATE POLICY "Users can view own created children" ON children
-  FOR SELECT USING (created_by = auth.uid());
+  FOR SELECT USING (user_can_access_child(id));
 
 CREATE POLICY "Authenticated users can create children" ON children
-  FOR INSERT WITH CHECK (
-    auth.uid() IS NOT NULL AND 
-    created_by = auth.uid()
-  );
+  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL AND created_by = auth.uid());
 
 CREATE POLICY "Creators can update own children" ON children
-  FOR UPDATE USING (created_by = auth.uid())
-  WITH CHECK (created_by = auth.uid());
+  FOR UPDATE USING (user_can_edit_child(id))
+  WITH CHECK (user_can_edit_child(id));
 
--- POLÍTICAS PARA USER_CHILD_RELATIONS (SIMPLES)
+-- POLÍTICAS PARA USER_CHILD_RELATIONS (SIMPLIFICADAS)
 CREATE POLICY "Users can view own relations" ON user_child_relations
   FOR SELECT USING (user_id = auth.uid());
 
 CREATE POLICY "Users can create relations for own children" ON user_child_relations
-  FOR INSERT WITH CHECK (
-    granted_by = auth.uid() AND
-    EXISTS (
-      SELECT 1 FROM children 
-      WHERE id = user_child_relations.child_id 
-        AND created_by = auth.uid()
-    )
-  );
+  FOR INSERT WITH CHECK (granted_by = auth.uid() AND user_can_create_relation(child_id));
 
--- POLÍTICAS PARA DAILY_LOGS (SIMPLES)
+-- POLÍTICAS PARA DAILY_LOGS (SIMPLIFICADAS)
 CREATE POLICY "Users can view logs of own children" ON daily_logs
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM children 
-      WHERE id = daily_logs.child_id 
-        AND created_by = auth.uid()
-    )
-  );
+  FOR SELECT USING (user_can_view_child_logs(child_id));
 
 CREATE POLICY "Users can create logs for own children" ON daily_logs
-  FOR INSERT WITH CHECK (
-    logged_by = auth.uid() AND
-    EXISTS (
-      SELECT 1 FROM children 
-      WHERE id = daily_logs.child_id 
-        AND created_by = auth.uid()
-    )
-  );
+  FOR INSERT WITH CHECK (user_can_create_child_logs(child_id, logged_by));
 
 CREATE POLICY "Users can update own logs" ON daily_logs
   FOR UPDATE USING (logged_by = auth.uid())
@@ -454,52 +557,95 @@ CREATE POLICY "System can insert audit logs" ON audit_logs
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 -- ================================================================
--- 10. FUNCIÓN DE VERIFICACIÓN
+-- 10. FUNCIONES DE VERIFICACIÓN (REFACTORIZADAS)
 -- ================================================================
 
+-- Función auxiliar para obtener schema público
+CREATE OR REPLACE FUNCTION get_public_schema()
+RETURNS TEXT AS $$
+BEGIN
+  RETURN 'public';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función auxiliar para contar tablas
+CREATE OR REPLACE FUNCTION count_neurolog_tables()
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN (
+    SELECT COUNT(*)
+    FROM information_schema.tables 
+    WHERE table_schema = get_public_schema() 
+      AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs')
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función auxiliar para contar políticas
+CREATE OR REPLACE FUNCTION count_rls_policies()
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN (
+    SELECT COUNT(*)
+    FROM pg_policies 
+    WHERE schemaname = get_public_schema()
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función auxiliar para contar funciones RPC
+CREATE OR REPLACE FUNCTION count_rpc_functions()
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN (
+    SELECT COUNT(*)
+    FROM pg_proc 
+    WHERE proname IN ('user_can_access_child', 'user_can_edit_child', 'audit_sensitive_access')
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función auxiliar para contar categorías activas
+CREATE OR REPLACE FUNCTION count_active_categories()
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN (
+    SELECT COUNT(*)
+    FROM categories 
+    WHERE is_active
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función auxiliar para verificar RLS
+CREATE OR REPLACE FUNCTION check_rls_enabled()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN (
+    SELECT COUNT(*) > 0
+    FROM pg_class c 
+    JOIN pg_namespace n ON n.oid = c.relnamespace 
+    WHERE n.nspname = get_public_schema() 
+      AND c.relname = 'children' 
+      AND c.relrowsecurity
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función principal simplificada
 CREATE OR REPLACE FUNCTION verify_neurolog_setup()
 RETURNS TEXT AS $$
 DECLARE
   result TEXT := '';
-  table_count INTEGER;
-  policy_count INTEGER;
-  function_count INTEGER;
-  category_count INTEGER;
 BEGIN
-  -- Contar tablas
-  SELECT COUNT(*) INTO table_count
-  FROM information_schema.tables 
-  WHERE table_schema = 'public' 
-    AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
+  -- Usar funciones auxiliares para simplificar
+  result := result || 'Tablas creadas: ' || count_neurolog_tables() || '/6' || E'\n';
+  result := result || 'Políticas RLS: ' || count_rls_policies() || E'\n';
+  result := result || 'Funciones RPC: ' || count_rpc_functions() || '/3' || E'\n';
+  result := result || 'Categorías: ' || count_active_categories() || '/10' || E'\n';
   
-  result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
-  
-  -- Contar políticas
-  SELECT COUNT(*) INTO policy_count
-  FROM pg_policies 
-  WHERE schemaname = 'public';
-  
-  result := result || 'Políticas RLS: ' || policy_count || E'\n';
-  
-  -- Contar funciones
-  SELECT COUNT(*) INTO function_count
-  FROM pg_proc 
-  WHERE proname IN ('user_can_access_child', 'user_can_edit_child', 'audit_sensitive_access');
-  
-  result := result || 'Funciones RPC: ' || function_count || '/3' || E'\n';
-  
-  -- Contar categorías
-  SELECT COUNT(*) INTO category_count
-  FROM categories WHERE is_active = true;
-  
-  result := result || 'Categorías: ' || category_count || '/10' || E'\n';
-  
-  -- Verificar RLS
-  IF (SELECT COUNT(*) FROM pg_class c 
-      JOIN pg_namespace n ON n.oid = c.relnamespace 
-      WHERE n.nspname = 'public' 
-        AND c.relname = 'children' 
-        AND c.relrowsecurity = true) > 0 THEN
+  -- Verificación RLS simplificada
+  IF check_rls_enabled() THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
   ELSE
     result := result || 'RLS: ❌ Deshabilitado' || E'\n';
