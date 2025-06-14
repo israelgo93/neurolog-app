@@ -90,10 +90,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
--- Función para obtener fragmento de timestamp NOW
-CREATE OR REPLACE FUNCTION get_now_timestamp() RETURNS TEXT AS $$
+-- Función para obtener fragmento de created_at
+CREATE OR REPLACE FUNCTION get_created_at_field() RETURNS TEXT AS $$
 BEGIN
-    RETURN 'TIMESTAMPTZ DEFAULT NOW()';
+    RETURN 'created_at TIMESTAMPTZ DEFAULT NOW()';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener fragmento de updated_at
+CREATE OR REPLACE FUNCTION get_updated_at_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'updated_at TIMESTAMPTZ DEFAULT NOW()';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Función para obtener fragmento de granted_at
+CREATE OR REPLACE FUNCTION get_granted_at_field() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'granted_at TIMESTAMPTZ DEFAULT NOW()';
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
@@ -187,10 +201,10 @@ BEGIN
     'last_failed_login TIMESTAMPTZ, ' ||
     'account_locked_until TIMESTAMPTZ, ' ||    'timezone TEXT DEFAULT ''America/Guayaquil'', ' ||
     'preferences JSONB DEFAULT ''{}'', ' ||
-    get_now_timestamp() || ', ' ||
-    'updated_at ' || get_now_timestamp() ||
+    '%s, %s' ||
     ');',
-    get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_admin(), get_role_parent()
+    get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_admin(), get_role_parent(),
+    get_created_at_field(), get_updated_at_field()
   );
 END $$;
 
@@ -237,15 +251,16 @@ BEGIN
     'can_view BOOLEAN DEFAULT TRUE, ' ||
     'can_export BOOLEAN DEFAULT FALSE, ' ||
     'can_invite_others BOOLEAN DEFAULT FALSE, ' ||    'granted_by UUID REFERENCES profiles(id) NOT NULL, ' ||
-    'granted_at ' || get_now_timestamp() || ', ' ||
+    '%s, ' ||
     'expires_at TIMESTAMPTZ, ' ||
     'is_active BOOLEAN DEFAULT TRUE, ' ||
     'notes TEXT, ' ||
     'notification_preferences JSONB DEFAULT ''{}'', ' ||
-    'created_at ' || get_now_timestamp() || ', ' ||
+    '%s, ' ||
     'UNIQUE(user_id, child_id, relationship_type)' ||
     ');',
-    get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_observer(), get_role_family()
+    get_role_parent(), get_role_teacher(), get_role_specialist(), get_role_observer(), get_role_family(),
+    get_granted_at_field(), get_created_at_field()
   );
 END $$;
 
@@ -274,10 +289,10 @@ BEGIN
     'specialist_notes TEXT, ' ||
     'parent_feedback TEXT, ' ||    'follow_up_required BOOLEAN DEFAULT FALSE, ' ||
     'follow_up_date DATE, ' ||
-    'created_at ' || get_now_timestamp() || ', ' ||
-    'updated_at ' || get_now_timestamp() ||
+    '%s, %s' ||
     ');',
-    get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_intensity_medium()
+    get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_intensity_medium(),
+    get_created_at_field(), get_updated_at_field()
   );
 END $$;
 
@@ -297,9 +312,10 @@ BEGIN
     'ip_address INET, ' ||
     'user_agent TEXT, ' ||    'session_id TEXT, ' ||
     'risk_level TEXT CHECK (risk_level IN (%L, %L, %L, %L)) DEFAULT %L, ' ||
-    'created_at ' || get_now_timestamp() ||
+    '%s' ||
     ');',
-    get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_risk_critical(), get_intensity_low()
+    get_intensity_low(), get_intensity_medium(), get_intensity_high(), get_risk_critical(), get_intensity_low(),
+    get_created_at_field()
   );
 END $$;
 
