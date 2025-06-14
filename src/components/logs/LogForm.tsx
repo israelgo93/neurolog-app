@@ -199,7 +199,6 @@ function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManag
       const newAttachments: LogAttachment[] = [];
 
       for (const file of Array.from(files)) {
-        const fileExt = file.name.split('.').pop();
         const fileName = `${childId}/${Date.now()}-${file.name}`;
         
         await uploadFile('attachments', fileName, file);
