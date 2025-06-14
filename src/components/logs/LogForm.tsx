@@ -915,29 +915,37 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
           </Card>
 
           {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-6 border-t">
-            {onCancel && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onCancel}
-              >
-                Cancelar
-              </Button>
-            )}
-            <Button 
-              type="submit" 
-              disabled={form.formState.isSubmitting}
-            >
-              <SaveIcon className="mr-2 h-4 w-4" />
-              {form.formState.isSubmitting
-                ? 'Guardando...'
-                : mode === 'create' 
-                  ? 'Crear Registro' 
-                  : 'Guardar Cambios'
-              }
-            </Button>
-          </div>
+          {/** Extract label for submit button to avoid nested ternary */}
+          {(() => {
+            let submitLabel = '';
+            if (form.formState.isSubmitting) {
+              submitLabel = 'Guardando...';
+            } else if (mode === 'create') {
+              submitLabel = 'Crear Registro';
+            } else {
+              submitLabel = 'Guardar Cambios';
+            }
+            return (
+              <div className="flex justify-end space-x-4 pt-6 border-t">
+                {onCancel && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={onCancel}
+                  >
+                    Cancelar
+                  </Button>
+                )}
+                <Button 
+                  type="submit" 
+                  disabled={form.formState.isSubmitting}
+                >
+                  <SaveIcon className="mr-2 h-4 w-4" />
+                  {submitLabel}
+                </Button>
+              </div>
+            );
+          })()}
         </form>
       </Form>
     </div>
