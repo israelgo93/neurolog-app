@@ -59,6 +59,7 @@ Crea un archivo `.env.local` en la raíz del proyecto:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=tu-url-de-supabase
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-de-supabase
+SUPABASE_SERVICE_ROLE_KEY=key-service-rol
 ```
 
 ### 5. Ejecutar la aplicación
