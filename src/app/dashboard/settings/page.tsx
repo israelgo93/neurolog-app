@@ -186,10 +186,14 @@ export default function SettingsPage() {
               </p>
               <p className="text-sm text-gray-600">{user.email}</p>
               <p className="text-xs text-blue-600 capitalize">
-                {user.role === 'parent' ? 'Padre/Madre' :
-                 user.role === 'teacher' ? 'Docente' :
-                 user.role === 'specialist' ? 'Especialista' : 
-                 user.role === 'admin' ? 'Administrador' : 'Usuario'}
+                {(() => {
+                  let roleLabel = 'Usuario';
+                  if (user.role === 'parent') roleLabel = 'Padre/Madre';
+                  else if (user.role === 'teacher') roleLabel = 'Docente';
+                  else if (user.role === 'specialist') roleLabel = 'Especialista';
+                  else if (user.role === 'admin') roleLabel = 'Administrador';
+                  return roleLabel;
+                })()}
               </p>
             </div>
           </div>
