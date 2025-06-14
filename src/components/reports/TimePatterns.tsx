@@ -345,8 +345,8 @@ export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
 
   return (
     <div className="space-y-4">
-      {insights.map((insight, index) => (
-        <Card key={index} className="border-l-4 border-l-blue-500">
+      {insights.map((insight) => (
+        <Card key={insight!.title} className="border-l-4 border-l-blue-500">
           <CardContent className="pt-4">
             <div className="flex items-start space-x-3">
               <div className={`p-2 rounded-lg ${
