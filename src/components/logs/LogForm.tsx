@@ -211,8 +211,13 @@ function AttachmentsManager({ attachments, onChange, childId }: Readonly<Attachm
         else if (file.type.startsWith('video/')) type = 'video';
         else if (file.type.startsWith('audio/')) type = 'audio';
         
+        // Use crypto.getRandomValues for secure random ID
+        const array = new Uint32Array(2);
+        window.crypto.getRandomValues(array);
+        const secureId = `${Date.now()}-${array[0].toString(16)}${array[1].toString(16)}`;
+
         newAttachments.push({
-          id: `${Date.now()}-${Math.random()}`,
+          id: secureId,
           name: file.name,
           url,
           type,
