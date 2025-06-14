@@ -129,94 +129,144 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
       return [];
     }
   }, [userId, supabase]);
+  // ================================================================
+  // FUNCIONES HELPER PARA FETCH LOGS - REFACTORIZACIÓN SONARQUBE
+  // ================================================================
+
+  // Helper: Inicializar estado de carga
+  const initializeFetchState = useCallback((append: boolean) => {
+    if (!append) {
+      setLoading(true);
+      setError(null);
+    }
+  }, []);
+
+  // Helper: Validar acceso a children
+  const validateChildrenAccess = useCallback(async (): Promise<string[]> => {
+    const accessibleChildrenIds = await getAccessibleChildrenIds();
+    
+    if (accessibleChildrenIds.length === 0 && mountedRef.current) {
+      setLogs([]);
+      setHasMore(false);
+      setLoading(false);
+    }
+    
+    return accessibleChildrenIds;
+  }, [getAccessibleChildrenIds]);
+
+  // Helper: Construir query base
+  const buildBaseQuery = useCallback((accessibleChildrenIds: string[], page: number) => {
+    return supabase
+      .from('daily_logs')
+      .select(`
+        *,
+        child:children!inner(id, name, avatar_url),
+        category:categories(id, name, color, icon),
+        logged_by_profile:profiles!daily_logs_logged_by_fkey(id, full_name, avatar_url)
+      `)
+      .in('child_id', accessibleChildrenIds)
+      .eq('is_active', !includeDeleted)
+      .order('created_at', { ascending: false })
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+  }, [supabase, includeDeleted, pageSize]);
+
+  // Helper: Aplicar filtros a la query
+  const applyFiltersToQuery = useCallback((query: any, accessibleChildrenIds: string[]) => {
+    // Filtrar por niño específico
+    if (childId) {
+      if (!accessibleChildrenIds.includes(childId)) {
+        throw new Error('No tienes acceso a este niño');
+      }
+      query = query.eq('child_id', childId);
+    }
+
+    // Filtrar por privacidad
+    if (!includePrivate) {
+      query = query.eq('is_private', false);
+    }
+
+    return query;
+  }, [childId, includePrivate]);
+
+  // Helper: Procesar datos de logs
+  const processLogsData = useCallback((data: any[]): LogWithDetails[] => {
+    return (data || []).map(log => ({
+      ...log,
+      child: log.child ?? { id: log.child_id, name: 'Niño desconocido', avatar_url: null },
+      category: log.category ?? { id: '', name: 'Sin categoría', color: '#gray', icon: 'circle' },
+      logged_by_profile: log.logged_by_profile ?? { id: log.logged_by, full_name: 'Usuario desconocido', avatar_url: null }
+    })) as LogWithDetails[];
+  }, []);
+
+  // Helper: Actualizar estado con nuevos logs
+  const updateLogsState = useCallback((newLogs: LogWithDetails[], append: boolean) => {
+    if (!mountedRef.current) return;
+
+    if (append) {
+      setLogs(prev => [...prev, ...newLogs]);
+    } else {
+      setLogs(newLogs);
+    }
+    
+    setHasMore(newLogs.length === pageSize);
+    console.log(`✅ Logs fetched successfully: ${newLogs.length}`);
+  }, [pageSize]);
+
+  // Helper: Manejar errores de fetch
+  const handleFetchError = useCallback((err: unknown) => {
+    console.error('❌ Error fetching logs:', err);
+    if (mountedRef.current) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar los registros';
+      setError(errorMessage);
+    }
+  }, []);
+
+  // Helper: Finalizar proceso de fetch
+  const finalizeFetch = useCallback((append: boolean) => {
+    if (mountedRef.current && !append) {
+      setLoading(false);
+    }
+  }, []);
 
   // ================================================================
-  // FUNCIONES DE FETCH ESTABILIZADAS
+  // FUNCIÓN PRINCIPAL FETCHLOGS - REFACTORIZADA
   // ================================================================
 
   const fetchLogs = useCallback(async (page: number = 0, append: boolean = false): Promise<void> => {
     if (!userId) return;
 
     try {
-      if (!append) {
-        setLoading(true);
-        setError(null);
-      }
-
+      initializeFetchState(append);
       console.log(`📊 Fetching logs - Page: ${page}, Append: ${append}`);
       
-      // Obtener niños accesibles
-      const accessibleChildrenIds = await getAccessibleChildrenIds();
-      if (accessibleChildrenIds.length === 0) {
-        if (mountedRef.current) {
-          setLogs([]);
-          setHasMore(false);
-          setLoading(false);
-        }
-        return;
-      }
+      const accessibleChildrenIds = await validateChildrenAccess();
+      if (accessibleChildrenIds.length === 0) return;
 
-      // Query base
-      let query = supabase
-        .from('daily_logs')
-        .select(`
-          *,
-          child:children!inner(id, name, avatar_url),
-          category:categories(id, name, color, icon),
-          logged_by_profile:profiles!daily_logs_logged_by_fkey(id, full_name, avatar_url)
-        `)
-        .in('child_id', accessibleChildrenIds)
-        .eq('is_active', !includeDeleted)
-        .order('created_at', { ascending: false })
-        .range(page * pageSize, (page + 1) * pageSize - 1);
-
-      // Filtrar por niño específico si se proporciona
-      if (childId) {
-        if (!accessibleChildrenIds.includes(childId)) {
-          throw new Error('No tienes acceso a este niño');
-        }
-        query = query.eq('child_id', childId);
-      }
-
-      // Filtrar por privacidad
-      if (!includePrivate) {
-        query = query.eq('is_private', false);
-      }
-
-      const { data, error } = await query;
+      const baseQuery = buildBaseQuery(accessibleChildrenIds, page);
+      const filteredQuery = applyFiltersToQuery(baseQuery, accessibleChildrenIds);
       
+      const { data, error } = await filteredQuery;
       if (error) throw error;
 
-      const newLogs = (data || []).map(log => ({
-        ...log,
-        child: log.child || { id: log.child_id, name: 'Niño desconocido', avatar_url: null },
-        category: log.category || { id: '', name: 'Sin categoría', color: '#gray', icon: 'circle' },
-        logged_by_profile: log.logged_by_profile || { id: log.logged_by, full_name: 'Usuario desconocido', avatar_url: null }
-      })) as LogWithDetails[];
-
-      if (mountedRef.current) {
-        if (append) {
-          setLogs(prev => [...prev, ...newLogs]);
-        } else {
-          setLogs(newLogs);
-        }
-        
-        setHasMore(newLogs.length === pageSize);
-        console.log(`✅ Logs fetched successfully: ${newLogs.length}`);
-      }
+      const processedLogs = processLogsData(data);
+      updateLogsState(processedLogs, append);
 
     } catch (err) {
-      console.error('❌ Error fetching logs:', err);
-      if (mountedRef.current) {
-        const errorMessage = err instanceof Error ? err.message : 'Error al cargar los registros';
-        setError(errorMessage);
-      }
+      handleFetchError(err);
     } finally {
-      if (mountedRef.current && !append) {
-        setLoading(false);
-      }
+      finalizeFetch(append);
     }
-  }, [userId, childId, includePrivate, includeDeleted, pageSize, getAccessibleChildrenIds, supabase]);
+  }, [
+    userId, 
+    initializeFetchState, 
+    validateChildrenAccess, 
+    buildBaseQuery, 
+    applyFiltersToQuery, 
+    processLogsData, 
+    updateLogsState, 
+    handleFetchError, 
+    finalizeFetch
+  ]);
 
   const fetchStats = useCallback(async (): Promise<void> => {
     if (!userId) return;
@@ -244,16 +294,14 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
         supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).eq('needs_review', true),
         supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).not('follow_up_date', 'is', null).lte('follow_up_date', new Date().toISOString()),
         supabase.from('categories').select('*', { count: 'exact', head: true }).eq('is_active', true)
-      ]);
-
-      const newStats: DashboardStats = {
+      ]);      const newStats: DashboardStats = {
         total_children: accessibleChildrenIds.length,
-        total_logs: totalLogs || 0,
-        logs_this_week: logsThisWeek || 0,
-        logs_this_month: logsThisMonth || 0,
-        active_categories: activeCategories || 0,
-        pending_reviews: pendingReviews || 0,
-        follow_ups_due: followUpsDue || 0
+        total_logs: totalLogs ?? 0,
+        logs_this_week: logsThisWeek ?? 0,
+        logs_this_month: logsThisMonth ?? 0,
+        active_categories: activeCategories ?? 0,
+        pending_reviews: pendingReviews ?? 0,
+        follow_ups_due: followUpsDue ?? 0
       };
 
       if (mountedRef.current) {
@@ -452,11 +500,44 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     
     return await userCanEditChild(log.child_id, userId);
   }, [logs, userId]);
-
   const exportLogs = useCallback(async (format: 'csv' | 'pdf', filters?: LogFilters): Promise<void> => {
-    // TODO: Implementar exportación
-    console.log('Exportando logs en formato:', format, 'con filtros:', filters);
-  }, []);
+    try {
+      setLoading(true);
+      const logsToExport = filters ? filterLogs(filters) : logs;
+      
+      if (format === 'csv') {
+        const csvData = logsToExport.map(log => ({
+          fecha: log.log_date,
+          niño: log.child.name,
+          categoria: log.category?.name ?? 'Sin categoría',
+          titulo: log.title,
+          contenido: log.content,
+          estado_animo: log.mood_score,
+          intensidad: log.intensity_level,
+          privado: log.is_private ? 'Sí' : 'No'
+        }));
+        
+        const csvContent = [
+          Object.keys(csvData[0]).join(','),
+          ...csvData.map(row => Object.values(row).map(val => `"${val ?? ''}"`).join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `logs-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+      } else {
+        throw new Error('Exportación en PDF no implementada aún');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al exportar logs';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [logs, filterLogs]);
 
   // ================================================================
   // EFFECTS CORREGIDOS - SIN LOOPS INFINITOS
