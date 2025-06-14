@@ -96,10 +96,10 @@ export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn
 
     if (!mountedRef.current) return;
 
-    console.log('✅ Children data fetched:', childrenData?.length || 0);
+    console.log('✅ Children data fetched:', childrenData?.length ?? 0);
 
     // Transformar a ChildWithRelation
-    const transformedChildren: ChildWithRelation[] = (childrenData || []).map(child => ({
+    const transformedChildren: ChildWithRelation[] = (childrenData ?? []).map(child => ({
       // Datos del niño
       id: child.id!,
       name: child.name!,
