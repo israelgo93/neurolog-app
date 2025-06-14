@@ -219,10 +219,13 @@ export function Sidebar() {
                 {user?.full_name || 'Usuario'}
               </p>
               <p className="text-xs text-gray-500 capitalize">
-                {user?.role === 'parent' ? 'Padre/Madre' :
-                 user?.role === 'teacher' ? 'Docente' :
-                 user?.role === 'specialist' ? 'Especialista' : 
-                 user?.role === 'admin' ? 'Administrador' : 'Usuario'}
+                {(() => {
+                  if (user?.role === 'parent') return 'Padre/Madre';
+                  if (user?.role === 'teacher') return 'Docente';
+                  if (user?.role === 'specialist') return 'Especialista';
+                  if (user?.role === 'admin') return 'Administrador';
+                  return 'Usuario';
+                })()}
               </p>
             </div>
             {notifications > 0 && (
