@@ -157,9 +157,8 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
   const categoryMoodCorr = logs.reduce((acc, log) => {
     if (!log.mood_score || !log.category_name) return acc;
     
-    if (!acc[log.category_name]) {
-      acc[log.category_name] = { total: 0, count: 0 };
-    }
+    acc[log.category_name] ??= { total: 0, count: 0 };
+
     
     acc[log.category_name].total += log.mood_score;
     acc[log.category_name].count += 1;
