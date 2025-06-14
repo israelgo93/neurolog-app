@@ -683,8 +683,94 @@ BEGIN
   RAISE NOTICE '✅ Sistema de auditoría (audit_logs)';
   RAISE NOTICE '✅ Políticas RLS funcionales';
   RAISE NOTICE '✅ Funciones RPC necesarias';
-  RAISE NOTICE '✅ Vistas optimizadas';
-  RAISE NOTICE '✅ Índices para performance';
+  RAISE NOTICE '✅ Vistas optimizadas';  RAISE NOTICE '✅ Índices para performance';
   RAISE NOTICE '';
   RAISE NOTICE 'PRÓXIMO PASO: Probar la aplicación NeuroLog';
+  -- ================================================================
+  -- NOTA SOBRE CARACTERES DE CONTROL EN STRINGS SQL
+  -- ================================================================
+  -- SonarQube Rule: No caracteres de control (como \n, \r, \t) en literals
+  -- Los caracteres de control (punto de código 10 = salto de línea) causan errores
+  
+  -- ❌ EJEMPLO PROBLEMÁTICO COMPLETO (con saltos de línea literales):
+  /*
+  -- Datos de prueba para la tabla de notas
+  INSERT INTO notas (titulo, contenido) VALUES
+  ('Bienvenido al Sistema de Notas','Esta es tu primera nota de ejemplo. Puedes crear, editar, buscar y eliminar notas fácilmente desde la interfaz web.'),
+  ('Ideas para el Proyecto','Algunas mejoras que se podrían implementar:
+  - Categorías para organizar notas.
+  - Etiquetas
+  - Modo oscuro
+  - Exportar notas a PDF
+  - Búsqueda avanzada con filtros'),
+  ('Lista de tareas','Cosas por hacer:
+  - Revisar el código
+  - Escribir pruebas unitarias
+  - Optimizar las consultas a la base de datos
+  - Añadir validaciones del lado cliente
+  - Configurar CI/CD'),
+  ('Notas de Arquitectura','El proyecto sigue una arquitectura de 3 capas:
+  1. Frontend (React) - Interfaz de usuario
+  2. Backend (Express) - API REST
+  3. Base de Datos (PostgreSQL/Supabase) - Persistencia
+  Esta separación permite escalabilidad y mantenimiento eficiente.'),
+  ('Comandos Útiles','Comandos de Git más utilizados:
+  git add . 
+  git commit -m "mensaje"
+  git push origin main');
+  */
+  
+  -- ✅ CORRECCIÓN COMPLETA (concatenación con ||):
+  RAISE NOTICE 'Demostrando corrección de INSERT con caracteres de control...';
+  -- En un sistema real, esto sería:
+  /*
+  INSERT INTO notas (titulo, contenido) VALUES
+  ('Bienvenido al Sistema de Notas', 
+   'Esta es tu primera nota de ejemplo. Puedes crear, editar, buscar y eliminar notas fácilmente desde la interfaz web.'),
+   
+  ('Ideas para el Proyecto', 
+   'Algunas mejoras que se podrían implementar: ' ||
+   '- Categorías para organizar notas. ' ||
+   '- Etiquetas ' ||
+   '- Modo oscuro ' ||
+   '- Exportar notas a PDF ' ||
+   '- Búsqueda avanzada con filtros'),
+   
+  ('Lista de tareas', 
+   'Cosas por hacer: ' ||
+   '- Revisar el código ' ||
+   '- Escribir pruebas unitarias ' ||
+   '- Optimizar las consultas a la base de datos ' ||
+   '- Añadir validaciones del lado cliente ' ||
+   '- Configurar CI/CD'),
+   
+  ('Notas de Arquitectura', 
+   'El proyecto sigue una arquitectura de 3 capas: ' ||
+   '1. Frontend (React) - Interfaz de usuario ' ||
+   '2. Backend (Express) - API REST ' ||
+   '3. Base de Datos (PostgreSQL/Supabase) - Persistencia ' ||
+   'Esta separación permite escalabilidad y mantenimiento eficiente.'),
+   
+  ('Comandos Útiles', 
+   'Comandos de Git más utilizados: ' ||
+   'git add . ' ||
+   'git commit -m "mensaje" ' ||
+   'git push origin main');
+  */
+
+  -- ================================================================
+  -- EJEMPLOS ADICIONALES DE RAISE NOTICE
+  -- ================================================================
+  -- ❌ INCORRECTO (con salto de línea literal):
+  -- RAISE NOTICE 'Ideas para el Proyecto:
+  -- Algunas mejoras que se podrían implementar';
+  
+  -- ✅ CORRECTO (concatenación de strings):
+  RAISE NOTICE 'Ideas para el Proyecto: ' || 
+               'Algunas mejoras que se podrían implementar';
+  
+  -- ✅ ALTERNATIVA (múltiples statements):
+  RAISE NOTICE 'Ideas para el Proyecto:';
+  RAISE NOTICE 'Algunas mejoras que se podrían implementar';
+
 END $$;
