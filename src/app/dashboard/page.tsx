@@ -2,8 +2,6 @@
 // Dashboard principal ACTUALIZADO con componentes corregidos y diseño responsivo
 
 'use client';
-
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,19 +15,13 @@ import {
   Users, 
   BookOpen, 
   TrendingUp, 
-
   Heart,
   AlertCircle,
-
   Eye,
   Plus,
   BarChart3,
-
   Activity,
-
-
   ChevronRight,
-
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -258,22 +250,14 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
                   <span>Actividad semanal</span>
                   <span>{child.weekly_logs ?? 0}/7</span>
                 </div>
-                {(() => {
-                  const weeklyLogs = child.weekly_logs ?? 0;
-                  let indicatorColor = "bg-red-500";
-                  if (weeklyLogs >= 5) {
-                    indicatorColor = "bg-green-500";
-                  } else if (weeklyLogs >= 3) {
-                    indicatorColor = "bg-yellow-500";
+                <Progress 
+                  value={((child.weekly_logs ?? 0) / 7) * 100} 
+                  className="h-2"
+                  indicatorClassName={
+                    (child.weekly_logs ?? 0) >= 5 ? "bg-green-500" :
+                    (child.weekly_logs ?? 0) >= 3 ? "bg-yellow-500" : "bg-red-500"
                   }
-                  return (
-                    <Progress 
-                      value={(weeklyLogs / 7) * 100} 
-                      className="h-2"
-                      indicatorClassName={indicatorColor}
-                    />
-                  );
-                })()}
+                />
               </div>
             </CardContent>
           </Card>
