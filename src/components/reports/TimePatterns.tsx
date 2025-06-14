@@ -248,127 +248,225 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
 // ADVANCED INSIGHTS COMPONENT
 // ================================================================
 
-export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
-  const generateInsights = () => {
-    const insights = [];
-    
-    // Análisis de frecuencia
-    if (logs.length > 0) {
-      const daysWithLogs = new Set(logs.map(log => 
-        new Date(log.created_at).toDateString()
-      )).size;
-      
-      const totalDays = 30; // últimos 30 días
-      const frequency = (daysWithLogs / totalDays) * 100;
-      
-      insights.push({
-        type: frequency > 80 ? 'success' : frequency > 50 ? 'warning' : 'info',
-        icon: frequency > 80 ? CheckCircle : frequency > 50 ? Target : AlertTriangle,
-        title: 'Consistencia en el registro',
-        description: `Registros en ${daysWithLogs} de ${totalDays} días (${frequency.toFixed(0)}%)`,
-        recommendation: frequency < 50 
-          ? 'Intenta mantener registros más regulares para obtener mejores insights'
-          : frequency < 80
-          ? 'Buen ritmo de registro, mantén la consistencia'
-          : 'Excelente consistencia en los registros'
-      });
-    }
+// ================================================================
+// CONSTANTES PARA ADVANCED INSIGHTS
+// ================================================================
 
-    // Análisis de estado de ánimo
-    const moodLogs = logs.filter(log => log.mood_score);
-    if (moodLogs.length > 5) {
-      const avgMood = moodLogs.reduce((sum, log) => sum + log.mood_score, 0) / moodLogs.length;
-      const recent = moodLogs.slice(0, 7);
-      const recentAvg = recent.reduce((sum, log) => sum + log.mood_score, 0) / recent.length;
-      
-      const trend = recentAvg - avgMood;
-      
-      insights.push({
-        type: trend > 0.5 ? 'success' : trend < -0.5 ? 'warning' : 'info',
-        icon: Brain,
-        title: 'Tendencia del estado de ánimo',
-        description: `Promedio general: ${avgMood.toFixed(1)}/5, últimos 7 días: ${recentAvg.toFixed(1)}/5`,
-        recommendation: trend > 0.5 
-          ? 'Tendencia positiva en el estado de ánimo reciente'
-          : trend < -0.5
-          ? 'Considera revisar factores que puedan estar afectando el bienestar'
-          : 'Estado de ánimo estable'
-      });
-    }
+const ANALYSIS_PERIOD_DAYS = 30;
+const MIN_MOOD_LOGS_FOR_ANALYSIS = 5;
+const RECENT_PERIOD_DAYS = 7;
+const HIGH_FREQUENCY_THRESHOLD = 80;
+const MEDIUM_FREQUENCY_THRESHOLD = 50;
+const POSITIVE_TREND_THRESHOLD = 0.5;
+const NEGATIVE_TREND_THRESHOLD = -0.5;
 
-    // Análisis de categorías
-    const categoryCount = logs.reduce((acc, log) => {
-      if (log.category_name) {
-        acc[log.category_name] = (acc[log.category_name] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+// ================================================================
+// FUNCIONES AUXILIARES PARA REDUCIR COMPLEJIDAD
+// ================================================================
 
-    const categories = Object.entries(categoryCount);
-    if (categories.length > 0) {
-      const mostUsedCategory = categories.sort(([,a], [,b]) => b - a)[0];
-      
-      insights.push({
-        type: 'info',
-        icon: Target,
-        title: 'Área de mayor atención',
-        description: `"${mostUsedCategory[0]}" representa ${((mostUsedCategory[1] / logs.length) * 100).toFixed(0)}% de los registros`,
-        recommendation: 'Esta categoría requiere mayor atención y seguimiento'
-      });
-    }
+function getFrequencyInsightType(frequency: number): 'success' | 'warning' | 'info' {
+  if (frequency > HIGH_FREQUENCY_THRESHOLD) return 'success';
+  if (frequency > MEDIUM_FREQUENCY_THRESHOLD) return 'warning';
+  return 'info';
+}
 
-    return insights;
+function getFrequencyIcon(frequency: number) {
+  if (frequency > HIGH_FREQUENCY_THRESHOLD) return CheckCircle;
+  if (frequency > MEDIUM_FREQUENCY_THRESHOLD) return Target;
+  return AlertTriangle;
+}
+
+function getFrequencyRecommendation(frequency: number): string {
+  if (frequency < MEDIUM_FREQUENCY_THRESHOLD) {
+    return 'Intenta mantener registros más regulares para obtener mejores insights';
+  }
+  if (frequency < HIGH_FREQUENCY_THRESHOLD) {
+    return 'Buen ritmo de registro, mantén la consistencia';
+  }
+  return 'Excelente consistencia en los registros';
+}
+
+function getMoodTrendType(trend: number): 'success' | 'warning' | 'info' {
+  if (trend > POSITIVE_TREND_THRESHOLD) return 'success';
+  if (trend < NEGATIVE_TREND_THRESHOLD) return 'warning';
+  return 'info';
+}
+
+function getMoodTrendRecommendation(trend: number): string {
+  if (trend > POSITIVE_TREND_THRESHOLD) {
+    return 'Tendencia positiva en el estado de ánimo reciente';
+  }
+  if (trend < NEGATIVE_TREND_THRESHOLD) {
+    return 'Considera revisar factores que puedan estar afectando el bienestar';
+  }
+  return 'Estado de ánimo estable';
+}
+
+function getInsightIconClassName(type: string): string {
+  const baseClasses = 'h-5 w-5';
+  switch (type) {
+    case 'success': return `${baseClasses} text-green-600`;
+    case 'warning': return `${baseClasses} text-yellow-600`;
+    default: return `${baseClasses} text-blue-600`;
+  }
+}
+
+function getInsightBackgroundClassName(type: string): string {
+  switch (type) {
+    case 'success': return 'p-2 rounded-lg bg-green-100';
+    case 'warning': return 'p-2 rounded-lg bg-yellow-100';
+    default: return 'p-2 rounded-lg bg-blue-100';
+  }
+}
+
+function getBadgeVariant(type: string): 'default' | 'destructive' | 'secondary' {
+  switch (type) {
+    case 'success': return 'default';
+    case 'warning': return 'destructive';
+    default: return 'secondary';
+  }
+}
+
+function getBadgeText(type: string): string {
+  switch (type) {
+    case 'success': return 'Positivo';
+    case 'warning': return 'Atención';
+    default: return 'Info';
+  }
+}
+
+// ================================================================
+// FUNCIONES DE ANÁLISIS ESPECÍFICAS
+// ================================================================
+
+function analyzeFrequency(logs: any[]): any | null {
+  if (logs.length === 0) return null;
+
+  const daysWithLogs = new Set(logs.map(log => 
+    new Date(log.created_at).toDateString()
+  )).size;
+  
+  const frequency = (daysWithLogs / ANALYSIS_PERIOD_DAYS) * 100;
+  const type = getFrequencyInsightType(frequency);
+  
+  return {
+    type,
+    icon: getFrequencyIcon(frequency),
+    title: 'Consistencia en el registro',
+    description: `Registros en ${daysWithLogs} de ${ANALYSIS_PERIOD_DAYS} días (${frequency.toFixed(0)}%)`,
+    recommendation: getFrequencyRecommendation(frequency)
   };
+}
 
-  const insights = generateInsights();
+function analyzeMoodTrend(logs: any[]): any | null {
+  const moodLogs = logs.filter(log => log.mood_score);
+  if (moodLogs.length <= MIN_MOOD_LOGS_FOR_ANALYSIS) return null;
+
+  const avgMood = moodLogs.reduce((sum, log) => sum + log.mood_score, 0) / moodLogs.length;
+  const recent = moodLogs.slice(0, RECENT_PERIOD_DAYS);
+  const recentAvg = recent.reduce((sum, log) => sum + log.mood_score, 0) / recent.length;
+  
+  const trend = recentAvg - avgMood;
+  const type = getMoodTrendType(trend);
+  
+  return {
+    type,
+    icon: Brain,
+    title: 'Tendencia del estado de ánimo',
+    description: `Promedio general: ${avgMood.toFixed(1)}/5, últimos 7 días: ${recentAvg.toFixed(1)}/5`,
+    recommendation: getMoodTrendRecommendation(trend)
+  };
+}
+
+function analyzeCategories(logs: any[]): any | null {
+  const categoryCount = logs.reduce((acc, log) => {
+    if (log.category_name) {
+      acc[log.category_name] = (acc[log.category_name] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  const categories = Object.entries(categoryCount);
+  if (categories.length === 0) return null;
+
+  const sortedCategories = categories.toSorted(([,a], [,b]) => (b as number) - (a as number));
+  const mostUsedCategory = sortedCategories[0];
+  const categoryName = mostUsedCategory[0];
+  const categoryCountValue = mostUsedCategory[1] as number;
+  const percentage = ((categoryCountValue / logs.length) * 100).toFixed(0);
+  
+  return {
+    type: 'info',
+    icon: Target,
+    title: 'Área de mayor atención',
+    description: `"${categoryName}" representa ${percentage}% de los registros`,
+    recommendation: 'Esta categoría requiere mayor atención y seguimiento'
+  };
+}
+
+function generateAllInsights(logs: any[]): any[] {
+  const insights = [];
+  
+  const frequencyInsight = analyzeFrequency(logs);
+  if (frequencyInsight) insights.push(frequencyInsight);
+  
+  const moodInsight = analyzeMoodTrend(logs);
+  if (moodInsight) insights.push(moodInsight);
+  
+  const categoryInsight = analyzeCategories(logs);
+  if (categoryInsight) insights.push(categoryInsight);
+  
+  return insights;
+}
+
+function renderEmptyState(): JSX.Element {
+  return (
+    <div className="text-center py-8 text-gray-500">
+      <Brain className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+      <p className="text-lg font-medium">Generando insights...</p>
+      <p className="text-sm">Necesitas más datos para análisis avanzado</p>
+    </div>
+  );
+}
+
+function renderInsightCard(insight: any, index: number): JSX.Element {
+  return (
+    <Card key={index} className="border-l-4 border-l-blue-500">
+      <CardContent className="pt-4">
+        <div className="flex items-start space-x-3">
+          <div className={getInsightBackgroundClassName(insight.type)}>
+            {React.createElement(insight.icon, {
+              className: getInsightIconClassName(insight.type)
+            })}
+          </div>
+          <div className="flex-1">
+            <h4 className="font-medium text-gray-900">{insight.title}</h4>
+            <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
+            <p className="text-sm text-gray-500 mt-2 italic">{insight.recommendation}</p>
+          </div>
+          <Badge variant={getBadgeVariant(insight.type)}>
+            {getBadgeText(insight.type)}
+          </Badge>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ================================================================
+// COMPONENTE PRINCIPAL REFACTORIZADO
+// ================================================================
+
+export function AdvancedInsights({ logs }: Readonly<AdvancedInsightsProps>) {
+  const insights = generateAllInsights(logs);
 
   if (insights.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <Brain className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-        <p className="text-lg font-medium">Generando insights...</p>
-        <p className="text-sm">Necesitas más datos para análisis avanzado</p>
-      </div>
-    );
+    return renderEmptyState();
   }
 
   return (
     <div className="space-y-4">
-      {insights.map((insight, index) => (
-        <Card key={index} className="border-l-4 border-l-blue-500">
-          <CardContent className="pt-4">
-            <div className="flex items-start space-x-3">
-              <div className={`p-2 rounded-lg ${
-                insight.type === 'success' ? 'bg-green-100' :
-                insight.type === 'warning' ? 'bg-yellow-100' :
-                'bg-blue-100'
-              }`}>
-                {React.createElement(insight.icon, {
-                  className: `h-5 w-5 ${
-                    insight.type === 'success' ? 'text-green-600' :
-                    insight.type === 'warning' ? 'text-yellow-600' :
-                    'text-blue-600'
-                  }`
-                })}
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium text-gray-900">{insight.title}</h4>
-                <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
-                <p className="text-sm text-gray-500 mt-2 italic">{insight.recommendation}</p>
-              </div>
-              <Badge variant={
-                insight.type === 'success' ? 'default' :
-                insight.type === 'warning' ? 'destructive' :
-                'secondary'
-              }>
-                {insight.type === 'success' ? 'Positivo' :
-                 insight.type === 'warning' ? 'Atención' :
-                 'Info'}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+      {insights.map((insight, index) => renderInsightCard(insight, index))}
     </div>
   );
 }
