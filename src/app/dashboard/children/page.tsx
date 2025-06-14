@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -34,10 +34,10 @@ import {
   EyeIcon,
   UserPlusIcon,
   CalendarIcon,
-  MapPinIcon,
+ 
   HeartIcon,
   TrendingUpIcon,
-  DownloadIcon,
+  
   UsersIcon,
   BookOpenIcon,
   RefreshCwIcon
@@ -50,10 +50,10 @@ import { es } from 'date-fns/locale';
 // ================================================================
 
 interface ChildCardProps {
-  child: ChildWithRelation;
-  onEdit: (child: ChildWithRelation) => void;
-  onViewDetails: (child: ChildWithRelation) => void;
-  onManageUsers: (child: ChildWithRelation) => void;
+  readonly child: ChildWithRelation;
+  readonly onEdit: (child: ChildWithRelation) => void;
+  readonly onViewDetails: (child: ChildWithRelation) => void;
+  readonly onManageUsers: (child: ChildWithRelation) => void;
 }
 
 function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardProps) {
@@ -96,7 +96,7 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={child.avatar_url || undefined} />
+              <AvatarImage src={child.avatar_url ?? undefined} />
               <AvatarFallback className="bg-blue-100 text-blue-600">
                 {child.name.charAt(0).toUpperCase()}
               </AvatarFallback>
@@ -190,8 +190,8 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
 }
 
 interface FiltersCardProps {
-  filters: ChildFilters;
-  onFiltersChange: (filters: ChildFilters) => void;
+  readonly filters: ChildFilters;
+  readonly onFiltersChange: (filters: ChildFilters) => void;
 }
 
 function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
@@ -212,7 +212,7 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Nombre del niño..."
-                value={filters.search || ''}
+                value={filters.search ?? ''}
                 onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
                 className="pl-10"
               />
@@ -220,9 +220,9 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
           </div>
 
           {/* Relación */}
-          <Select 
-            value={filters.relationship_type || 'all'} 
-            onValueChange={(value) => onFiltersChange({ 
+          <Select
+            value={filters.relationship_type ?? 'all'}
+            onValueChange={(value) => onFiltersChange({
               ...filters, 
               relationship_type: value === 'all' ? undefined : value as RelationshipType 
             })}
@@ -248,7 +248,7 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
               placeholder="Años"
               min="0"
               max="25"
-              value={filters.max_age || ''}
+              value={filters.max_age ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 max_age: e.target.value ? parseInt(e.target.value) : undefined 
