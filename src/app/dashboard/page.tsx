@@ -381,15 +381,20 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
             </p>
             
             <div className="flex items-center justify-between mt-2">
-              <div className="text-xs text-gray-500">
-                <span className="font-medium">{log.child_name}</span>
-                <span className="mx-1">•</span>
-                <span>
-                  {isToday(new Date(log.created_at)) ? 'Hoy' :
-                   isYesterday(new Date(log.created_at)) ? 'Ayer' :
-                   format(new Date(log.created_at), 'dd MMM', { locale: es })}
-                </span>
-              </div>
+            <div className="text-xs text-gray-500">
+              <span className="font-medium">{log.child_name}</span>
+              <span className="mx-1">•</span>
+              <span>
+                {(() => {
+                  const fecha = new Date(log.created_at);
+                  if (isToday(fecha)) return 'Hoy';
+                  if (isYesterday(fecha)) return 'Ayer';
+                  return format(fecha, 'dd MMM', { locale: es });
+                })()}
+              </span>
+            </div>
+          </div>
+
               
               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="sm" asChild>
