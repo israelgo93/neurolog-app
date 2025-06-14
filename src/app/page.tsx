@@ -51,14 +51,15 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
+      
       <section className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-          Registro especializado para 
-          <span className="text-blue-600"> niños con NEE</span>
+          Registro especializado para{" "}
+          <span className="text-blue-600">niños con NEE</span>
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-          Una plataforma integral para el seguimiento y documentación del desarrollo 
-          de niños con necesidades educativas especiales, facilitando la colaboración 
+          Una plataforma integral para el seguimiento y documentación del desarrollo
+          de niños con necesidades educativas especiales, facilitando la colaboración
           entre todos los cuidadores.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -71,6 +72,7 @@ export default function HomePage() {
         </div>
       </section>
 
+
       {/* Features Section */}
       <section id="features" className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
@@ -81,7 +83,7 @@ export default function HomePage() {
             Diseñado específicamente para las necesidades de seguimiento en NEE
           </p>
         </div>
-        
+
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => (
             <Card key={index} className="text-center">
