@@ -402,7 +402,7 @@ function EmptyState({ childrenCount, setFilters }: Readonly<{ childrenCount: num
   );
 }
 
-function ViewModeToggle({ viewMode, setViewMode }: { viewMode: 'grid' | 'list', setViewMode: (mode: 'grid' | 'list') => void }) {
+function ViewModeToggle({ viewMode, setViewMode }: Readonly<{ viewMode: 'grid' | 'list', setViewMode: (mode: 'grid' | 'list') => void }>) {
   return (
     <div className="flex justify-end">
       <div className="flex items-center space-x-2">
