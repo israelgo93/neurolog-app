@@ -16,11 +16,11 @@ ALTER TABLE IF EXISTS profiles DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS categories DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS audit_logs DISABLE ROW LEVEL SECURITY;
 
--- Eliminar vistas
+-- Eliminar vistas--
 DROP VIEW IF EXISTS user_accessible_children CASCADE;
 DROP VIEW IF EXISTS child_log_statistics CASCADE;
 
--- Eliminar funciones
+-- Eliminar funciones--
 DROP FUNCTION IF EXISTS user_can_access_child(UUID) CASCADE;
 DROP FUNCTION IF EXISTS user_can_edit_child(UUID) CASCADE;
 DROP FUNCTION IF EXISTS audit_sensitive_access(TEXT, TEXT, TEXT) CASCADE;
@@ -45,13 +45,22 @@ DROP TABLE IF EXISTS profiles CASCADE;
 -- ================================================================
 -- 2. CREAR TABLAS PRINCIPALES
 -- ================================================================
+-- TABLA: roles (roles de usuario)
+
+-- Definir ENUM para roles de usuario
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    CREATE TYPE user_role AS ENUM ('parent', 'teacher', 'specialist', 'admin');
+  END IF;
+END$$;
 
 -- TABLA: profiles (usuarios del sistema)
 CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
-  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
+  role user_role DEFAULT 'parent',
   avatar_url TEXT,
   phone TEXT,
   is_active BOOLEAN DEFAULT TRUE,
@@ -90,16 +99,16 @@ CREATE TABLE children (
   emergency_contact JSONB DEFAULT '[]',
   medical_info JSONB DEFAULT '{}',
   educational_info JSONB DEFAULT '{}',
-  privacy_settings JSONB DEFAULT '{
+  privacy_settings JSONB DEFAULT '{}',
     "share_with_specialists": true,
     "share_progress_reports": true,
     "allow_photo_sharing": false,
     "data_retention_months": 36
-  }',
+  ,
   created_by UUID REFERENCES profiles(id) NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+  relationship_type user_role NOT NULL,
 
 -- TABLA: user_child_relations (relaciones usuario-niño)
 CREATE TABLE user_child_relations (
@@ -122,6 +131,14 @@ CREATE TABLE user_child_relations (
   UNIQUE(user_id, child_id, relationship_type)
 );
 
+-- Definir ENUM para intensity_level (constante centralizada)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'intensity_level_enum') THEN
+    CREATE TYPE intensity_level_enum AS ENUM ('low', 'medium', 'high');
+  END IF;
+END$$;
+
 -- TABLA: daily_logs (registros diarios)
 CREATE TABLE daily_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -130,7 +147,7 @@ CREATE TABLE daily_logs (
   title TEXT NOT NULL CHECK (length(trim(title)) >= 2),
   content TEXT NOT NULL,
   mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10),
-  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium',
+  intensity_level intensity_level_enum DEFAULT 'medium',
   logged_by UUID REFERENCES profiles(id) NOT NULL,
   log_date DATE DEFAULT CURRENT_DATE,
   is_private BOOLEAN DEFAULT FALSE,
@@ -150,7 +167,7 @@ CREATE TABLE daily_logs (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- TABLA: audit_logs (auditoría del sistema)
+  user_role user_role,
 CREATE TABLE audit_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   table_name TEXT NOT NULL,
@@ -213,7 +230,7 @@ $$ LANGUAGE plpgsql;
 
 -- Función para crear perfil automáticamente cuando se registra usuario
 CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
+    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')::user_role
 BEGIN
   INSERT INTO profiles (id, email, full_name, role)
   VALUES (
@@ -260,11 +277,11 @@ CREATE TRIGGER on_auth_user_created
 CREATE OR REPLACE FUNCTION user_can_access_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM children 
+  RETURN (
+    SELECT COUNT(*) FROM children 
     WHERE id = child_uuid 
       AND created_by = auth.uid()
-  );
+  ) > 0;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -272,11 +289,11 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION user_can_edit_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM children 
+  RETURN (
+    SELECT COUNT(*) FROM children 
     WHERE id = child_uuid 
       AND created_by = auth.uid()
-  );
+  ) > 0;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -311,7 +328,28 @@ BEGIN
   );
 EXCEPTION
   WHEN OTHERS THEN
-    NULL; -- No fallar por errores de auditoría
+    INSERT INTO audit_logs (
+      table_name,
+      operation,
+      record_id,
+      user_id,
+      user_role,
+      new_values,
+      risk_level
+    ) VALUES (
+      'audit_sensitive_access_error',
+      'ERROR',
+      resource_id,
+      auth.uid(),
+      (SELECT role FROM profiles WHERE id = auth.uid()),
+      jsonb_build_object(
+        'action_type', action_type,
+        'details', action_details,
+        'timestamp', NOW(),
+        'error', SQLERRM
+      ),
+      'high'
+    );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -350,7 +388,7 @@ SELECT
   COUNT(CASE WHEN dl.is_private THEN 1 END) as private_logs,
   COUNT(CASE WHEN dl.reviewed_at IS NOT NULL THEN 1 END) as reviewed_logs
 FROM children c
-LEFT JOIN daily_logs dl ON c.id = dl.child_id AND dl.is_deleted = false
+LEFT JOIN daily_logs dl ON c.id = dl.child_id AND NOT dl.is_deleted
 WHERE c.created_by = auth.uid()
 GROUP BY c.id, c.name;
 
@@ -465,11 +503,12 @@ DECLARE
   policy_count INTEGER;
   function_count INTEGER;
   category_count INTEGER;
+  schema_name CONSTANT TEXT := 'public';
 BEGIN
   -- Contar tablas
   SELECT COUNT(*) INTO table_count
   FROM information_schema.tables 
-  WHERE table_schema = 'public' 
+  WHERE table_schema = schema_name
     AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
@@ -477,7 +516,7 @@ BEGIN
   -- Contar políticas
   SELECT COUNT(*) INTO policy_count
   FROM pg_policies 
-  WHERE schemaname = 'public';
+  WHERE schemaname = schema_name;
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
   
@@ -497,7 +536,7 @@ BEGIN
   -- Verificar RLS
   IF (SELECT COUNT(*) FROM pg_class c 
       JOIN pg_namespace n ON n.oid = c.relnamespace 
-      WHERE n.nspname = 'public' 
+      WHERE n.nspname = schema_name
         AND c.relname = 'children' 
         AND c.relrowsecurity = true) > 0 THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
