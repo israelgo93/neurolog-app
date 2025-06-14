@@ -490,7 +490,44 @@ export default function ChildrenPage() {
             ))}
           </div>
         </>
-      )}
+      : (
+        <Card>
+          <CardContent className="text-center py-12">
+            <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+            {children.length === 0 ? (
+              <>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No hay niños registrados
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Comienza agregando el primer niño para empezar el seguimiento
+                </p>
+                <Button asChild>
+                  <Link href="/dashboard/children/new">
+                    <PlusIcon className="mr-2 h-4 w-4" />
+                    Agregar Primer Niño
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No se encontraron niños
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  No hay niños que coincidan con los filtros seleccionados
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => setFilters({})}
+                >
+                  Limpiar Filtros
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )
     </div>
   );
 }
