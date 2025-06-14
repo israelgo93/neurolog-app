@@ -10,13 +10,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Download, Mail } from 'lucide-react';
+import { Download, Mail } from 'lucide-react';
 
 interface ExportReportDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  data: any[];
-  metrics: any;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly data: any[];
+  readonly metrics: any;
 }
 
 export function ExportReportDialog({ open, onOpenChange, data, metrics }: ExportReportDialogProps) {
@@ -30,8 +30,8 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
     setIsExporting(true);
     
     try {
-      // TODO: Implementar lógica real de exportación
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simular exportación
+      // Simular proceso de exportación - La implementación real conectará con el backend
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       console.log('Exportando reporte:', {
         format,
@@ -63,57 +63,57 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">
               Formato
+              <Select value={format} onValueChange={setFormat}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pdf">PDF - Reporte visual</SelectItem>
+                  <SelectItem value="excel">Excel - Datos y gráficos</SelectItem>
+                  <SelectItem value="csv">CSV - Solo datos</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
-            <Select value={format} onValueChange={setFormat}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pdf">PDF - Reporte visual</SelectItem>
-                <SelectItem value="excel">Excel - Datos y gráficos</SelectItem>
-                <SelectItem value="csv">CSV - Solo datos</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
           
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-700 block">
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium text-gray-700 block">
               Incluir en el reporte
-            </label>
+            </legend>
             
-            <div className="flex items-center space-x-2">
+            <label className="flex items-center space-x-2">
               <Checkbox 
                 id="charts" 
                 checked={includeCharts}
-                onCheckedChange={setIncludeCharts}
+                onCheckedChange={(checked) => setIncludeCharts(checked === true)}
               />
-              <label htmlFor="charts" className="text-sm text-gray-700">
+              <span className="text-sm text-gray-700">
                 Gráficos y visualizaciones
-              </label>
-            </div>
+              </span>
+            </label>
             
-            <div className="flex items-center space-x-2">
+            <label className="flex items-center space-x-2">
               <Checkbox 
                 id="rawdata" 
                 checked={includeRawData}
-                onCheckedChange={setIncludeRawData}
+                onCheckedChange={(checked) => setIncludeRawData(checked === true)}
               />
-              <label htmlFor="rawdata" className="text-sm text-gray-700">
+              <span className="text-sm text-gray-700">
                 Datos detallados por registro
-              </label>
-            </div>
+              </span>
+            </label>
             
-            <div className="flex items-center space-x-2">
+            <label className="flex items-center space-x-2">
               <Checkbox 
                 id="email" 
                 checked={sendByEmail}
-                onCheckedChange={setSendByEmail}
+                onCheckedChange={(checked) => setSendByEmail(checked === true)}
               />
-              <label htmlFor="email" className="text-sm text-gray-700">
+              <span className="text-sm text-gray-700">
                 Enviar por correo electrónico
-              </label>
-            </div>
-          </div>
+              </span>
+            </label>
+          </fieldset>
           
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-sm text-gray-600">

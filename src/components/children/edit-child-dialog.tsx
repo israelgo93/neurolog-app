@@ -19,24 +19,24 @@ import { useChildren } from '@/hooks/use-children'
 import { Loader2 } from 'lucide-react'
 
 interface Child {
-  id: string
-  name: string
-  birth_date: string | null
-  diagnosis: string | null
-  notes: string | null
+  readonly id: string
+  readonly name: string
+  readonly birth_date: string | null
+  readonly diagnosis: string | null
+  readonly notes: string | null
 }
 
 interface EditChildDialogProps {
-  child: Child
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  readonly child: Child
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
 }
 
 interface FormData {
-  name: string
-  birth_date: string
-  diagnosis: string
-  notes: string
+  readonly name: string
+  readonly birth_date: string
+  readonly diagnosis: string
+  readonly notes: string
 }
 
 export function EditChildDialog({ child, open, onOpenChange }: EditChildDialogProps) {
@@ -54,10 +54,10 @@ export function EditChildDialog({ child, open, onOpenChange }: EditChildDialogPr
   useEffect(() => {
     if (open && child) {
       setFormData({
-        name: child.name || '',
-        birth_date: child.birth_date || '',
-        diagnosis: child.diagnosis || '',
-        notes: child.notes || ''
+        name: child.name ?? '',
+        birth_date: child.birth_date ?? '',
+        diagnosis: child.diagnosis ?? '',
+        notes: child.notes ?? ''
       })
     }
   }, [open, child])
@@ -99,7 +99,7 @@ export function EditChildDialog({ child, open, onOpenChange }: EditChildDialogPr
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "No se pudo actualizar la información",
+        description: error.message ?? "No se pudo actualizar la información",
         variant: "destructive",
       })
     } finally {

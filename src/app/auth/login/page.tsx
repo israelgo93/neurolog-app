@@ -40,7 +40,7 @@ export default function LoginPage() {
       router.refresh()
     } catch (err: any) {
       console.error('Error signing in:', err)
-      setError(err.message || 'Error al iniciar sesión')
+      setError(err.message ?? 'Error al iniciar sesión')
     } finally {
       setLoading(false)
     }

@@ -4,7 +4,54 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+/**
+ * Table Component with Accessibility Support
+ * 
+ * This component provides accessible table elements following WCAG guidelines.
+ * 
+ * Usage Guidelines:
+ * - Always include a TableHeader with TableHead elements for column headers
+ * - TableHead elements automatically include scope="col" for accessibility
+ * - Use TableCaption to provide a summary or description of the table content
+ * - For complex tables with row headers, manually add scope="row" to relevant TableCell elements
+ * 
+ * Example:
+ * <Table>
+ *   <TableCaption>Monthly sales summary</TableCaption>
+ *   <TableHeader>
+ *     <TableRow>
+ *       <TableHead>Month</TableHead>
+ *       <TableHead>Sales</TableHead>
+ *     </TableRow>
+ *   </TableHeader>
+ *   <TableBody>
+ *     <TableRow>
+ *       <TableCell>January</TableCell>
+ *       <TableCell>$1,000</TableCell>
+ *     </TableRow>
+ *   </TableBody>
+ * </Table>
+ */
+
+function Table({ className, children, ...props }: React.ComponentProps<"table">) {
+  // Development warning for accessibility
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const tableElement = document.querySelector(`[data-slot="table"]`);
+      if (tableElement) {
+        const hasHeader = tableElement.querySelector('thead th[scope="col"]') || 
+                         tableElement.querySelector('th[scope="col"]') ||
+                         tableElement.querySelector('thead');
+        if (!hasHeader) {
+          console.warn(
+            '⚠️ Table Accessibility Warning: Table should include a header with <th scope="col"> elements for better accessibility. ' +
+            'Use TableHeader and TableHead components or ensure proper table structure.'
+          );
+        }
+      }
+    }
+  }, [children]);
+
   return (
     <div
       data-slot="table-container"
@@ -13,8 +60,11 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
       <table
         data-slot="table"
         className={cn("w-full caption-bottom text-sm", className)}
+        role="table"
         {...props}
-      />
+      >
+        {children}
+      </table>
     </div>
   )
 }
@@ -69,6 +119,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       data-slot="table-head"
+      scope="col"
       className={cn(
         "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className

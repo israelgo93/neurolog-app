@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Plus, Save, X } from 'lucide-react';
 import Link from 'next/link';
-import type { ChildInsert, EmergencyContact, MedicalInfo, EducationalInfo, PrivacySettings } from '@/types';
+import type { ChildInsert, EmergencyContact } from '@/types';
 
 export default function NewChildPage() {
   const router = useRouter();
@@ -102,9 +102,9 @@ export default function NewChildPage() {
         ...formData,
         name: formData.name.trim(),
         emergency_contact: emergencyContacts,
-        birth_date: formData.birth_date || null,
-        diagnosis: formData.diagnosis || null,
-        notes: formData.notes || null
+        birth_date: formData.birth_date ?? null,
+        diagnosis: formData.diagnosis ?? null,
+        notes: formData.notes ?? null
       });
       
       // Redirigir a la lista de niños
@@ -186,7 +186,7 @@ export default function NewChildPage() {
                 <Input
                   id="birth_date"
                   type="date"
-                  value={formData.birth_date}
+                  value={formData.birth_date ?? ''}
                   onChange={(e) => setFormData({...formData, birth_date: e.target.value})}
                   className={errors.birth_date ? 'border-red-500' : ''}
                 />
@@ -202,7 +202,7 @@ export default function NewChildPage() {
               </Label>
               <Input
                 id="diagnosis"
-                value={formData.diagnosis}
+                value={formData.diagnosis ?? ''}
                 onChange={(e) => setFormData({...formData, diagnosis: e.target.value})}
                 placeholder="TEA, TDAH, Síndrome de Down, etc."
               />
@@ -214,7 +214,7 @@ export default function NewChildPage() {
               </Label>
               <Textarea
                 id="notes"
-                value={formData.notes}
+                value={formData.notes ?? ''}
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}
                 placeholder="Información relevante, características especiales, etc."
                 rows={3}
@@ -291,7 +291,7 @@ export default function NewChildPage() {
                 </Label>
                 <Input
                   id="school"
-                  value={formData.educational_info?.school || ''}
+                  value={formData.educational_info?.school ?? ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     educational_info: {
@@ -309,7 +309,7 @@ export default function NewChildPage() {
                 </Label>
                 <Input
                   id="grade"
-                  value={formData.educational_info?.grade || ''}
+                  value={formData.educational_info?.grade ?? ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     educational_info: {
@@ -328,7 +328,7 @@ export default function NewChildPage() {
               </Label>
               <Input
                 id="teacher"
-                value={formData.educational_info?.teacher || ''}
+                value={formData.educational_info?.teacher ?? ''}
                 onChange={(e) => setFormData({
                   ...formData,
                   educational_info: {

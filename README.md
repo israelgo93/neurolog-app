@@ -1,5 +1,19 @@
 # NeuroLog - Registro Diario para Niños con NEE
 
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=security_rating)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=bugs)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Security Hotspots](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=security_hotspots)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=coverage)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=4NDR3S-01_neurolog-app&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=4NDR3S-01_neurolog-app)
+
 ## 📋 Descripción
 
 NeuroLog es una aplicación web **open source** orientada al registro y seguimiento diario de comportamientos, emociones y avances de niños con necesidades educativas especiales (NEE). 
@@ -13,6 +27,19 @@ La aplicación facilita la colaboración entre padres, docentes y profesionales 
 - Exportación de reportes en CSV/PDF
 - Notificaciones y recordatorios automáticos
 - Seguridad y privacidad de datos
+
+## 📊 Calidad de Código
+
+Este proyecto mantiene altos estándares de calidad de código mediante análisis automático con SonarQube:
+
+- **✅ Rating A** en mantenibilidad, seguridad y fiabilidad
+- **🛡️ 0 vulnerabilidades** y 0 security hotspots
+- **🐛 0 bugs** reportados
+- **🔧 <20 code smells** (objetivo: minimizar deuda técnica)
+- **📏 <3% duplicación** de código
+- **⚡ <1h esfuerzo técnico** estimado para mantenimiento
+
+> 🎯 **Objetivo:** Mantener Rating A en todas las métricas de calidad para garantizar un código mantenible, seguro y confiable.
 
 ## 🛠 Tecnologías
 
@@ -105,6 +132,26 @@ NeuroLog es un proyecto open source. Las contribuciones son bienvenidas:
 3. Commit tus cambios (`git commit -am 'Agregar nueva funcionalidad'`)
 4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
 5. Crea un Pull Request
+
+### 🔍 Estándares de Calidad
+
+Todas las contribuciones deben mantener los estándares de calidad del proyecto:
+
+- **✅ Pasar Quality Gate** de SonarCloud
+- **🧪 Tests unitarios** para nueva funcionalidad
+- **📝 Documentación** actualizada
+- **🔒 Seguir prácticas** de seguridad
+- **♿ Cumplir estándares** de accesibilidad
+
+### 🛠️ Proceso de Mejora Continua
+
+El proyecto sigue un proceso riguroso de mejora de calidad:
+
+- **Análisis automático** con SonarQube en cada commit
+- **Refactorización regular** para eliminar code smells
+- **Implementación de generadores** criptográficamente seguros
+- **Optimización de performance** y memoria
+- **Validación de accesibilidad** en componentes UI
 
 ## 📝 Licencia
 

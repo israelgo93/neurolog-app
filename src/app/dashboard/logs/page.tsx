@@ -26,7 +26,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
 import type { 
@@ -43,7 +42,6 @@ import {
   EditIcon,
   EyeIcon,
   EyeOffIcon,
-  HeartIcon,
   ClockIcon,
   TagIcon,
   MapPinIcon,
@@ -368,7 +366,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Buscar en título y contenido..."
-              value={filters.search_term || ''}
+              value={filters.search_term ?? ''}
               onChange={(e) => onFiltersChange({ ...filters, search_term: e.target.value })}
               className="pl-10"
             />
@@ -376,7 +374,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 
           {/* Child Filter */}
           <Select 
-            value={filters.child_id || 'all'} 
+            value={filters.child_id ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               child_id: value === 'all' ? undefined : value 
@@ -399,20 +397,20 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
           <Input
             type="date"
             placeholder="Desde"
-            value={filters.date_from || ''}
+            value={filters.date_from ?? ''}
             onChange={(e) => onFiltersChange({ ...filters, date_from: e.target.value })}
           />
 
           <Input
             type="date"
             placeholder="Hasta"
-            value={filters.date_to || ''}
+            value={filters.date_to ?? ''}
             onChange={(e) => onFiltersChange({ ...filters, date_to: e.target.value })}
           />
 
           {/* Review Status */}
           <Select 
-            value={filters.reviewed_status || 'all'} 
+            value={filters.reviewed_status ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               reviewed_status: value === 'all' ? undefined : value as any
@@ -433,7 +431,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Intensity Level */}
           <Select 
-            value={filters.intensity_level || 'all'} 
+            value={filters.intensity_level ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               intensity_level: value === 'all' ? undefined : value as IntensityLevel
@@ -457,7 +455,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               placeholder="Humor mín"
               min="1"
               max="5"
-              value={filters.mood_score_min || ''}
+              value={filters.mood_score_min ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 mood_score_min: e.target.value ? parseInt(e.target.value) : undefined 
@@ -468,7 +466,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               placeholder="Humor máx"
               min="1"
               max="5"
-              value={filters.mood_score_max || ''}
+              value={filters.mood_score_max ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 mood_score_max: e.target.value ? parseInt(e.target.value) : undefined 
@@ -496,7 +494,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 
           {/* Follow-up Status */}
           <Select 
-            value={filters.follow_up_status || 'all'} 
+            value={filters.follow_up_status ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               follow_up_status: value === 'all' ? undefined : value as any
@@ -522,7 +520,6 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 // ================================================================
 
 export default function LogsPage() {
-  const { user } = useAuth();
   const { children } = useChildren({ includeInactive: false });
   const { 
     logs, 
@@ -542,8 +539,8 @@ export default function LogsPage() {
 
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<LogFilters>({
-    child_id: searchParams.get('child_id') || undefined,
-    category_id: searchParams.get('category_id') || undefined,
+    child_id: searchParams.get('child_id') ?? undefined,
+    category_id: searchParams.get('category_id') ?? undefined,
   });
 
   // Aplicar filtros
@@ -584,8 +581,8 @@ export default function LogsPage() {
         </div>
         
         <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i} className="p-6">
+          {Array.from({ length: 5 }, (_, i) => (
+            <Card key={`loading-skeleton-${i}`} className="p-6">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
                 <div className="flex-1 space-y-2">
