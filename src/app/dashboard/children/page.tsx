@@ -192,7 +192,7 @@ interface FiltersCardProps {
   onFiltersChange: (filters: ChildFilters) => void;
 }
 
-function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
+function FiltersCard({ filters, onFiltersChange }: Readonly<FiltersCardProps>) {
   return (
     <Card>
       <CardHeader>
