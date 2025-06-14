@@ -47,23 +47,32 @@ DROP TABLE IF EXISTS profiles CASCADE;
 -- ================================================================
 
 -- TABLA: profiles (usuarios del sistema)
-CREATE TABLE profiles (
-  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  full_name TEXT NOT NULL,
-  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
-  avatar_url TEXT,
-  phone TEXT,
-  is_active BOOLEAN DEFAULT TRUE,
-  last_login TIMESTAMPTZ,
-  failed_login_attempts INTEGER DEFAULT 0,
-  last_failed_login TIMESTAMPTZ,
-  account_locked_until TIMESTAMPTZ,
-  timezone TEXT DEFAULT 'America/Guayaquil',
-  preferences JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$
+DECLARE
+  role_parent TEXT := 'parent';
+  role_teacher TEXT := 'teacher';
+  role_specialist TEXT := 'specialist';
+  role_admin TEXT := 'admin';
+  timezone_default TEXT := 'America/Guayaquil';
+BEGIN
+  CREATE TABLE profiles (
+    id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    full_name TEXT NOT NULL,
+    role TEXT CHECK (role IN (role_parent, role_teacher, role_specialist, role_admin)) DEFAULT role_parent,
+    avatar_url TEXT,
+    phone TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    last_login TIMESTAMPTZ,
+    failed_login_attempts INTEGER DEFAULT 0,
+    last_failed_login TIMESTAMPTZ,
+    account_locked_until TIMESTAMPTZ,
+    timezone TEXT DEFAULT timezone_default,
+    preferences JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+END $$;
 
 -- TABLA: categories (categorías de registros)
 CREATE TABLE categories (
@@ -87,15 +96,10 @@ CREATE TABLE children (
   notes TEXT,
   is_active BOOLEAN DEFAULT TRUE,
   avatar_url TEXT,
-  emergency_contact JSONB DEFAULT '[]',
-  medical_info JSONB DEFAULT '{}',
-  educational_info JSONB DEFAULT '{}',
-  privacy_settings JSONB DEFAULT '{
-    "share_with_specialists": true,
-    "share_progress_reports": true,
-    "allow_photo_sharing": false,
-    "data_retention_months": 36
-  }',
+  emergency_contact JSONB DEFAULT '[]'::JSONB,
+  medical_info JSONB DEFAULT '{}'::JSONB,
+  educational_info JSONB DEFAULT '{}'::JSONB,
+  privacy_settings JSONB DEFAULT '{"share_with_specialists": true, "share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}'::JSONB,
   created_by UUID REFERENCES profiles(id) NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -116,10 +120,9 @@ CREATE TABLE user_child_relations (
   expires_at TIMESTAMPTZ,
   is_active BOOLEAN DEFAULT TRUE,
   notes TEXT,
-  notification_preferences JSONB DEFAULT '{}',
+  notification_preferences JSONB DEFAULT '{}'::JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  
-  UNIQUE(user_id, child_id, relationship_type)
+  UNIQUE (user_id, child_id, relationship_type)
 );
 
 -- TABLA: daily_logs (registros diarios)
@@ -136,8 +139,8 @@ CREATE TABLE daily_logs (
   is_private BOOLEAN DEFAULT FALSE,
   is_deleted BOOLEAN DEFAULT FALSE,
   is_flagged BOOLEAN DEFAULT FALSE,
-  attachments JSONB DEFAULT '[]',
-  tags TEXT[] DEFAULT '{}',
+  attachments JSONB DEFAULT '[]'::JSONB,
+  tags TEXT[] DEFAULT '{}'::TEXT[],
   location TEXT,
   weather TEXT,
   reviewed_by UUID REFERENCES profiles(id),
@@ -199,7 +202,7 @@ CREATE INDEX idx_audit_table ON audit_logs(table_name);
 CREATE INDEX idx_audit_created ON audit_logs(created_at DESC);
 
 -- ================================================================
--- 4. CREAR FUNCIONES DE TRIGGERS
+-- 4. CREAR FUNCIONES DE TRIGGERS s
 -- ================================================================
 
 -- Función para actualizar updated_at automáticamente
@@ -217,14 +220,6 @@ RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO profiles (id, email, full_name, role)
   VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ================================================================
 -- 5. CREAR TRIGGERS

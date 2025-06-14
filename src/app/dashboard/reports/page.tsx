@@ -103,11 +103,13 @@ export default function ReportsPage() {
   // Calcular métricas
   const metrics = {
     totalLogs: filteredLogs.length,
-    averageMood: filteredLogs.filter(l => l.mood_score).length > 0 
-      ? (filteredLogs.filter(l => l.mood_score).reduce((sum, l) => sum + l.mood_score, 0) / filteredLogs.filter(l => l.mood_score).length)
+    averageMood: filteredLogs.filter(l => typeof l.mood_score === 'number').length > 0 
+      ? (filteredLogs
+          .filter(l => typeof l.mood_score === 'number')
+          .reduce((sum, l) => sum + (l.mood_score as number), 0) / filteredLogs.filter(l => typeof l.mood_score === 'number').length)
       : 0,
     improvementTrend: calculateImprovementTrend(filteredLogs),
-    activeCategories: new Set(filteredLogs.map(l => l.category_name).filter(Boolean)).size,
+    activeCategories: new Set(filteredLogs.map(l => l.category).filter(Boolean)).size,
     followUpsRequired: filteredLogs.filter(l => l.follow_up_required).length,
     activeDays: new Set(filteredLogs.map(l => new Date(l.created_at).toDateString())).size
   };
@@ -144,7 +146,7 @@ export default function ReportsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Niño</label>
+              <label className="text-sm font-medium mb-2 block" htmlFor='childSelect'>Niño</label>
               <Select value={selectedChild} onValueChange={setSelectedChild}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar niño" />
@@ -161,12 +163,14 @@ export default function ReportsPage() {
             </div>
             
             <div>
-              <label className="text-sm font-medium mb-2 block">Período</label>
-              <DatePickerWithRange 
-                date={dateRange}
-                onDateChange={setDateRange}
-              />
-            </div>
+  <label className="text-sm font-medium mb-2 block" htmlFor="dateRangePicker">Período</label>
+  <span id="dateRangePicker">
+    <DatePickerWithRange 
+      date={dateRange}
+      onChange={setDateRange}
+    />
+  </span>
+</div>
 
             <div className="flex items-end">
               <Button 
