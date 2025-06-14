@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -34,10 +34,8 @@ import {
   EyeIcon,
   UserPlusIcon,
   CalendarIcon,
-  MapPinIcon,
   HeartIcon,
   TrendingUpIcon,
-  DownloadIcon,
   UsersIcon,
   BookOpenIcon,
   RefreshCwIcon
@@ -50,10 +48,10 @@ import { es } from 'date-fns/locale';
 // ================================================================
 
 interface ChildCardProps {
-  child: ChildWithRelation;
-  onEdit: (child: ChildWithRelation) => void;
-  onViewDetails: (child: ChildWithRelation) => void;
-  onManageUsers: (child: ChildWithRelation) => void;
+  readonly child: ChildWithRelation;
+  readonly onEdit: (child: ChildWithRelation) => void;
+  readonly onViewDetails: (child: ChildWithRelation) => void;
+  readonly onManageUsers: (child: ChildWithRelation) => void;
 }
 
 function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardProps) {
@@ -190,8 +188,8 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
 }
 
 interface FiltersCardProps {
-  filters: ChildFilters;
-  onFiltersChange: (filters: ChildFilters) => void;
+  readonly filters: ChildFilters;
+  readonly onFiltersChange: (filters: ChildFilters) => void;
 }
 
 function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
@@ -402,17 +400,17 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 }
 
 interface ChildrenContentProps {
-  loading: boolean;
-  error: string | null;
-  children: ChildWithRelation[];
-  filteredChildren: ChildWithRelation[];
-  filters: ChildFilters;
-  setFilters: React.Dispatch<React.SetStateAction<ChildFilters>>;
-  viewMode: 'grid' | 'list';
-  setViewMode: React.Dispatch<React.SetStateAction<'grid' | 'list'>>;
-  onEdit: (child: ChildWithRelation) => void;
-  onViewDetails: (child: ChildWithRelation) => void;
-  onManageUsers: (child: ChildWithRelation) => void;
+  readonly loading: boolean;
+  readonly error: string | null;
+  readonly children: ChildWithRelation[];
+  readonly filteredChildren: ChildWithRelation[];
+  readonly filters: ChildFilters;
+  readonly setFilters: React.Dispatch<React.SetStateAction<ChildFilters>>;
+  readonly viewMode: 'grid' | 'list';
+  readonly setViewMode: React.Dispatch<React.SetStateAction<'grid' | 'list'>>;
+  readonly onEdit: (child: ChildWithRelation) => void;
+  readonly onViewDetails: (child: ChildWithRelation) => void;
+  readonly onManageUsers: (child: ChildWithRelation) => void;
 }
 
 function ChildrenContent({
