@@ -117,6 +117,14 @@ CREATE TABLE user_child_relations (
   UNIQUE(user_id, child_id, relationship_type)
 );
 
+-- Definir tipo ENUM para los niveles de intensidad solo una vez
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'intensity_level_enum') THEN
+    CREATE TYPE intensity_level_enum AS ENUM ('low', 'medium', 'high');
+  END IF;
+END$$;
+
 -- TABLA: daily_logs (registros diarios)
 CREATE TABLE daily_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -125,7 +133,7 @@ CREATE TABLE daily_logs (
   title TEXT NOT NULL CHECK (length(trim(title)) >= 2),
   content TEXT NOT NULL,
   mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10),
-  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium',
+  intensity_level intensity_level_enum DEFAULT 'medium',
   logged_by UUID REFERENCES profiles(id) NOT NULL,
   log_date DATE DEFAULT CURRENT_DATE,
   is_private BOOLEAN DEFAULT FALSE,
@@ -255,11 +263,11 @@ CREATE TRIGGER on_auth_user_created
 CREATE OR REPLACE FUNCTION user_can_access_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM children 
+  RETURN (
+    SELECT COUNT(*) FROM children 
     WHERE id = child_uuid 
       AND created_by = auth.uid()
-  );
+  ) > 0;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -267,11 +275,11 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION user_can_edit_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM children 
+  RETURN (
+    SELECT COUNT(*) FROM children 
     WHERE id = child_uuid 
       AND created_by = auth.uid()
-  );
+  ) > 0;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
