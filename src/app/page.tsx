@@ -51,11 +51,13 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      
       <section className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
           Registro especializado para{" "}
-          <span className="text-blue-600">niños con NEE</span>
+          <span>
+            niños con <span className="text-blue-600">NEE</span>
+          </span>
+
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
           Una plataforma integral para el seguimiento y documentación del desarrollo
