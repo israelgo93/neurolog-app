@@ -494,28 +494,33 @@ export default function ChildrenPage() {
       <FiltersCard filters={filters} onFiltersChange={setFilters} />
 
       {/* Lista/Grid de niños */}
-      {loading ? (
-        <LoadingSkeleton />
-      ) : error ? (
-        <ErrorState error={error} />
-      ) : filteredChildren.length === 0 ? (
-        <EmptyState childrenCount={children.length} setFilters={setFilters} />
-      ) : (
-        <>
-          <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredChildren.map((child) => (
-              <ChildCard
-                key={child.id}
-                child={child}
-                onEdit={handleEdit}
-                onViewDetails={handleViewDetails}
-                onManageUsers={handleManageUsers}
-              />
-            ))}
-          </div>
-        </>
-      )}
+      {(() => {
+        if (loading) {
+          return <LoadingSkeleton />;
+        }
+        if (error) {
+          return <ErrorState error={error} />;
+        }
+        if (filteredChildren.length === 0) {
+          return <EmptyState childrenCount={children.length} setFilters={setFilters} />;
+        }
+        return (
+          <>
+            <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredChildren.map((child) => (
+                <ChildCard
+                  key={child.id}
+                  child={child}
+                  onEdit={handleEdit}
+                  onViewDetails={handleViewDetails}
+                  onManageUsers={handleManageUsers}
+                />
+              ))}
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }
