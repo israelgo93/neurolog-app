@@ -356,7 +356,7 @@ function HeaderSection() {
   );
 }
 
-function StatsSection({ children }: { children: ChildWithRelation[] }) {
+function StatsSection({ children }: { readonly children: ChildWithRelation[] }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <StatCard
@@ -383,7 +383,7 @@ function StatsSection({ children }: { children: ChildWithRelation[] }) {
   );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+function StatCard({ icon, label, value }: Readonly<{ icon: React.ReactNode; label: string; value: number }>) {
   return (
     <Card>
       <CardContent className="p-6">
@@ -477,7 +477,7 @@ export function ChildrenLoadingSkeleton() {
 }
 
 
-function ChildrenError({ error }: { error: string }) {
+function ChildrenError({ error }: { readonly error: string }) {
   return (
     <Card className="border-red-200 bg-red-50">
       <CardContent className="text-center py-12">
@@ -495,8 +495,8 @@ function ChildrenEmpty({
   hasChildren,
   setFilters,
 }: {
-  hasChildren: boolean;
-  setFilters: React.Dispatch<React.SetStateAction<ChildFilters>>;
+  readonly hasChildren: boolean;
+  readonly setFilters: React.Dispatch<React.SetStateAction<ChildFilters>>;
 }) {
   return (
     <Card>
@@ -539,8 +539,8 @@ function ViewModeToggle({
   viewMode,
   setViewMode,
 }: {
-  viewMode: 'grid' | 'list';
-  setViewMode: React.Dispatch<React.SetStateAction<'grid' | 'list'>>;
+  readonly viewMode: 'grid' | 'list';
+  readonly setViewMode: React.Dispatch<React.SetStateAction<'grid' | 'list'>>;
 }) {
   return (
     <div className="flex justify-end">
