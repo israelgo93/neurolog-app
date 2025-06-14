@@ -65,7 +65,7 @@ export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn
 
   // Generar ID único para canal
   const channelId = useMemo(() => {
-    return `children-${userId || 'anonymous'}-${Date.now()}`;
+    return `children-${userId ?? 'anonymous'}-${Date.now()}`;
   }, [userId]);
 
   // ================================================================
@@ -96,10 +96,10 @@ export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn
 
     if (!mountedRef.current) return;
 
-    console.log('✅ Children data fetched:', childrenData?.length || 0);
+    console.log('✅ Children data fetched:', childrenData?.length ?? 0);
 
     // Transformar a ChildWithRelation
-    const transformedChildren: ChildWithRelation[] = (childrenData || []).map(child => ({
+    const transformedChildren: ChildWithRelation[] = (childrenData ?? []).map(child => ({
       // Datos del niño
       id: child.id!,
       name: child.name!,
@@ -108,10 +108,10 @@ export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn
       notes: child.notes,
       is_active: child.is_active!,
       avatar_url: child.avatar_url,
-      emergency_contact: child.emergency_contact || [],
-      medical_info: child.medical_info || {},
-      educational_info: child.educational_info || {},
-      privacy_settings: child.privacy_settings || {
+      emergency_contact: child.emergency_contact ?? [],
+      medical_info: child.medical_info ?? {},
+      educational_info: child.educational_info ?? {},
+      privacy_settings: child.privacy_settings ?? {
         share_with_specialists: true,
         share_progress_reports: true,
         allow_photo_sharing: false,
@@ -133,7 +133,7 @@ export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn
       is_relation_active: true,
       relation_created_at: child.granted_at!,
       relation_expires_at: child.expires_at,
-      creator_name: child.creator_name || 'Usuario desconocido'
+      creator_name: child.creator_name ?? 'Usuario desconocido'
     }));
 
     setChildren(transformedChildren);
@@ -190,10 +190,10 @@ export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn
         name: childData.name.trim(),
         created_by: userId,
         is_active: true,
-        birth_date: childData.birth_date?.trim() || null,
-        diagnosis: childData.diagnosis?.trim() || null,
-        notes: childData.notes?.trim() || null,
-        avatar_url: childData.avatar_url?.trim() || null,
+        birth_date: childData.birth_date?.trim() ?? null,
+        diagnosis: childData.diagnosis?.trim() ?? null,
+        notes: childData.notes?.trim() ?? null,
+        avatar_url: childData.avatar_url?.trim() ?? null,
         emergency_contact: Array.isArray(childData.emergency_contact) ? childData.emergency_contact : [],
         medical_info: {
           allergies: [],
