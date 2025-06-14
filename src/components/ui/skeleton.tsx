@@ -3,6 +3,9 @@
 
 import { cn } from "@/lib/utils"
 
+// Contador global para generar IDs únicos
+let globalCounter = 0;
+
 // Función helper para generar IDs únicos de forma segura
 function generateSecureId(): string {
   // Usar crypto.getRandomValues() si está disponible (navegador)
@@ -12,8 +15,11 @@ function generateSecureId(): string {
     return `skeleton-${Date.now()}-${array[0].toString(36)}${array[1].toString(36)}`;
   }
   
-  // Fallback para entornos donde crypto no está disponible
-  return `skeleton-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+  // Fallback más seguro usando timestamp y contador
+  const timestamp = Date.now();
+  globalCounter = (globalCounter + 1) % 999999; // Resetear el contador después de 999999
+  const randomSuffix = (timestamp * globalCounter).toString(36);
+  return `skeleton-${timestamp}-${randomSuffix}`;
 }
 
 function Skeleton({
