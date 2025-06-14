@@ -11,6 +11,15 @@ import { Calendar as CalendarIcon, Plus, Clock, Users, ChevronLeft, ChevronRight
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+// Utilidad para obtener un booleano seguro con probabilidad dada
+function getSecureRandomBool(probability: number) {
+  const array = new Uint32Array(1);
+  window.crypto.getRandomValues(array);
+  // Normaliza a [0,1)
+  const random = array[0] / 0xffffffff;
+  return random > (1 - probability);
+}
+
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -115,7 +124,7 @@ export default function CalendarPage() {
               >
                 {format(day, 'd')}
                 {/* Placeholder for events */}
-                {Math.random() > 0.8 && (
+                {getSecureRandomBool(0.2) && (
                   <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
                 )}
               </div>
