@@ -58,6 +58,38 @@ import {
 import { format } from 'date-fns';
 
 // ================================================================
+// UTILIDADES SEGURAS
+// ================================================================
+
+// Generador de IDs seguros usando crypto.getRandomValues() con fallback determinístico
+function generateSecureId(): string {
+  const timestamp = Date.now().toString(36);
+  
+  if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+    // Cliente: usar Web Crypto API
+    const array = new Uint32Array(2);
+    window.crypto.getRandomValues(array);
+    return `${timestamp}-${array[0].toString(36)}-${array[1].toString(36)}`;
+  } else if (typeof require !== 'undefined') {
+    // Servidor: usar Node.js crypto
+    try {
+      const crypto = require('crypto');
+      const randomBytes = crypto.randomBytes(8);
+      return `${timestamp}-${randomBytes.toString('hex')}`;
+    } catch (error) {
+      // Fallar silenciosamente y usar el fallback determinístico
+      console.warn('Node.js crypto module not available:', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+  
+  // Fallback determinístico (sin Math.random())
+  let counter = 0;
+  const deterministicPart = (++counter).toString(36).padStart(4, '0');
+  const processId = typeof process !== 'undefined' && process.pid ? process.pid.toString(36) : 'web';
+  return `${timestamp}-${processId}-${deterministicPart}`;
+}
+
+// ================================================================
 // ESQUEMAS DE VALIDACIÓN
 // ================================================================
 
@@ -209,7 +241,7 @@ function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManag
         else if (file.type.startsWith('audio/')) type = 'audio';
         
         newAttachments.push({
-          id: `${Date.now()}-${Math.random()}`,
+          id: generateSecureId(),
           name: file.name,
           url,
           type,
