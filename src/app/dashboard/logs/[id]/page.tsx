@@ -206,12 +206,12 @@ export default function LogDetailPage() {
                 <div className="flex items-center space-x-3">
                   <div 
                     className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: log.category_color }}
+                    style={{ backgroundColor: log.category?.color }}
                   />
                   <div>
-                    <CardTitle className="text-lg">{log.category_name ?? 'Sin categoría'}</CardTitle>
+                    <CardTitle className="text-lg">{log.category?.name ?? 'Sin categoría'}</CardTitle>
                     <CardDescription>
-                      Registrado por {log.logged_by_name}
+                      Registrado por {log.logged_by}
                     </CardDescription>
                   </div>
                 </div>
@@ -250,6 +250,7 @@ export default function LogDetailPage() {
                     <div>
                       <p className="text-lg font-semibold text-gray-900">{log.mood_score}/5</p>
                       <p className="text-sm text-gray-600">
+                        
                         {log.mood_score <= 2 ? 'Necesita atención' : 
                          log.mood_score <= 3 ? 'Normal' : 'Muy positivo'}
                       </p>
@@ -319,7 +320,7 @@ export default function LogDetailPage() {
                     <h4 className="text-sm font-medium text-green-900">Revisado por especialista</h4>
                   </div>
                   <p className="text-sm text-green-700 mt-1">
-                    Revisado por {log.reviewer_name} el {format(new Date(log.reviewed_at!), 'dd MMM yyyy', { locale: es })}
+                    Revisado por {log.reviewed_by} el {format(new Date(log.reviewed_at!), 'dd MMM yyyy', { locale: es })}
                   </p>
                   {log.specialist_notes && (
                     <div className="mt-3">
@@ -427,12 +428,12 @@ export default function LogDetailPage() {
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Niño</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={log.child_avatar_url} />
+                      <AvatarImage src={log.child?.avatar_url} />
                       <AvatarFallback className="text-xs">
-                        {log.child_name?.charAt(0)}
+                        {log.child?.name?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <p className="text-sm font-medium text-gray-900">{log.child_name}</p>
+                    <p className="text-sm font-medium text-gray-900">{log.child?.name}</p>
                   </div>
                 </div>
 
@@ -440,12 +441,12 @@ export default function LogDetailPage() {
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Registrado por</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={log.logged_by_avatar} />
+                      <AvatarImage src={log.logged_by} />
                       <AvatarFallback className="text-xs">
-                        {log.logged_by_name?.charAt(0)}
+                        {log.logged_by?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <p className="text-sm font-medium text-gray-900">{log.logged_by_name}</p>
+                    <p className="text-sm font-medium text-gray-900">{log.logged_by}</p>
                   </div>
                 </div>
 
