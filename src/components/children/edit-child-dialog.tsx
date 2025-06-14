@@ -83,9 +83,9 @@ export function EditChildDialog({ child, open, onOpenChange }: EditChildDialogPr
     try {
       const updates = {
         name: formData.name.trim(),
-        birth_date: formData.birth_date || null,
-        diagnosis: formData.diagnosis.trim() || null,
-        notes: formData.notes.trim() || null
+        birth_date: formData.birth_date ?? null,
+        diagnosis: formData.diagnosis.trim() ?? null,
+        notes: formData.notes.trim() ?? null
       }
 
       await updateChild(child.id, updates)
