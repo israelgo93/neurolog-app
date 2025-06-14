@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -34,10 +34,8 @@ import {
   EyeIcon,
   UserPlusIcon,
   CalendarIcon,
-  MapPinIcon,
   HeartIcon,
   TrendingUpIcon,
-  DownloadIcon,
   UsersIcon,
   BookOpenIcon,
   RefreshCwIcon
@@ -56,7 +54,7 @@ interface ChildCardProps {
   onManageUsers: (child: ChildWithRelation) => void;
 }
 
-function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardProps) {
+function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: Readonly<ChildCardProps>) {
   const calculateAge = (birthDate: string) => {
     const birth = new Date(birthDate);
     const today = new Date();
@@ -194,7 +192,7 @@ interface FiltersCardProps {
   onFiltersChange: (filters: ChildFilters) => void;
 }
 
-function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
+function FiltersCard({ filters, onFiltersChange }: Readonly<FiltersCardProps>) {
   return (
     <Card>
       <CardHeader>
