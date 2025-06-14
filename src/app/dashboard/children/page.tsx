@@ -328,7 +328,10 @@ function LoadingSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[...Array(6)].map(() => {
-        const uniqueKey = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+        // Generar un uniqueKey seguro usando crypto.getRandomValues
+        const array = new Uint32Array(2);
+        window.crypto.getRandomValues(array);
+        const uniqueKey = array[0].toString(36) + array[1].toString(36) + Date.now().toString(36);
         return (
           <Card key={uniqueKey} className="animate-pulse">
             <CardHeader>
