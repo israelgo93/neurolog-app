@@ -126,7 +126,16 @@ export default function CalendarPage() {
                       ) : null;
                     }
                     // Fallback for environments without crypto
-                    const randomValue = Math.floor(Math.random() * 10);
+                    // Use crypto.getRandomValues as a fallback if available, otherwise do not render
+                    let randomValue = 0;
+                    if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+                      const array = new Uint32Array(1);
+                      window.crypto.getRandomValues(array);
+                      randomValue = array[0] % 10;
+                    } else {
+                      // If crypto is not available, do not render the event dot
+                      return null;
+                    }
                     return randomValue > 8 ? (
                       <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
                     ) : null;
