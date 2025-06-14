@@ -9,18 +9,21 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Calendar, TrendingUp, TrendingDown, Minus, Brain, Target, AlertTriangle, CheckCircle } from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
+
 
 interface TimePatternsProps {
-  logs: any[];
+  readonly logs: any[];
 }
 
 interface CorrelationAnalysisProps {
-  logs: any[];
+  readonly logs: any[];
 }
 
 interface AdvancedInsightsProps {
-  logs: any[];
+  readonly logs: any[];
 }
+
 
 // ================================================================
 // TIMEPATTERNS COMPONENT
@@ -30,21 +33,21 @@ export function TimePatterns({ logs }: TimePatternsProps) {
   // Analizar patrones por hora del día
   const hourlyPattern = logs.reduce((acc, log) => {
     const hour = new Date(log.created_at).getHours();
-    acc[hour] = (acc[hour] || 0) + 1;
+    acc[hour] = (acc[hour] ?? 0) + 1;
     return acc;
   }, {} as Record<number, number>);
 
   // Analizar patrones por día de la semana
   const weeklyPattern = logs.reduce((acc, log) => {
     const day = new Date(log.created_at).getDay();
-    acc[day] = (acc[day] || 0) + 1;
+    acc[day] = (acc[day] ?? 0) + 1;
     return acc;
   }, {} as Record<number, number>);
 
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
   const getMostActiveHour = () => {
-    const values = Object.values(hourlyPattern);
+    const values = Object.values(hourlyPattern)as number[];
     if (values.length === 0) return 'N/A';
     
     const max = Math.max(...values);
@@ -53,7 +56,7 @@ export function TimePatterns({ logs }: TimePatternsProps) {
   };
 
   const getMostActiveDay = () => {
-    const values = Object.values(weeklyPattern);
+    const values = Object.values(weeklyPattern) as number[];
     if (values.length === 0) return 'N/A';
     
     const max = Math.max(...values);
@@ -93,8 +96,8 @@ export function TimePatterns({ logs }: TimePatternsProps) {
         <h4 className="text-sm font-medium mb-2">Distribución por días de la semana</h4>
         <div className="flex space-x-1">
           {dayNames.map((day, index) => {
-            const count = weeklyPattern[index] || 0;
-            const values = Object.values(weeklyPattern);
+            const count = weeklyPattern[index] ?? 0;
+            const values = Object.values(weeklyPattern) as number[];
             const maxCount = values.length > 0 ? Math.max(...values) : 0;
             const intensity = maxCount > 0 ? (count / maxCount) * 100 : 0;
             
@@ -130,8 +133,8 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
     const x = data.map(item => item[field1]);
     const y = data.map(field2Func);
     
-    const meanX = x.reduce((a, b) => a + b) / x.length;
-    const meanY = y.reduce((a, b) => a + b) / y.length;
+    const meanX = x.reduce((a, b) => a + b, 0) / x.length;
+    const meanY = y.reduce((a, b) => a + b, 0) / y.length;
     
     const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
     const denomX = Math.sqrt(x.reduce((sum, xi) => sum + Math.pow(xi - meanX, 2), 0));
@@ -151,15 +154,15 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
   const categoryMoodCorr = logs.reduce((acc, log) => {
     if (!log.mood_score || !log.category_name) return acc;
     
-    if (!acc[log.category_name]) {
-      acc[log.category_name] = { total: 0, count: 0 };
-    }
+    // Usar ??= para inicializar el valor
+    acc[log.category_name] ??= { total: 0, count: 0 };
     
     acc[log.category_name].total += log.mood_score;
     acc[log.category_name].count += 1;
     
     return acc;
   }, {} as Record<string, { total: number; count: number }>);
+    
 
   const categoryAverages = Object.entries(categoryMoodCorr).map(([category, data]) => ({
     category,
@@ -249,73 +252,128 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
 // ================================================================
 
 export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
-  const generateInsights = () => {
-    const insights = [];
-    
-    // Análisis de frecuencia
-    if (logs.length > 0) {
+    const generateInsights = () => {
+    const insights: {
+      type: string;
+      icon: React.ComponentType<LucideProps>;
+      title: string;
+      description: string;
+      recommendation: string;
+    }[] = [];
+
+    // Helper functions for specific insight types
+    const generateFrequencyInsight = () => {
       const daysWithLogs = new Set(logs.map(log => 
         new Date(log.created_at).toDateString()
       )).size;
       
-      const totalDays = 30; // últimos 30 días
+      const totalDays = 30;
       const frequency = (daysWithLogs / totalDays) * 100;
       
-      insights.push({
-        type: frequency > 80 ? 'success' : frequency > 50 ? 'warning' : 'info',
-        icon: frequency > 80 ? CheckCircle : frequency > 50 ? Target : AlertTriangle,
+      if (frequency > 80) {
+        return {
+          type: 'success',
+          icon: CheckCircle,
+          title: 'Consistencia en el registro',
+          description: `Registros en ${daysWithLogs} de ${totalDays} días (${frequency.toFixed(0)}%)`,
+          recommendation: 'Excelente consistencia en los registros'
+        };
+      }
+      
+      if (frequency > 50) {
+        return {
+          type: 'warning',
+          icon: Target,
+          title: 'Consistencia en el registro',
+          description: `Registros en ${daysWithLogs} de ${totalDays} días (${frequency.toFixed(0)}%)`,
+          recommendation: 'Buen ritmo de registro, mantén la consistencia'
+        };
+      }
+      
+      return {
+        type: 'info',
+        icon: AlertTriangle,
         title: 'Consistencia en el registro',
         description: `Registros en ${daysWithLogs} de ${totalDays} días (${frequency.toFixed(0)}%)`,
-        recommendation: frequency < 50 
-          ? 'Intenta mantener registros más regulares para obtener mejores insights'
-          : frequency < 80
-          ? 'Buen ritmo de registro, mantén la consistencia'
-          : 'Excelente consistencia en los registros'
-      });
-    }
+        recommendation: 'Intenta mantener registros más regulares para obtener mejores insights'
+      };
+    };
 
-    // Análisis de estado de ánimo
-    const moodLogs = logs.filter(log => log.mood_score);
-    if (moodLogs.length > 5) {
+    const generateMoodInsight = () => {
+      const moodLogs = logs.filter(log => log.mood_score);
+      if (moodLogs.length <= 5) return null;
+      
       const avgMood = moodLogs.reduce((sum, log) => sum + log.mood_score, 0) / moodLogs.length;
       const recent = moodLogs.slice(0, 7);
       const recentAvg = recent.reduce((sum, log) => sum + log.mood_score, 0) / recent.length;
-      
       const trend = recentAvg - avgMood;
       
-      insights.push({
-        type: trend > 0.5 ? 'success' : trend < -0.5 ? 'warning' : 'info',
+      if (trend > 0.5) {
+        return {
+          type: 'success',
+          icon: Brain,
+          title: 'Tendencia del estado de ánimo',
+          description: `Promedio general: ${avgMood.toFixed(1)}/5, últimos 7 días: ${recentAvg.toFixed(1)}/5`,
+          recommendation: 'Tendencia positiva en el estado de ánimo reciente'
+        };
+      }
+      
+      if (trend < -0.5) {
+        return {
+          type: 'warning',
+          icon: Brain,
+          title: 'Tendencia del estado de ánimo',
+          description: `Promedio general: ${avgMood.toFixed(1)}/5, últimos 7 días: ${recentAvg.toFixed(1)}/5`,
+          recommendation: 'Considera revisar factores que puedan estar afectando el bienestar'
+        };
+      }
+      
+      return {
+        type: 'info',
         icon: Brain,
         title: 'Tendencia del estado de ánimo',
         description: `Promedio general: ${avgMood.toFixed(1)}/5, últimos 7 días: ${recentAvg.toFixed(1)}/5`,
-        recommendation: trend > 0.5 
-          ? 'Tendencia positiva en el estado de ánimo reciente'
-          : trend < -0.5
-          ? 'Considera revisar factores que puedan estar afectando el bienestar'
-          : 'Estado de ánimo estable'
-      });
-    }
+        recommendation: 'Estado de ánimo estable'
+      };
+    };
 
-    // Análisis de categorías
-    const categoryCount = logs.reduce((acc, log) => {
-      if (log.category_name) {
-        acc[log.category_name] = (acc[log.category_name] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    const generateCategoryInsight = () => {
+      const categoryCount = logs.reduce((acc, log) => {
+        if (log.category_name) {
+          acc[log.category_name] = (acc[log.category_name] ?? 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
 
-    const categories = Object.entries(categoryCount);
-    if (categories.length > 0) {
-      const mostUsedCategory = categories.sort(([,a], [,b]) => b - a)[0];
+      const categories = Object.entries(categoryCount);
+      if (categories.length === 0) return null;
+      // Primero ordenamos
+      const sortedCategories = categories.toSorted(([, a], [, b]) => 
+        (b as number) - (a as number)
+      );
       
-      insights.push({
+      const mostUsedCategory = sortedCategories[0];
+      const percentage = (mostUsedCategory[1] as number / logs.length) * 100;
+      return {
         type: 'info',
         icon: Target,
         title: 'Área de mayor atención',
-        description: `"${mostUsedCategory[0]}" representa ${((mostUsedCategory[1] / logs.length) * 100).toFixed(0)}% de los registros`,
+        description: `"${mostUsedCategory[0]}" representa ${percentage.toFixed(0)}% de los registros`,
         recommendation: 'Esta categoría requiere mayor atención y seguimiento'
-      });
+      };
+    };
+
+    // Generate each insight type
+    if (logs.length > 0) {
+      const frequencyInsight = generateFrequencyInsight();
+      if (frequencyInsight) insights.push(frequencyInsight);
     }
+
+    const moodInsight = generateMoodInsight();
+    if (moodInsight) insights.push(moodInsight);
+
+    const categoryInsight = generateCategoryInsight();
+    if (categoryInsight) insights.push(categoryInsight);
 
     return insights;
   };
@@ -331,44 +389,64 @@ export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
       </div>
     );
   }
+  const getInsightColorClass = (type: string): string => {
+    switch(type) {
+      case 'success': return 'bg-green-100';
+      case 'warning': return 'bg-yellow-100';
+      default: return 'bg-blue-100';
+    }
+  };
+
+  const getIconColorClass = (type: string): string => {
+    switch(type) {
+      case 'success': return 'text-green-600';
+      case 'warning': return 'text-yellow-600';
+      default: return 'text-blue-600';
+    }
+  };
+
+  const getBadgeVariant = (type: string): "default" | "destructive" | "secondary" | "outline" => {
+    switch(type) {
+      case 'success': return 'default';
+      case 'warning': return 'destructive';
+      default: return 'secondary';
+    }
+  };
+
+  const getBadgeText = (type: string): string => {
+    switch(type) {
+      case 'success': return 'Positivo';
+      case 'warning': return 'Atención';
+      default: return 'Info';
+    }
+  };
 
   return (
     <div className="space-y-4">
-      {insights.map((insight, index) => (
-        <Card key={index} className="border-l-4 border-l-blue-500">
-          <CardContent className="pt-4">
-            <div className="flex items-start space-x-3">
-              <div className={`p-2 rounded-lg ${
-                insight.type === 'success' ? 'bg-green-100' :
-                insight.type === 'warning' ? 'bg-yellow-100' :
-                'bg-blue-100'
-              }`}>
-                {React.createElement(insight.icon, {
-                  className: `h-5 w-5 ${
-                    insight.type === 'success' ? 'text-green-600' :
-                    insight.type === 'warning' ? 'text-yellow-600' :
-                    'text-blue-600'
-                  }`
-                })}
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium text-gray-900">{insight.title}</h4>
-                <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
-                <p className="text-sm text-gray-500 mt-2 italic">{insight.recommendation}</p>
-              </div>
-              <Badge variant={
-                insight.type === 'success' ? 'default' :
-                insight.type === 'warning' ? 'destructive' :
-                'secondary'
-              }>
-                {insight.type === 'success' ? 'Positivo' :
-                 insight.type === 'warning' ? 'Atención' :
-                 'Info'}
-              </Badge>
+    {insights.map((insight) => (
+      <Card 
+        key={`${insight.type}-${insight.title}`} 
+        className="border-l-4 border-l-blue-500"
+      >
+        <CardContent className="pt-4">
+          <div className="flex items-start space-x-3">
+            <div className={`p-2 rounded-lg ${getInsightColorClass(insight.type)}`}>
+              {React.createElement(insight.icon, {
+                className: `h-5 w-5 ${getIconColorClass(insight.type)}`
+              })}
             </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-gray-900">{insight.title}</h4>
+              <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
+              <p className="text-sm text-gray-500 mt-2 italic">{insight.recommendation}</p>
+            </div>
+            <Badge variant={getBadgeVariant(insight.type)}>
+              {getBadgeText(insight.type)}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
   );
 }

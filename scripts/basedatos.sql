@@ -4,17 +4,55 @@
 -- Ejecutar completo en Supabase SQL Editor
 -- Borra todo y crea desde cero según últimas actualizaciones
 
+-- Definición de variables de configuración PostgreSQL
+\set role_parent 'parent'
+\set role_teacher 'teacher'
+\set role_specialist 'specialist'
+\set role_admin 'admin'
+\set rel_parent 'parent'
+\set rel_teacher 'teacher'
+\set rel_specialist 'specialist'
+\set rel_observer 'observer'
+\set rel_family 'family'
+\set risk_low 'low'
+\set risk_medium 'medium'
+\set risk_high 'high'
+\set risk_critical 'critical'
+
+-- Variables compuestas para CHECK constraints
+\set role_values ':role_parent, :role_teacher, :role_specialist, :role_admin'
+\set rel_values ':rel_parent, :rel_teacher, :rel_specialist, :rel_observer, :rel_family'
+\set op_values ':op_insert, :op_update, :op_delete, :op_select'
+\set risk_values ':risk_low, :risk_medium, :risk_high, :risk_critical'
+\set boolean_values ':true_value, :false_value'
+
+-- Variables para uso en DEFAULT values
+\set default_role ':role_parent'
+\set default_risk ':risk_low'
+\set default_boolean ':false_value'
+
+-- Variables para uso en políticas RLS
+\set creator_check 'created_by = auth.uid()'
+\set owner_check 'user_id = auth.uid()'
+\set logged_by_check 'logged_by = auth.uid()'
+\set child_creator_check '(SELECT COUNT(*) FROM children WHERE id = child_id AND created_by = auth.uid()) > 0'
+
+-- ================================================================
+-- NEUROLOG APP - SCRIPT COMPLETO DE BASE DE DATOS
+-- ================================================================
+-- Ejecutar completo en Supabase SQL Editor
+-- Borra todo y crea desde cero según últimas actualizaciones
+
 -- ================================================================
 -- 1. LIMPIAR TODO LO EXISTENTE
 -- ================================================================
 
 -- Deshabilitar RLS temporalmente
-ALTER TABLE IF EXISTS daily_logs DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS user_child_relations DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS children DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS profiles DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS categories DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS audit_logs DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS daily_logs co_disable_rls;
+ALTER TABLE IF EXISTS user_child_relations co_disable_rls;
+ALTER TABLE IF EXISTS profiles co_disable_rls;
+ALTER TABLE IF EXISTS categories co_disable_rls;
+ALTER TABLE IF EXISTS audit_logs co_disable_rls;
 
 -- Eliminar vistas
 DROP VIEW IF EXISTS user_accessible_children CASCADE;
@@ -51,7 +89,7 @@ CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
-  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
+  role TEXT CHECK (role IN (:role_parent, :role_teacher, :role_specialist, :role_admin)) DEFAULT :role_parent,
   avatar_url TEXT,
   phone TEXT,
   is_active BOOLEAN DEFAULT TRUE,
@@ -90,12 +128,7 @@ CREATE TABLE children (
   emergency_contact JSONB DEFAULT '[]',
   medical_info JSONB DEFAULT '{}',
   educational_info JSONB DEFAULT '{}',
-  privacy_settings JSONB DEFAULT '{
-    "share_with_specialists": true,
-    "share_progress_reports": true,
-    "allow_photo_sharing": false,
-    "data_retention_months": 36
-  }',
+  privacy_settings JSONB DEFAULT '{"share_with_specialists": true, "share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}',
   created_by UUID REFERENCES profiles(id) NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -106,7 +139,7 @@ CREATE TABLE user_child_relations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
-  relationship_type TEXT CHECK (relationship_type IN ('parent', 'teacher', 'specialist', 'observer', 'family')) NOT NULL,
+  relationship_type TEXT CHECK (relationship_type IN (:rel_parent, :rel_teacher, :rel_specialist, :rel_observer, :rel_family)) NOT NULL,
   can_edit BOOLEAN DEFAULT FALSE,
   can_view BOOLEAN DEFAULT TRUE,
   can_export BOOLEAN DEFAULT FALSE,
@@ -130,7 +163,7 @@ CREATE TABLE daily_logs (
   title TEXT NOT NULL CHECK (length(trim(title)) >= 2),
   content TEXT NOT NULL,
   mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10),
-  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium',
+  intensity_level TEXT CHECK (intensity_level IN (:risk_low, :risk_medium, :risk_high)) DEFAULT :risk_medium,
   logged_by UUID REFERENCES profiles(id) NOT NULL,
   log_date DATE DEFAULT CURRENT_DATE,
   is_private BOOLEAN DEFAULT FALSE,
@@ -154,7 +187,7 @@ CREATE TABLE daily_logs (
 CREATE TABLE audit_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   table_name TEXT NOT NULL,
-  operation TEXT CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE', 'SELECT')) NOT NULL,
+  operation TEXT CHECK (operation IN (:op_insert, :op_update, :op_delete, :op_select)) NOT NULL,
   record_id TEXT,
   user_id UUID REFERENCES profiles(id),
   user_role TEXT,
@@ -164,7 +197,7 @@ CREATE TABLE audit_logs (
   ip_address INET,
   user_agent TEXT,
   session_id TEXT,
-  risk_level TEXT CHECK (risk_level IN ('low', 'medium', 'high', 'critical')) DEFAULT 'low',
+  risk_level TEXT CHECK (risk_level IN (:risk_low, :risk_medium, :risk_high, :risk_critical)) DEFAULT :risk_low,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -220,7 +253,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')
+    COALESCE(NEW.raw_user_meta_data->>'role', :rel_parent::)
   );
   RETURN NEW;
 END;
@@ -260,8 +293,9 @@ CREATE TRIGGER on_auth_user_created
 CREATE OR REPLACE FUNCTION user_can_access_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM children 
+  RETURN (
+    SELECT COUNT(*) > 0 
+    FROM children
     WHERE id = child_uuid 
       AND created_by = auth.uid()
   );
@@ -272,8 +306,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION user_can_edit_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM children 
+  RETURN (
+     SELECT COUNT(*) > 0 
+    FROM children 
     WHERE id = child_uuid 
       AND created_by = auth.uid()
   );
@@ -287,6 +322,8 @@ CREATE OR REPLACE FUNCTION audit_sensitive_access(
   action_details TEXT DEFAULT NULL
 )
 RETURNS VOID AS $$
+DECLARE
+  audit_result BOOLEAN -- Nivel de riesgo por defecto
 BEGIN
   INSERT INTO audit_logs (
     table_name,
@@ -307,8 +344,12 @@ BEGIN
       'details', action_details,
       'timestamp', NOW()
     ),
-    'medium'
-  );
+    :risk_medium
+  );RETURNING TRUE INTO audit_result;
+
+  IF NOT audit_result THEN
+    RAISE EXCEPTION 'Audit log failed for resource %', resource_id;
+  END IF;
 EXCEPTION
   WHEN OTHERS THEN
     NULL; -- No fallar por errores de auditoría
@@ -323,7 +364,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE VIEW user_accessible_children AS
 SELECT 
   c.*,
-  'parent'::TEXT as relationship_type,
+  :rel_parent::TEXT as relationship_type,
   true as can_edit,
   true as can_view,
   true as can_export,
@@ -350,7 +391,7 @@ SELECT
   COUNT(CASE WHEN dl.is_private THEN 1 END) as private_logs,
   COUNT(CASE WHEN dl.reviewed_at IS NOT NULL THEN 1 END) as reviewed_logs
 FROM children c
-LEFT JOIN daily_logs dl ON c.id = dl.child_id AND dl.is_deleted = false
+LEFT JOIN daily_logs dl ON c.id = dl.child_id AND NOT dl.is_deleted
 WHERE c.created_by = auth.uid()
 GROUP BY c.id, c.name;
 
@@ -403,9 +444,10 @@ CREATE POLICY "Authenticated users can create children" ON children
     created_by = auth.uid()
   );
 
-CREATE POLICY "Creators can update own children" ON children
-  FOR UPDATE USING (created_by = auth.uid())
-  WITH CHECK (created_by = auth.uid());
+
+CREATE POLICY "Creators can update children" ON children
+  FOR UPDATE USING (:creator_check)
+  WITH CHECK (:creator_check);
 
 -- POLÍTICAS PARA USER_CHILD_RELATIONS (SIMPLES)
 CREATE POLICY "Users can view own relations" ON user_child_relations
@@ -414,11 +456,9 @@ CREATE POLICY "Users can view own relations" ON user_child_relations
 CREATE POLICY "Users can create relations for own children" ON user_child_relations
   FOR INSERT WITH CHECK (
     granted_by = auth.uid() AND
-    EXISTS (
-      SELECT 1 FROM children 
-      WHERE id = user_child_relations.child_id 
-        AND created_by = auth.uid()
-    )
+    (SELECT COUNT(*) FROM children 
+     WHERE id = user_child_relations.child_id 
+       AND created_by = auth.uid()) > 0
   );
 
 -- POLÍTICAS PARA DAILY_LOGS (SIMPLES)
@@ -465,11 +505,13 @@ DECLARE
   policy_count INTEGER;
   function_count INTEGER;
   category_count INTEGER;
+  schema_public CONSTANT TEXT := 'public';
+  table_profiles CONSTANT TEXT := 'profiles';
 BEGIN
   -- Contar tablas
   SELECT COUNT(*) INTO table_count
   FROM information_schema.tables 
-  WHERE table_schema = 'public' 
+  WHERE table_schema = schema_public 
     AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
@@ -477,7 +519,7 @@ BEGIN
   -- Contar políticas
   SELECT COUNT(*) INTO policy_count
   FROM pg_policies 
-  WHERE schemaname = 'public';
+  WHERE schemaname = schema_public
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
   
