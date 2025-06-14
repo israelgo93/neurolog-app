@@ -28,11 +28,11 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
 
   const handleExport = async () => {
     setIsExporting(true);
-    
+
     try {
       // TODO: Implementar lógica real de exportación
       await new Promise(resolve => setTimeout(resolve, 2000)); // Simular exportación
-      
+
       console.log('Exportando reporte:', {
         format,
         includeCharts,
@@ -40,7 +40,7 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
         sendByEmail,
         recordCount: data.length
       });
-      
+
       onOpenChange(false);
     } catch (error) {
       console.error('Error exporting report:', error);
@@ -58,10 +58,10 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
             Configura las opciones de exportación para tu reporte personalizado.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+          <div className="space-y-3">
+            <label htmlFor="formato" className="text-sm font-medium text-gray-700 mb-2 block">
               Formato
             </label>
             <Select value={format} onValueChange={setFormat}>
@@ -75,69 +75,72 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-700 block">
+            <label htmlFor="incluir" className="text-sm font-medium text-gray-700 block">
               Incluir en el reporte
             </label>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="charts" 
-                checked={includeCharts}
-                onCheckedChange={setIncludeCharts}
-              />
-              <label htmlFor="charts" className="text-sm text-gray-700">
-                Gráficos y visualizaciones
-              </label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="rawdata" 
-                checked={includeRawData}
-                onCheckedChange={setIncludeRawData}
-              />
-              <label htmlFor="rawdata" className="text-sm text-gray-700">
-                Datos detallados por registro
-              </label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="email" 
-                checked={sendByEmail}
-                onCheckedChange={setSendByEmail}
-              />
-              <label htmlFor="email" className="text-sm text-gray-700">
-                Enviar por correo electrónico
-              </label>
-            </div>
+            {}
           </div>
-          
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-sm text-gray-600">
-              <strong>Resumen:</strong> {data.length} registros, {Object.keys(metrics).length} métricas
-            </p>
+
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="charts"
+              checked={includeCharts}
+              onCheckedChange={setIncludeCharts}
+            />
+            <label htmlFor="charts" className="text-sm text-gray-700">
+              Gráficos y visualizaciones
+            </label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="rawdata"
+              checked={includeRawData}
+              onCheckedChange={setIncludeRawData}
+            />
+            <label htmlFor="rawdata" className="text-sm text-gray-700">
+              Datos detallados por registro
+            </label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="email"
+              checked={sendByEmail}
+              onCheckedChange={setSendByEmail}
+            />
+            <label htmlFor="email" className="text-sm text-gray-700">
+              Enviar por correo electrónico
+            </label>
           </div>
         </div>
-        
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button onClick={handleExport} disabled={isExporting}>
-            {isExporting ? (
-              'Generando...'
-            ) : (
-              <>
-                {sendByEmail ? <Mail className="h-4 w-4 mr-2" /> : <Download className="h-4 w-4 mr-2" />}
-                {sendByEmail ? 'Enviar Reporte' : 'Descargar Reporte'}
-              </>
-            )}
-          </Button>
+
+        <div className="bg-gray-50 rounded-lg p-3">
+          <p className="text-sm text-gray-600">
+            <strong>Resumen:</strong> {data.length} registros, {Object.keys(metrics).length} métricas
+          </p>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button variant="outline" onClick={() => onOpenChange(false)}>
+          Cancelar
+        </Button>
+        <Button onClick={handleExport} disabled={isExporting}>
+          {isExporting ? (
+            'Generando...'
+          ) : (
+            <>
+              {sendByEmail ? <Mail className="h-4 w-4 mr-2" /> : <Download className="h-4 w-4 mr-2" />}
+              {sendByEmail ? 'Enviar Reporte' : 'Descargar Reporte'}
+            </>
+          )}
+        </Button>
+      </div>
+    </DialogContent>
+    </Dialog >
   );
 }
