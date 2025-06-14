@@ -344,7 +344,7 @@ function LoadingSkeleton() {
   );
 }
 
-function ErrorState({ error }: { error: string }) {
+function ErrorState({ error }: Readonly<{ error: string }>) {
   return (
     <Card className="border-red-200 bg-red-50">
       <CardContent className="text-center py-12">
