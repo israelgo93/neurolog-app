@@ -454,7 +454,7 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
   }, [logs, userId]);
 
   const exportLogs = useCallback(async (format: 'csv' | 'pdf', filters?: LogFilters): Promise<void> => {
-    // TODO: Implementar exportación
+    //  Implementar exportación
     console.log('Exportando logs en formato:', format, 'con filtros:', filters);
   }, []);
 

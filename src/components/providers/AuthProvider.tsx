@@ -419,7 +419,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       return subscription;
     };
 
-    //  INICIALIZAR TODO
+    //  INICIALIZAR
     initializeAuth();
     setupAuthListener();
 

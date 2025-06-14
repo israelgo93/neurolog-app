@@ -117,8 +117,8 @@ function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
 
   return (
     <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-      {statCards.map((stat, index) => (
-        <Card key={index} className={`hover:shadow-md transition-all duration-200 ${stat.borderColor} border-l-4`}>
+      {statCards.map((stat) => (
+        <Card key={stat.title} className={`hover:shadow-md transition-all duration-200 ${stat.borderColor} border-l-4`}>
           <CardContent className="p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between space-x-2">
               <div className="space-y-1 sm:space-y-2 flex-1 min-w-0">
