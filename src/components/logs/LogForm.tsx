@@ -180,6 +180,12 @@ function MoodSelector({ value, onChange }: Readonly<MoodSelectorProps>) {
   );
 }
 
+function getSecureRandomString(length = 16) {
+  const array = new Uint8Array(length);
+  window.crypto.getRandomValues(array);
+  return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+}
+
 function AttachmentsManager({ attachments, onChange, childId }: Readonly<AttachmentsManagerProps>) {
   const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
@@ -194,17 +200,14 @@ function AttachmentsManager({ attachments, onChange, childId }: Readonly<Attachm
 
       for (const file of Array.from(files)) {
         const fileName = `${childId}/${Date.now()}-${file.name}`;
-        
-        await uploadFile('attachments', fileName, file);
-        const url = getPublicUrl('attachments', fileName);
-        
+        await uploadFile('ATTACHMENTS', file, fileName);
+        const url = getPublicUrl('ATTACHMENTS', fileName);
         let type: LogAttachment['type'] = 'document';
         if (file.type.startsWith('image/')) type = 'image';
         else if (file.type.startsWith('video/')) type = 'video';
         else if (file.type.startsWith('audio/')) type = 'audio';
-        
         newAttachments.push({
-          id: `${Date.now()}-${Math.random()}`,
+          id: `${Date.now()}-${getSecureRandomString(12)}`,
           name: file.name,
           url,
           type,
