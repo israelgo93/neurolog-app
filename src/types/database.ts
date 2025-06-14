@@ -3,6 +3,7 @@
 // NOTA: Este es un archivo placeholder. Para obtener los tipos completos ejecuta:
 // npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/types/database.ts
 
+// Alias de tipos
 export type UserRole = 'parent' | 'teacher' | 'specialist' | 'admin';
 export type IntensityLevel = 'low' | 'medium' | 'high';
 
