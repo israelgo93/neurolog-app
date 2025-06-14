@@ -344,7 +344,7 @@ export function AdvancedInsights({ logs }: Readonly<AdvancedInsightsProps>) {
       return acc;
     }, {} as Record<string, number>);
 
-    const categories = Object.entries(categoryCount) as [string, number][];
+    const categories = Object.entries(categoryCount);
     if (categories.length === 0) return null;
     
     const sortedCategories = categories.toSorted(([, a], [, b]) => b - a);

@@ -97,7 +97,7 @@ export function AddLogDialog({ open, onOpenChange, preselectedChildId }: AddLogD
     try {
       const logData = {
         child_id: formData.child_id,
-        category_id: formData.category_id || null,
+        category_id: formData.category_id ?? null,
         title: formData.title.trim(),
         content: formData.content.trim(),
         mood_score: formData.mood_score,
