@@ -393,11 +393,10 @@ function TagsInput({ tags, onChange }: TagsInputProps) {
 // ================================================================
 
 export default function LogForm({ log, childId, mode, onSuccess, onCancel }: LogFormProps) {
-  const { user } = useAuth();
   const { children } = useChildren();
   const { createLog, updateLog } = useLogs();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [setLoadingCategories] = useState(true);
   const router = useRouter();
 
   const form = useForm<LogFormData>({
