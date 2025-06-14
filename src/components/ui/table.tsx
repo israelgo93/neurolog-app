@@ -20,6 +20,9 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
             <th>Header</th>
           </tr>
         </thead>
+        <tbody>
+          {/* Table content goes here */}
+        </tbody>
       </table>
     </div>
   )
