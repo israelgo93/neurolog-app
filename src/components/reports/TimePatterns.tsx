@@ -10,44 +10,52 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Calendar, TrendingUp, TrendingDown, Minus, Brain, Target, AlertTriangle, CheckCircle } from 'lucide-react';
 
+type InsightType = 'warning' | 'info' | 'success';
+
 interface TimePatternsProps {
-  logs: any[];
+  readonly logs: any[];
 }
 
 interface CorrelationAnalysisProps {
-  logs: any[];
+  readonly logs: any[];
 }
 
 interface AdvancedInsightsProps {
   logs: any[];
 }
 
+interface InsightResult {
+  type: InsightType;
+  icon: any;
+  title: string;
+  description: string;
+  recommendation: string;
+}
+
 // ================================================================
 // TIMEPATTERNS COMPONENT
 // ================================================================
 
-export function TimePatterns({ logs }: TimePatternsProps) {
-  // Analizar patrones por hora del día
+export function TimePatterns({ logs }: TimePatternsProps) {  // Analizar patrones por hora del día
   const hourlyPattern = logs.reduce((acc, log) => {
     const hour = new Date(log.created_at).getHours();
-    acc[hour] = (acc[hour] || 0) + 1;
+    acc[hour] = (acc[hour] ?? 0) + 1;
     return acc;
   }, {} as Record<number, number>);
 
   // Analizar patrones por día de la semana
   const weeklyPattern = logs.reduce((acc, log) => {
     const day = new Date(log.created_at).getDay();
-    acc[day] = (acc[day] || 0) + 1;
+    acc[day] = (acc[day] ?? 0) + 1;
     return acc;
   }, {} as Record<number, number>);
 
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
   const getMostActiveHour = () => {
     const values = Object.values(hourlyPattern);
     if (values.length === 0) return 'N/A';
     
-    const max = Math.max(...values);
+    const max = Math.max(...(values as number[]));
     const hour = Object.keys(hourlyPattern).find(h => hourlyPattern[parseInt(h)] === max);
     return hour ? `${hour}:00` : 'N/A';
   };
@@ -56,7 +64,7 @@ export function TimePatterns({ logs }: TimePatternsProps) {
     const values = Object.values(weeklyPattern);
     if (values.length === 0) return 'N/A';
     
-    const max = Math.max(...values);
+    const max = Math.max(...(values as number[]));
     const day = Object.keys(weeklyPattern).find(d => weeklyPattern[parseInt(d)] === max);
     return day ? dayNames[parseInt(day)] : 'N/A';
   };
@@ -90,12 +98,10 @@ export function TimePatterns({ logs }: TimePatternsProps) {
       </div>
 
       <div>
-        <h4 className="text-sm font-medium mb-2">Distribución por días de la semana</h4>
-        <div className="flex space-x-1">
+        <h4 className="text-sm font-medium mb-2">Distribución por días de la semana</h4>        <div className="flex space-x-1">
           {dayNames.map((day, index) => {
-            const count = weeklyPattern[index] || 0;
-            const values = Object.values(weeklyPattern);
-            const maxCount = values.length > 0 ? Math.max(...values) : 0;
+            const count = weeklyPattern[index] ?? 0;            const values = Object.values(weeklyPattern);
+            const maxCount = values.length > 0 ? Math.max(...(values as number[])) : 0;
             const intensity = maxCount > 0 ? (count / maxCount) * 100 : 0;
             
             return (
@@ -139,32 +145,33 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
     
     return denomX * denomY === 0 ? 0 : numerator / (denomX * denomY);
   }
+  // Helper para convertir nivel de intensidad a número
+  const getIntensityValue = (level: string): number => {
+    if (level === 'low') return 1;
+    if (level === 'medium') return 2;
+    return 3;
+  };
 
   // Calcular correlación entre estado de ánimo e intensidad
   const moodIntensityCorr = calculateCorrelation(
     logs.filter(l => l.mood_score && l.intensity_level),
     'mood_score',
-    log => log.intensity_level === 'low' ? 1 : log.intensity_level === 'medium' ? 2 : 3
-  );
-
-  // Calcular correlación entre categorías y estado de ánimo
+    log => getIntensityValue(log.intensity_level)
+  );// Calcular correlación entre categorías y estado de ánimo
   const categoryMoodCorr = logs.reduce((acc, log) => {
     if (!log.mood_score || !log.category_name) return acc;
     
-    if (!acc[log.category_name]) {
-      acc[log.category_name] = { total: 0, count: 0 };
-    }
+    acc[log.category_name] ??= { total: 0, count: 0 };
     
     acc[log.category_name].total += log.mood_score;
     acc[log.category_name].count += 1;
     
     return acc;
   }, {} as Record<string, { total: number; count: number }>);
-
   const categoryAverages = Object.entries(categoryMoodCorr).map(([category, data]) => ({
     category,
-    avgMood: data.total / data.count,
-    count: data.count
+    avgMood: (data as { total: number; count: number }).total / (data as { total: number; count: number }).count,
+    count: (data as { total: number; count: number }).count
   })).sort((a, b) => b.avgMood - a.avgMood);
 
   const getCorrelationIcon = (correlation: number) => {
@@ -339,7 +346,7 @@ function getBadgeText(type: string): string {
 // FUNCIONES DE ANÁLISIS ESPECÍFICAS
 // ================================================================
 
-function analyzeFrequency(logs: any[]): any | null {
+function analyzeFrequency(logs: any[]): InsightResult | null {
   if (logs.length === 0) return null;
 
   const daysWithLogs = new Set(logs.map(log => 
@@ -358,7 +365,7 @@ function analyzeFrequency(logs: any[]): any | null {
   };
 }
 
-function analyzeMoodTrend(logs: any[]): any | null {
+function analyzeMoodTrend(logs: any[]): InsightResult | null {
   const moodLogs = logs.filter(log => log.mood_score);
   if (moodLogs.length <= MIN_MOOD_LOGS_FOR_ANALYSIS) return null;
 
@@ -378,10 +385,10 @@ function analyzeMoodTrend(logs: any[]): any | null {
   };
 }
 
-function analyzeCategories(logs: any[]): any | null {
+function analyzeCategories(logs: any[]): InsightResult | null {
   const categoryCount = logs.reduce((acc, log) => {
     if (log.category_name) {
-      acc[log.category_name] = (acc[log.category_name] || 0) + 1;
+      acc[log.category_name] = (acc[log.category_name] ?? 0) + 1;
     }
     return acc;
   }, {} as Record<string, number>);
