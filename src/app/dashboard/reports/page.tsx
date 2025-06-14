@@ -103,11 +103,13 @@ export default function ReportsPage() {
   // Calcular métricas
   const metrics = {
     totalLogs: filteredLogs.length,
-    averageMood: filteredLogs.filter(l => l.mood_score).length > 0 
-      ? (filteredLogs.filter(l => l.mood_score).reduce((sum, l) => sum + l.mood_score, 0) / filteredLogs.filter(l => l.mood_score).length)
+    averageMood: filteredLogs.filter(l => typeof l.mood_score === 'number').length > 0 
+      ? (filteredLogs
+          .filter(l => typeof l.mood_score === 'number')
+          .reduce((sum, l) => sum + (l.mood_score as number), 0) / filteredLogs.filter(l => typeof l.mood_score === 'number').length)
       : 0,
     improvementTrend: calculateImprovementTrend(filteredLogs),
-    activeCategories: new Set(filteredLogs.map(l => l.category_name).filter(Boolean)).size,
+    activeCategories: new Set(filteredLogs.map(l => l.category).filter(Boolean)).size,
     followUpsRequired: filteredLogs.filter(l => l.follow_up_required).length,
     activeDays: new Set(filteredLogs.map(l => new Date(l.created_at).toDateString())).size
   };
@@ -165,7 +167,7 @@ export default function ReportsPage() {
   <span id="dateRangePicker">
     <DatePickerWithRange 
       date={dateRange}
-      onDateChange={setDateRange}
+      onChange={setDateRange}
     />
   </span>
 </div>
