@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 function Skeleton({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: Readonly<React.HTMLAttributes<HTMLDivElement>>) {
   return (
     <div
       className={cn(
@@ -63,12 +63,12 @@ function SkeletonAvatar() {
   return <Skeleton className="h-8 w-8 rounded-full" />
 }
 
-function SkeletonText({ lines = 3 }: { lines?: number }) {
+function SkeletonText({ lines = 3 }: Readonly<{ lines?: number }>) {
   return (
     <div className="space-y-2">
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton 
-          key={i} 
+          key={`skeleton-text-line-${lines}-${i}-${Math.random().toString(36).substring(2, 11)}`} 
           className={cn(
             "h-4",
             i === lines - 1 ? "w-[80%]" : "w-full"
