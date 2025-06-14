@@ -235,7 +235,7 @@ export default function ChildDetailPage() {
             <div className="flex items-center space-x-2">
               <UsersIcon className="h-5 w-5 text-gray-600" />
               <div>
-                <p className="text-2xl font-bold text-gray-900">{child.user_relations?.length || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{child.user_relations?.length ?? 0}</p>
                 <p className="text-xs text-gray-600">Usuarios</p>
               </div>
             </div>
