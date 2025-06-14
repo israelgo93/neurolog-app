@@ -143,11 +143,11 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
   }
 
   function mapLogsData(data: any[]): LogWithDetails[] {
-    return (data || []).map(log => ({
+    return (data ?? []).map(log => ({
       ...log,
-      child: log.child || { id: log.child_id, name: 'Niño desconocido', avatar_url: null },
-      category: log.category || { id: '', name: 'Sin categoría', color: '#gray', icon: 'circle' },
-      logged_by_profile: log.logged_by_profile || { id: log.logged_by, full_name: 'Usuario desconocido', avatar_url: null }
+      child: log.child ?? { id: log.child_id, name: 'Niño desconocido', avatar_url: null },
+      category: log.category ?? { id: '', name: 'Sin categoría', color: '#gray', icon: 'circle' },
+      logged_by_profile: log.logged_by_profile ?? { id: log.logged_by, full_name: 'Usuario desconocido', avatar_url: null }
     })) as LogWithDetails[];
   }
 
