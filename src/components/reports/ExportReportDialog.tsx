@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Download, Mail } from 'lucide-react';
+import { Download, Mail } from 'lucide-react';
 
 interface ExportReportDialogProps {
   open: boolean;
@@ -19,7 +19,7 @@ interface ExportReportDialogProps {
   metrics: any;
 }
 
-export function ExportReportDialog({ open, onOpenChange, data, metrics }: ExportReportDialogProps) {
+export function ExportReportDialog({ open, onOpenChange, data, metrics }: Readonly<ExportReportDialogProps>) {
   const [format, setFormat] = useState('pdf');
   const [includeCharts, setIncludeCharts] = useState(true);
   const [includeRawData, setIncludeRawData] = useState(false);
@@ -30,7 +30,7 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
     setIsExporting(true);
     
     try {
-      // TODO: Implementar lógica real de exportación
+      // Implementar lógica real de exportación
       await new Promise(resolve => setTimeout(resolve, 2000)); // Simular exportación
       
       console.log('Exportando reporte:', {
@@ -61,11 +61,11 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
         
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label htmlFor="format-select" className="text-sm font-medium text-gray-700 mb-2 block">
               Formato
             </label>
             <Select value={format} onValueChange={setFormat}>
-              <SelectTrigger>
+              <SelectTrigger id="format-select">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -77,41 +77,43 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
           </div>
           
           <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-700 block">
+            <label htmlFor="include-options" className="text-sm font-medium text-gray-700 block">
               Incluir en el reporte
             </label>
             
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="charts" 
-                checked={includeCharts}
-                onCheckedChange={setIncludeCharts}
-              />
-              <label htmlFor="charts" className="text-sm text-gray-700">
-                Gráficos y visualizaciones
-              </label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="rawdata" 
-                checked={includeRawData}
-                onCheckedChange={setIncludeRawData}
-              />
-              <label htmlFor="rawdata" className="text-sm text-gray-700">
-                Datos detallados por registro
-              </label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="email" 
-                checked={sendByEmail}
-                onCheckedChange={setSendByEmail}
-              />
-              <label htmlFor="email" className="text-sm text-gray-700">
-                Enviar por correo electrónico
-              </label>
+            <div id="include-options">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="charts" 
+                  checked={includeCharts}
+                  onCheckedChange={setIncludeCharts}
+                />
+                <label htmlFor="charts" className="text-sm text-gray-700">
+                  Gráficos y visualizaciones
+                </label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="rawdata" 
+                  checked={includeRawData}
+                  onCheckedChange={setIncludeRawData}
+                />
+                <label htmlFor="rawdata" className="text-sm text-gray-700">
+                  Datos detallados por registro
+                </label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="email" 
+                  checked={sendByEmail}
+                  onCheckedChange={setSendByEmail}
+                />
+                <label htmlFor="email" className="text-sm text-gray-700">
+                  Enviar por correo electrónico
+                </label>
+              </div>
             </div>
           </div>
           

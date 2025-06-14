@@ -11,11 +11,11 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, Calendar, TrendingUp, TrendingDown, Minus, Brain, Target, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface TimePatternsProps {
-  logs: any[];
+  readonly logs: any[];
 }
 
 interface CorrelationAnalysisProps {
-  logs: any[];
+  readonly logs: any[];
 }
 
 interface AdvancedInsightsProps {
