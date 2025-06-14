@@ -263,24 +263,24 @@ export function AddLogDialog({ open, onOpenChange, preselectedChildId }: AddLogD
 
             <div className="space-y-2">
               <Label>Intensidad</Label>
-              <Select 
+                <Select 
                 value={formData.intensity_level} 
-                onValueChange={(value) => handleInputChange('intensity_level', value as any)}
+                onValueChange={(value) => handleInputChange('intensity_level', value)}
                 disabled={loading}
-              >
+                >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {intensityOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <Badge variant="outline" className={option.color}>
-                        {option.label}
-                      </Badge>
-                    </SelectItem>
+                  <SelectItem key={option.value} value={option.value}>
+                    <Badge variant="outline" className={option.color}>
+                    {option.label}
+                    </Badge>
+                  </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+                </Select>
             </div>
           </div>
 
