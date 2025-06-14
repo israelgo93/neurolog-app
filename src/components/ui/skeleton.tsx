@@ -3,6 +3,19 @@
 
 import { cn } from "@/lib/utils"
 
+// Función helper para generar IDs únicos de forma segura
+function generateSecureId(): string {
+  // Usar crypto.getRandomValues() si está disponible (navegador)
+  if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+    const array = new Uint32Array(2);
+    window.crypto.getRandomValues(array);
+    return `skeleton-${Date.now()}-${array[0].toString(36)}${array[1].toString(36)}`;
+  }
+  
+  // Fallback para entornos donde crypto no está disponible
+  return `skeleton-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+}
+
 function Skeleton({
   className,
   ...props
@@ -64,9 +77,9 @@ function SkeletonAvatar() {
 }
 
 function SkeletonText({ lines = 3 }: Readonly<{ lines?: number }>) {
-  // Generar IDs únicos para cada línea de skeleton
+  // Generar IDs únicos para cada línea de skeleton usando crypto seguro
   const skeletonLines = Array.from({ length: lines }, (_, i) => ({
-    id: `skeleton-text-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+    id: generateSecureId(),
     isLastLine: i === lines - 1
   }));
 
