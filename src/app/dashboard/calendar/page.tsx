@@ -115,20 +115,23 @@ export default function CalendarPage() {
                 >
                 {format(day, 'd')}
                 {/* Placeholder for events */}
-                {(() => {
-                  // Use crypto.getRandomValues for secure random
-                  const array = new Uint32Array(1);
-                  if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
-                  window.crypto.getRandomValues(array);
-                  return array[0] % 10 > 8 ? (
-                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
-                  ) : null;
-                  }
-                  // Fallback for environments without crypto
-                  return Math.floor(Math.random() * 10) > 8 ? (
-                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
-                  ) : null;
-                })()}
+                {
+                  (() => {
+                    // Use crypto.getRandomValues for secure random
+                    if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+                      const array = new Uint32Array(1);
+                      window.crypto.getRandomValues(array);
+                      return array[0] % 10 > 8 ? (
+                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
+                      ) : null;
+                    }
+                    // Fallback for environments without crypto
+                    const randomValue = Math.floor(Math.random() * 10);
+                    return randomValue > 8 ? (
+                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
+                    ) : null;
+                  })()
+                }
                 </div>
             ))}
           </div>
