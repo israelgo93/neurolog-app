@@ -97,7 +97,7 @@ export function AddLogDialog({ open, onOpenChange, preselectedChildId }: Readonl
     try {
       const logData = {
         child_id: formData.child_id,
-        category_id: formData.category_id || null,
+        category_id: formData.category_id ?? null,
         title: formData.title.trim(),
         content: formData.content.trim(),
         mood_score: formData.mood_score,
@@ -265,7 +265,7 @@ export function AddLogDialog({ open, onOpenChange, preselectedChildId }: Readonl
               <Label>Intensidad</Label>
               <Select 
                 value={formData.intensity_level} 
-                onValueChange={(value) => handleInputChange('intensity_level', value as any)}
+                onValueChange={(value) => handleInputChange('intensity_level', value )}
                 disabled={loading}
               >
                 <SelectTrigger>

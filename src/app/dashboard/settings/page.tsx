@@ -247,7 +247,7 @@ export default function SettingsPage() {
             <Label htmlFor="role">Rol en la aplicación</Label>
             <Select 
               value={profileData.role} 
-              onValueChange={(value) => setProfileData(prev => ({ ...prev, role: value as any }))}
+              onValueChange={(value) => setProfileData(prev => ({ ...prev, role: value}))}
               disabled={!isEditing}
             >
               <SelectTrigger>

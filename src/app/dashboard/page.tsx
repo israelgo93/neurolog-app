@@ -357,7 +357,7 @@ function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
                   </div>
                 )}
                 <Badge variant="outline" className="text-xs">
-                  {log.category_name || 'General'}
+                  {log.category_name ?? 'General'}
                 </Badge>
               </div>
             </div>
@@ -426,7 +426,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] || 'Usuario'}
+            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] ?? 'Usuario'}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
             Aquí está el resumen de hoy para tus niños en seguimiento

@@ -229,7 +229,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
 
   const addItem = (field: string, value: string, setter: (value: string) => void) => {
     if (value.trim()) {
-      const currentItems = medicalInfo[field] || [];
+      const currentItems = medicalInfo[field] ?? [];
       onChange({
         ...medicalInfo,
         [field]: [...currentItems, value.trim()]
@@ -239,7 +239,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
   };
 
   const removeItem = (field: string, index: number) => {
-    const currentItems = medicalInfo[field] || [];
+    const currentItems = medicalInfo[field] ?? [];
     onChange({
       ...medicalInfo,
       [field]: currentItems.filter((_: any, i: number) => i !== index)
@@ -308,7 +308,7 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
         </Label>
         <ItemsList 
           field="allergies" 
-          items={medicalInfo.allergies || []} 
+          items={medicalInfo.allergies ?? []} 
           placeholder="Agregar alergia..." 
         />
       </div>
@@ -465,7 +465,7 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
         <Label className="text-base font-medium mb-3 block">Acomodaciones</Label>
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            {(educationalInfo.accommodations || []).map((accommodation: string, index: number) => (
+            {(educationalInfo.accommodations ?? []).map((accommodation: string, index: number) => (
               <Badge key={index} variant="secondary" className="text-sm">
                 {accommodation}
                 <Button
@@ -746,7 +746,7 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
                       alt={form.watch('name')}
                     />
                     <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl">
-                      {form.watch('name')?.charAt(0)?.toUpperCase() || 'N'}
+                      {form.watch('name')?.charAt(0)?.toUpperCase() ?? 'N'}
                     </AvatarFallback>
                   </Avatar>
                   

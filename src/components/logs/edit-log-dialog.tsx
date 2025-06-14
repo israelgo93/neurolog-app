@@ -100,7 +100,7 @@ export function EditLogDialog({ log, open, onOpenChange }: Readonly<EditLogDialo
         mood_score: formData.mood_score,
         intensity_level: formData.intensity_level,
         log_date: formData.log_date,
-        category_id: formData.category_id || null
+        category_id: formData.category_id ?? null
       }
 
       await updateLog(log.id, updates)
@@ -221,7 +221,7 @@ export function EditLogDialog({ log, open, onOpenChange }: Readonly<EditLogDialo
               <Label>Intensidad</Label>
               <Select 
                 value={formData.intensity_level} 
-                onValueChange={(value) => handleInputChange('intensity_level', value as any)}
+                onValueChange={(value) => handleInputChange('intensity_level', value )}
                 disabled={loading}
               >
                 <SelectTrigger>
