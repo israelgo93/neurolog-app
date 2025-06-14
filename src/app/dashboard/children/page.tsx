@@ -34,10 +34,8 @@ import {
   EyeIcon,
   UserPlusIcon,
   CalendarIcon,
-  MapPinIcon,
   HeartIcon,
   TrendingUpIcon,
-  DownloadIcon,
   UsersIcon,
   BookOpenIcon,
   RefreshCwIcon
