@@ -59,9 +59,9 @@ function transformChild(child: any, userId: string): ChildWithRelation {
     notes: child.notes,
     is_active: child.is_active!,
     avatar_url: child.avatar_url,
-    emergency_contact: child.emergency_contact || [],
-    medical_info: child.medical_info || {},
-    educational_info: child.educational_info || {},
+    emergency_contact: child.emergency_contact ?? [],
+    medical_info: child.medical_info ?? {},
+    educational_info: child.educational_info ?? {},
     privacy_settings: getDefaultPrivacySettings(child.privacy_settings),
     created_by: child.created_by!,
     created_at: child.created_at!,
@@ -77,7 +77,7 @@ function transformChild(child: any, userId: string): ChildWithRelation {
     is_relation_active: true,
     relation_created_at: child.granted_at!,
     relation_expires_at: child.expires_at,
-    creator_name: child.creator_name || 'Usuario desconocido'
+    creator_name: child.creator_name ?? 'Usuario desconocido'
   };
 }
 
@@ -85,7 +85,8 @@ async function auditAccess(type: string, id: string, desc: string) {
   try {
     await auditSensitiveAccess(type, id, desc);
   } catch (e) {
-    // silent audit error
+    // Log the audit error for debugging purposes
+    console.error('Audit access error:', e);
   }
 }
 
@@ -107,7 +108,7 @@ export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn
   const mountedRef = useRef(true);
 
   const userId = useMemo(() => user?.id, [user?.id]);
-  const channelId = useMemo(() => `children-${userId || 'anonymous'}-${Date.now()}`, [userId]);
+  const channelId = useMemo(() => `children-${userId ?? 'anonymous'}-${Date.now()}`, [userId]);
 
   // ========================= Fetch =========================
 
@@ -118,7 +119,7 @@ export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn
       .order('created_at', { ascending: false });
   }, [supabase]);
 
-  const processChildrenFetch = useCallback((childrenData: any[] = [], userId: string) => {
+  const processChildrenFetch = useCallback((childrenData: any[], userId: string) => {
     return (childrenData || []).map(child => transformChild(child, userId));
   }, []);
 
@@ -165,10 +166,10 @@ export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn
         name: childData.name.trim(),
         created_by: userId,
         is_active: true,
-        birth_date: childData.birth_date?.trim() || null,
-        diagnosis: childData.diagnosis?.trim() || null,
-        notes: childData.notes?.trim() || null,
-        avatar_url: childData.avatar_url?.trim() || null,
+        birth_date: childData.birth_date?.trim() ?? null,
+        diagnosis: childData.diagnosis?.trim() ?? null,
+        notes: childData.notes?.trim() ?? null,
+        avatar_url: childData.avatar_url?.trim() ?? null,
         emergency_contact: Array.isArray(childData.emergency_contact) ? childData.emergency_contact : [],
         medical_info: { allergies: [], medications: [], conditions: [], emergency_notes: '', ...childData.medical_info },
         educational_info: { school: '', grade: '', teacher: '', iep_goals: [], accommodations: [], ...childData.educational_info },

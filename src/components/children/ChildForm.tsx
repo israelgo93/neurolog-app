@@ -673,7 +673,7 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: Readonly
   const onSubmit = async (data: ChildFormData) => {
     try {
       // Quitar ids temporales antes de guardar
-      const contactsClean = (data.emergency_contact || []).map(({ id, ...rest }) => rest);
+      const contactsClean = (data.emergency_contact ?? []).map(({ id, ...rest }) => rest);
       const finalData = { ...data, emergency_contact: contactsClean };
       let result: Child;
 
@@ -771,7 +771,7 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: Readonly
                       alt={form.watch('name')}
                     />
                     <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl">
-                      {(form.watch('name')?.charAt(0)?.toUpperCase() || 'N')}
+                      {(form.watch('name')?.charAt(0)?.toUpperCase() ?? 'N')}
                     </AvatarFallback>
                   </Avatar>
                   <div>

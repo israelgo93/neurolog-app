@@ -100,7 +100,7 @@ export function EditLogDialog({ log, open, onOpenChange }: EditLogDialogProps) {
         mood_score: formData.mood_score,
         intensity_level: formData.intensity_level,
         log_date: formData.log_date,
-        category_id: formData.category_id || null
+        category_id: formData.category_id ?? null
       }
 
       await updateLog(log.id, updates)
