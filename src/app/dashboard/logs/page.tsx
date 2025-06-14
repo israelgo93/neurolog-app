@@ -414,7 +414,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
             value={filters.reviewed_status ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
-              reviewed_status: value === 'all' ? undefined : value as any
+              reviewed_status: value === 'all' ? undefined : value as 'reviewed' | 'pending'
             })}
           >
             <SelectTrigger>
@@ -498,7 +498,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
             value={filters.follow_up_status ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
-              follow_up_status: value === 'all' ? undefined : value as any
+              follow_up_status: value === 'all' ? undefined : value as 'required' | 'completed'
             })}
           >
             <SelectTrigger>
@@ -521,7 +521,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 // ================================================================
 
 export default function LogsPage() {
-  const { user } = useAuth();
+  useAuth();
   const { children } = useChildren({ includeInactive: false });
   const { 
     logs, 
