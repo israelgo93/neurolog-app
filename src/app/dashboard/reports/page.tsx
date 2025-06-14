@@ -5,12 +5,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -28,45 +27,37 @@ import { ExportReportDialog } from '@/components/reports/ExportReportDialog';
 // ✅ ARREGLO: Importar todos los componentes desde TimePatterns.tsx
 import { TimePatterns, CorrelationAnalysis, AdvancedInsights } from '@/components/reports/TimePatterns';
 import type { DateRange } from 'react-day-picker';
-import { 
-  BarChart3,
+import {
   TrendingUp,
   Calendar,
   Download,
   FileText,
   PieChart,
-  LineChart,
-  Users,
-  Activity,
   Heart,
   Target,
-  Award,
   AlertTriangle,
-  CheckCircle,
-  Clock
 } from 'lucide-react';
-import { format, subDays, subWeeks, subMonths } from 'date-fns';
-import { es } from 'date-fns/locale';
+import {  subMonths } from 'date-fns';
 
 // ================================================================
 // FUNCIÓN HELPER PARA CALCULAR TENDENCIA DE MEJORA
 // ================================================================
 function calculateImprovementTrend(logs: any[]): number {
   if (logs.length < 2) return 0;
-  
-  const moodLogs = logs.filter(log => log.mood_score).sort((a, b) => 
+
+  const moodLogs = logs.filter(log => log.mood_score).sort((a, b) =>
     new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
-  
+
   if (moodLogs.length < 2) return 0;
-  
+
   const midpoint = Math.floor(moodLogs.length / 2);
   const firstHalf = moodLogs.slice(0, midpoint);
   const secondHalf = moodLogs.slice(midpoint);
-  
+
   const firstAvg = firstHalf.reduce((sum, log) => sum + log.mood_score, 0) / firstHalf.length;
   const secondAvg = secondHalf.reduce((sum, log) => sum + log.mood_score, 0) / secondHalf.length;
-  
+
   return secondAvg - firstAvg;
 }
 
@@ -74,7 +65,7 @@ export default function ReportsPage() {
   const { user } = useAuth();
   const { children, loading: childrenLoading } = useChildren();
   const { logs, stats, loading: logsLoading } = useLogs();
-  
+
   const [selectedChild, setSelectedChild] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subMonths(new Date(), 3),
@@ -88,22 +79,22 @@ export default function ReportsPage() {
     if (selectedChild !== 'all' && log.child_id !== selectedChild) {
       return false;
     }
-    
+
     if (dateRange?.from && new Date(log.created_at) < dateRange.from) {
       return false;
     }
-    
+
     if (dateRange?.to && new Date(log.created_at) > dateRange.to) {
       return false;
     }
-    
+
     return true;
   });
 
   // Calcular métricas
   const metrics = {
     totalLogs: filteredLogs.length,
-    averageMood: filteredLogs.filter(l => l.mood_score).length > 0 
+    averageMood: filteredLogs.filter(l => l.mood_score).length > 0
       ? (filteredLogs.filter(l => l.mood_score).reduce((sum, l) => sum + l.mood_score, 0) / filteredLogs.filter(l => l.mood_score).length)
       : 0,
     improvementTrend: calculateImprovementTrend(filteredLogs),
@@ -144,9 +135,9 @@ export default function ReportsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Niño</label>
+              <label htmlFor="select-child" className="text-sm font-medium mb-2 block">Niño</label>
               <Select value={selectedChild} onValueChange={setSelectedChild}>
-                <SelectTrigger>
+                <SelectTrigger id="select-child"> {/* Aquí se asocia con el label */}
                   <SelectValue placeholder="Seleccionar niño" />
                 </SelectTrigger>
                 <SelectContent>
@@ -159,17 +150,20 @@ export default function ReportsPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
-              <label className="text-sm font-medium mb-2 block">Período</label>
-              <DatePickerWithRange 
+              <label htmlFor="date-range-picker" className="text-sm font-medium mb-2 block">Período</label>
+              <DatePickerWithRange
+                id="date-range-picker"
                 date={dateRange}
-                onDateChange={setDateRange}
+                onDateChange={setDateRange} 
               />
             </div>
 
+
+
             <div className="flex items-end">
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => {
                   setSelectedChild('all');
@@ -195,7 +189,7 @@ export default function ReportsPage() {
           color="blue"
           subtitle="En el período seleccionado"
         />
-        
+
         <MetricCard
           title="Estado de Ánimo"
           value={metrics.averageMood.toFixed(1)}
@@ -204,7 +198,7 @@ export default function ReportsPage() {
           color={metrics.averageMood >= 4 ? 'green' : metrics.averageMood >= 3 ? 'orange' : 'red'}
           subtitle="Promedio del período"
         />
-        
+
         <MetricCard
           title="Tendencia"
           value={metrics.improvementTrend > 0 ? '+' : ''}
@@ -212,7 +206,7 @@ export default function ReportsPage() {
           color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
           subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}
         />
-        
+
         <MetricCard
           title="Categorías"
           value={metrics.activeCategories}
@@ -220,7 +214,7 @@ export default function ReportsPage() {
           color="purple"
           subtitle="Diferentes áreas"
         />
-        
+
         <MetricCard
           title="Seguimientos"
           value={metrics.followUpsRequired}
@@ -228,7 +222,7 @@ export default function ReportsPage() {
           color={metrics.followUpsRequired > 0 ? 'orange' : 'green'}
           subtitle="Pendientes"
         />
-        
+
         <MetricCard
           title="Días Activos"
           value={metrics.activeDays}
@@ -337,7 +331,7 @@ export default function ReportsPage() {
       </Tabs>
 
       {/* Export Dialog */}
-      <ExportReportDialog 
+      <ExportReportDialog
         open={isExportDialogOpen}
         onOpenChange={setIsExportDialogOpen}
         data={filteredLogs}

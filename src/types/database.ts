@@ -3,6 +3,10 @@
 // NOTA: Este es un archivo placeholder. Para obtener los tipos completos ejecuta:
 // npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/types/database.ts
 
+// Alias de tipos
+export type UserRole = 'parent' | 'teacher' | 'specialist' | 'admin';
+export type IntensityLevel = 'low' | 'medium' | 'high';
+
 export interface Database {
   public: {
     Tables: {
@@ -11,7 +15,7 @@ export interface Database {
           id: string
           email: string
           full_name: string
-          role: 'parent' | 'teacher' | 'specialist' | 'admin'
+          role: UserRole
           avatar_url?: string
           phone?: string
           is_active: boolean
@@ -28,7 +32,7 @@ export interface Database {
           id: string
           email: string
           full_name: string
-          role?: 'parent' | 'teacher' | 'specialist' | 'admin'
+          role?: UserRole
           avatar_url?: string
           phone?: string
           is_active?: boolean
@@ -45,7 +49,7 @@ export interface Database {
           id?: string
           email?: string
           full_name?: string
-          role?: 'parent' | 'teacher' | 'specialist' | 'admin'
+          role?: UserRole
           avatar_url?: string
           phone?: string
           is_active?: boolean
@@ -152,7 +156,7 @@ export interface Database {
           title: string
           content: string
           mood_score?: number
-          intensity_level: 'low' | 'medium' | 'high'
+          intensity_level: IntensityLevel
           logged_by: string
           log_date: string
           is_private: boolean
@@ -178,7 +182,7 @@ export interface Database {
           title: string
           content: string
           mood_score?: number
-          intensity_level?: 'low' | 'medium' | 'high'
+          intensity_level?: IntensityLevel
           logged_by: string
           log_date?: string
           is_private?: boolean
@@ -204,7 +208,7 @@ export interface Database {
           title?: string
           content?: string
           mood_score?: number
-          intensity_level?: 'low' | 'medium' | 'high'
+          intensity_level?: IntensityLevel
           logged_by?: string
           log_date?: string
           is_private?: boolean
@@ -265,9 +269,9 @@ export interface Database {
       }
     }
     Enums: {
-      user_role: 'parent' | 'teacher' | 'specialist' | 'admin'
+      user_role: UserRole
       relationship_type: 'parent' | 'teacher' | 'specialist' | 'observer' | 'family'
-      intensity_level: 'low' | 'medium' | 'high'
+      intensity_level: IntensityLevel
       audit_operation: 'INSERT' | 'UPDATE' | 'DELETE' | 'SELECT'
       risk_level: 'low' | 'medium' | 'high' | 'critical'
     }
