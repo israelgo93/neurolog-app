@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,10 +27,9 @@ import {
 } from '@/components/ui/form';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
-import { uploadFile, getPublicUrl, STORAGE_BUCKETS } from '@/lib/supabase';
+import { uploadFile, getPublicUrl } from '@/lib/supabase';
 import type { Child, ChildInsert, ChildUpdate, EmergencyContact } from '@/types';
 import { 
-  CalendarIcon, 
   ImageIcon, 
   PlusIcon, 
   TrashIcon, 
@@ -119,7 +118,7 @@ interface PrivacySettingsFormProps {
 // COMPONENTES AUXILIARES
 // ================================================================
 
-function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps) {
+function EmergencyContactForm({ contacts, onChange }: Readonly<EmergencyContactFormProps>) {
   const addContact = () => {
     onChange([...contacts, {
       name: '',
@@ -157,7 +156,7 @@ function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps)
       </div>
 
       {contacts.map((contact, index) => (
-        <Card key={index} className="p-4">
+        <Card key={`${contact.name}-${contact.phone}-${index}`} className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor={`contact-name-${index}`}>Nombre</Label>
@@ -223,35 +222,31 @@ function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps)
   );
 }
 
-function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
-  const [newAllergy, setNewAllergy] = useState('');
-  const [newMedication, setNewMedication] = useState('');
-  const [newCondition, setNewCondition] = useState('');
+// ItemsList component moved outside of MedicalInfoForm
+interface ItemsListProps {
+  field: string;
+  items: string[];
+  placeholder: string;
+  value: string;
+  setValue: (value: string) => void;
+  addItem: (field: string, value: string, setter: (value: string) => void) => void;
+  removeItem: (field: string, index: number) => void;
+}
 
-  const addItem = (field: string, value: string, setter: (value: string) => void) => {
-    if (value.trim()) {
-      const currentItems = medicalInfo[field] || [];
-      onChange({
-        ...medicalInfo,
-        [field]: [...currentItems, value.trim()]
-      });
-      setter('');
-    }
-  };
-
-  const removeItem = (field: string, index: number) => {
-    const currentItems = medicalInfo[field] || [];
-    onChange({
-      ...medicalInfo,
-      [field]: currentItems.filter((_: any, i: number) => i !== index)
-    });
-  };
-
-  const ItemsList = ({ field, items, placeholder }: { field: string, items: string[], placeholder: string }) => (
+function ItemsList({
+  field,
+  items,
+  placeholder,
+  value,
+  setValue,
+  addItem,
+  removeItem,
+}: Readonly<ItemsListProps>) {
+  return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         {items.map((item, index) => (
-          <Badge key={index} variant="secondary" className="text-sm">
+          <Badge key={item} variant="secondary" className="text-sm">
             {item}
             <Button
               type="button"
@@ -265,22 +260,16 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           </Badge>
         ))}
       </div>
-      
+
       <div className="flex space-x-2">
         <Input
           placeholder={placeholder}
-          value={field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition}
-          onChange={(e) => {
-            if (field === 'allergies') setNewAllergy(e.target.value);
-            else if (field === 'medications') setNewMedication(e.target.value);
-            else setNewCondition(e.target.value);
-          }}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
           onKeyPress={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
-              const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-              const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
-              addItem(field, value, setter);
+              addItem(field, value, setValue);
             }
           }}
         />
@@ -288,17 +277,38 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => {
-            const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-            const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
-            addItem(field, value, setter);
-          }}
+          onClick={() => addItem(field, value, setValue)}
         >
           <PlusIcon className="h-4 w-4" />
         </Button>
       </div>
     </div>
   );
+}
+
+function MedicalInfoForm({ medicalInfo, onChange }: Readonly<MedicalInfoFormProps>) {
+  const [newAllergy, setNewAllergy] = useState('');
+  const [newMedication, setNewMedication] = useState('');
+  const [newCondition, setNewCondition] = useState('');
+
+  const addItem = (field: string, value: string, setter: (value: string) => void) => {
+    if (value.trim()) {
+      const currentItems = medicalInfo[field] ?? [];
+      onChange({
+        ...medicalInfo,
+        [field]: [...currentItems, value.trim()]
+      });
+      setter('');
+    }
+  };
+
+  const removeItem = (field: string, index: number) => {
+    const currentItems = medicalInfo[field] ?? [];
+    onChange({
+      ...medicalInfo,
+      [field]: currentItems.filter((_: any, i: number) => i !== index)
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -307,28 +317,40 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           <HeartIcon className="h-4 w-4 inline mr-2" />
           Alergias
         </Label>
-        <ItemsList 
-          field="allergies" 
-          items={medicalInfo.allergies || []} 
-          placeholder="Agregar alergia..." 
+        <ItemsList
+          field="allergies"
+          items={medicalInfo.allergies || []}
+          placeholder="Agregar alergia..."
+          value={newAllergy}
+          setValue={setNewAllergy}
+          addItem={addItem}
+          removeItem={removeItem}
         />
       </div>
 
       <div>
         <Label className="text-base font-medium mb-3 block">Medicamentos</Label>
-        <ItemsList 
-          field="medications" 
-          items={medicalInfo.medications || []} 
-          placeholder="Agregar medicamento..." 
+        <ItemsList
+          field="medications"
+          items={medicalInfo.medications || []}
+          placeholder="Agregar medicamento..."
+          value={newMedication}
+          setValue={setNewMedication}
+          addItem={addItem}
+          removeItem={removeItem}
         />
       </div>
 
       <div>
         <Label className="text-base font-medium mb-3 block">Condiciones Médicas</Label>
-        <ItemsList 
-          field="conditions" 
-          items={medicalInfo.conditions || []} 
-          placeholder="Agregar condición..." 
+        <ItemsList
+          field="conditions"
+          items={medicalInfo.conditions || []}
+          placeholder="Agregar condición..."
+          value={newCondition}
+          setValue={setNewCondition}
+          addItem={addItem}
+          removeItem={removeItem}
         />
       </div>
 
