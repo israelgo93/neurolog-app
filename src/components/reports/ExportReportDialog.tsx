@@ -61,9 +61,12 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
         
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
-              Formato
-            </label>
+          <select id="formato" className="...">
+            {/* opciones */}
+          </select>
+          <label htmlFor="formato" className="text-sm font-medium text-gray-700 mb-2 block">
+            Formato
+          </label>
             <Select value={format} onValueChange={setFormat}>
               <SelectTrigger>
                 <SelectValue />
@@ -77,15 +80,16 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
           </div>
           
           <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-700 block">
-              Incluir en el reporte
-            </label>
+                    <input id="incluir-reporte" type="checkbox" />
+          <label htmlFor="incluir-reporte" className="text-sm font-medium text-gray-700 block">
+            Incluir en el reporte
+          </label>
             
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="charts" 
                 checked={includeCharts}
-                onCheckedChange={setIncludeCharts}
+                onCheckedChange={setIncludeChart}
               />
               <label htmlFor="charts" className="text-sm text-gray-700">
                 Gráficos y visualizaciones

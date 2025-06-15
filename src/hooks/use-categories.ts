@@ -50,9 +50,9 @@ export function useCategories(): UseCategoriesReturn {
       }
 
       console.log('✅ Categories fetched successfully:', data?.length || 0)
-      setCategories(data || [])
+      setCategories(data ?? [])
     } catch (err: any) {
-      const errorMessage = err.message || 'Error al cargar las categorías'
+      const errorMessage = err.message ?? 'Error al cargar las categorías'
       setError(errorMessage)
       console.error('❌ Error in fetchCategories:', err)
     } finally {

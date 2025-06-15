@@ -32,7 +32,7 @@ interface ChildCardProps {
 export function ChildCard({ child }: ChildCardProps) {
   const [isEditOpen, setIsEditOpen] = useState(false)
 
-  const age = child.birth_date 
+  const age = child.birth_date
     ? differenceInYears(new Date(), new Date(child.birth_date))
     : null
 
@@ -73,15 +73,15 @@ export function ChildCard({ child }: ChildCardProps) {
                 </CardDescription>
               </div>
             </div>
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className={relationshipColors[child.relationship_type as keyof typeof relationshipColors]}
             >
               {relationshipLabels[child.relationship_type as keyof typeof relationshipLabels]}
             </Badge>
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {child.diagnosis && (
             <div>
@@ -109,7 +109,7 @@ export function ChildCard({ child }: ChildCardProps) {
                 </Badge>
               )}
             </div>
-            
+
             <div className="flex space-x-2">
               <Button
                 variant="outline"
@@ -121,7 +121,7 @@ export function ChildCard({ child }: ChildCardProps) {
                   Ver
                 </Link>
               </Button>
-              
+
               {child.can_edit && (
                 <Button
                   variant="outline"
@@ -132,7 +132,7 @@ export function ChildCard({ child }: ChildCardProps) {
                   Editar
                 </Button>
               )}
-              
+
               <Button
                 variant="outline"
                 size="sm"

@@ -163,6 +163,7 @@ export interface RelationInsert {
 
 // Tipo combinado para niños con información de relación
 export interface ChildWithRelation extends Child {
+  user_relations: any;
   user_id: string;
   relationship_type: RelationshipType;
   can_view: boolean;
@@ -269,6 +270,14 @@ export interface LogUpdate {
 
 // Tipo combinado para logs con información detallada
 export interface LogWithDetails extends DailyLog {
+  can_edit: any;
+  logged_by_name: ReactNode;
+  reviewer_name: ReactNode;
+  child_avatar_url: string | undefined;
+  logged_by_avatar: string | undefined;
+  child_name: ReactNode;
+  category_color: BackgroundColor | undefined;
+  category_name: string;
   child: {
     id: string;
     name: string;
@@ -323,6 +332,8 @@ export interface ChildFilters {
 // ================================================================
 
 export interface DashboardStats {
+  avg_mood_score: any;
+  last_log_date: any;
   total_children: number;
   total_logs: number;
   logs_this_week: number;

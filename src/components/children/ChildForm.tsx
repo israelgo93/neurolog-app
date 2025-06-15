@@ -1,958 +1,416 @@
-// src/components/children/ChildForm.tsx
-// Formulario actualizado para crear/editar niños con el nuevo modelo
-
+// src/components/reports/TimePatterns.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Form, 
-  FormControl, 
-  FormDescription, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from '@/components/ui/form';
-import { useAuth } from '@/components/providers/AuthProvider';
-import { useChildren } from '@/hooks/use-children';
-import { uploadFile, getPublicUrl, STORAGE_BUCKETS } from '@/lib/supabase';
-import type { Child, ChildInsert, ChildUpdate, EmergencyContact } from '@/types';
-import { 
-  CalendarIcon, 
-  ImageIcon, 
-  PlusIcon, 
-  TrashIcon, 
-  SaveIcon, 
-  UserIcon,
-  PhoneIcon,
-  HeartIcon,
-  GraduationCapIcon,
-  ShieldIcon
+import {
+  Clock,
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Brain,
+  Target,
+  AlertTriangle,
+  CheckCircle
 } from 'lucide-react';
-import { format } from 'date-fns';
 
-// ================================================================
-// ESQUEMAS DE VALIDACIÓN
-// ================================================================
-
-const emergencyContactSchema = z.object({
-  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
-  relationship: z.string().min(2, 'La relación es requerida'),
-  is_primary: z.boolean().default(false)
-});
-
-const childFormSchema = z.object({
-  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  birth_date: z.string().optional(),
-  diagnosis: z.string().optional(),
-  notes: z.string().optional(),
-  avatar_url: z.string().optional(),
-  emergency_contact: z.array(emergencyContactSchema).default([]),
-  medical_info: z.object({
-    allergies: z.array(z.string()).default([]),
-    medications: z.array(z.string()).default([]),
-    conditions: z.array(z.string()).default([]),
-    emergency_notes: z.string().optional()
-  }).default({}),
-  educational_info: z.object({
-    school: z.string().optional(),
-    grade: z.string().optional(),
-    teacher: z.string().optional(),
-    iep_goals: z.array(z.string()).default([]),
-    accommodations: z.array(z.string()).default([])
-  }).default({}),
-  privacy_settings: z.object({
-    share_with_specialists: z.boolean().default(true),
-    share_progress_reports: z.boolean().default(true),
-    allow_photo_sharing: z.boolean().default(false),
-    data_retention_months: z.number().default(24)
-  }).default({})
-});
-
-type ChildFormData = z.infer<typeof childFormSchema>;
-
-// ================================================================
-// PROPS E INTERFACES
-// ================================================================
-
-interface ChildFormProps {
-  child?: Child;
-  mode: 'create' | 'edit';
-  onSuccess?: (child: Child) => void;
-  onCancel?: () => void;
+// Tipos e interfaces
+interface Log {
+  created_at: string;
+  mood_score?: number;
+  intensity_level?: 'low' | 'medium' | 'high';
+  category_name?: string;
 }
 
-interface EmergencyContactFormProps {
-  contacts: EmergencyContact[];
-  onChange: (contacts: EmergencyContact[]) => void;
+interface TimePatternsProps {
+  logs: Log[];
 }
 
-interface MedicalInfoFormProps {
-  medicalInfo: any;
-  onChange: (info: any) => void;
+interface CorrelationAnalysisProps {
+  logs: Log[];
 }
 
-interface EducationalInfoFormProps {
-  educationalInfo: any;
-  onChange: (info: any) => void;
+interface AdvancedInsightsProps {
+  logs: Log[];
 }
 
-interface PrivacySettingsFormProps {
-  settings: any;
-  onChange: (settings: any) => void;
+interface Insight {
+  type: 'success' | 'warning' | 'info';
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  recommendation: string;
 }
 
-// ================================================================
-// COMPONENTES AUXILIARES
-// ================================================================
+// Constantes
+const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const TOTAL_DAYS_ANALYSIS = 30;
+const STRONG_CORRELATION_THRESHOLD = 0.5;
+const MODERATE_CORRELATION_THRESHOLD = 0.3;
+const MOOD_TREND_THRESHOLD = 0.5;
 
-function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps) {
-  const addContact = () => {
-    onChange([...contacts, {
-      name: '',
-      phone: '',
-      relationship: '',
-      is_primary: contacts.length === 0
-    }]);
-  };
+// Componente TimePatterns
+export function TimePatterns({ logs }: TimePatternsProps) {
+  const hourlyPattern = React.useMemo(() =>
+    logs.reduce((acc, log) => {
+      const hour = new Date(log.created_at).getHours();
+      acc[hour] = (acc[hour] ?? 0) + 1;
+      return acc;
+    }, {} as Record<number, number>),
+    [logs]
+  );
 
-  const removeContact = (index: number) => {
-    const newContacts = contacts.filter((_, i) => i !== index);
-    onChange(newContacts);
-  };
+  const weeklyPattern = React.useMemo(() =>
+    logs.reduce((acc, log) => {
+      const day = new Date(log.created_at).getDay();
+      acc[day] = (acc[day] ?? 0) + 1;
+      return acc;
+    }, {} as Record<number, number>),
+    [logs]
+  );
 
-  const updateContact = (index: number, field: keyof EmergencyContact, value: any) => {
-    const newContacts = contacts.map((contact, i) => 
-      i === index ? { ...contact, [field]: value } : contact
-    );
-    onChange(newContacts);
-  };
+  const getMostActiveHour = React.useCallback(() => {
+    const values = Object.values(hourlyPattern);
+    if (values.length === 0) return 'N/A';
+
+    const max = Math.max(...values);
+    const hour = Object.keys(hourlyPattern).find(h => hourlyPattern[parseInt(h)] === max);
+    return hour ? `${hour}:00` : 'N/A';
+  }, [hourlyPattern]);
+
+  const getMostActiveDay = React.useCallback(() => {
+    const values = Object.values(weeklyPattern);
+    if (values.length === 0) return 'N/A';
+
+    const max = Math.max(...values);
+    const day = Object.keys(weeklyPattern).find(d => weeklyPattern[parseInt(d)] === max);
+    return day ? DAY_NAMES[parseInt(day)] : 'N/A';
+  }, [weeklyPattern]);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Label className="text-base font-medium">Contactos de Emergencia</Label>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addContact}
-        >
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Agregar Contacto
-        </Button>
-      </div>
-
-      {contacts.map((contact, index) => (
-        <Card key={index} className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor={`contact-name-${index}`}>Nombre</Label>
-              <Input
-                id={`contact-name-${index}`}
-                value={contact.name}
-                onChange={(e) => updateContact(index, 'name', e.target.value)}
-                placeholder="Nombre completo"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor={`contact-phone-${index}`}>Teléfono</Label>
-              <Input
-                id={`contact-phone-${index}`}
-                value={contact.phone}
-                onChange={(e) => updateContact(index, 'phone', e.target.value)}
-                placeholder="+1234567890"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor={`contact-relationship-${index}`}>Relación</Label>
-              <Input
-                id={`contact-relationship-${index}`}
-                value={contact.relationship}
-                onChange={(e) => updateContact(index, 'relationship', e.target.value)}
-                placeholder="Padre, Madre, Tutor, etc."
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id={`contact-primary-${index}`}
-                  checked={contact.is_primary}
-                  onCheckedChange={(checked) => updateContact(index, 'is_primary', checked)}
-                />
-                <Label htmlFor={`contact-primary-${index}`}>Contacto Principal</Label>
-              </div>
-              
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                onClick={() => removeContact(index)}
-              >
-                <TrashIcon className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center">
+              <Clock className="h-4 w-4 mr-2" />
+              Hora más activa
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{getMostActiveHour()}</p>
+          </CardContent>
         </Card>
-      ))}
 
-      {contacts.length === 0 && (
-        <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
-          <PhoneIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-          <p>No hay contactos de emergencia registrados</p>
-          <p className="text-sm">Agrega al menos un contacto de emergencia</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
-  const [newAllergy, setNewAllergy] = useState('');
-  const [newMedication, setNewMedication] = useState('');
-  const [newCondition, setNewCondition] = useState('');
-
-  const addItem = (field: string, value: string, setter: (value: string) => void) => {
-    if (value.trim()) {
-      const currentItems = medicalInfo[field] || [];
-      onChange({
-        ...medicalInfo,
-        [field]: [...currentItems, value.trim()]
-      });
-      setter('');
-    }
-  };
-
-  const removeItem = (field: string, index: number) => {
-    const currentItems = medicalInfo[field] || [];
-    onChange({
-      ...medicalInfo,
-      [field]: currentItems.filter((_: any, i: number) => i !== index)
-    });
-  };
-
-  const ItemsList = ({ field, items, placeholder }: { field: string, items: string[], placeholder: string }) => (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        {items.map((item, index) => (
-          <Badge key={index} variant="secondary" className="text-sm">
-            {item}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-auto p-0 ml-2"
-              onClick={() => removeItem(field, index)}
-            >
-              <TrashIcon className="h-3 w-3" />
-            </Button>
-          </Badge>
-        ))}
-      </div>
-      
-      <div className="flex space-x-2">
-        <Input
-          placeholder={placeholder}
-          value={field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition}
-          onChange={(e) => {
-            if (field === 'allergies') setNewAllergy(e.target.value);
-            else if (field === 'medications') setNewMedication(e.target.value);
-            else setNewCondition(e.target.value);
-          }}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-              const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
-              addItem(field, value, setter);
-            }
-          }}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-            const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
-            addItem(field, value, setter);
-          }}
-        >
-          <PlusIcon className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <Label className="text-base font-medium mb-3 block">
-          <HeartIcon className="h-4 w-4 inline mr-2" />
-          Alergias
-        </Label>
-        <ItemsList 
-          field="allergies" 
-          items={medicalInfo.allergies || []} 
-          placeholder="Agregar alergia..." 
-        />
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center">
+              <Calendar className="h-4 w-4 mr-2" />
+              Día más activo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{getMostActiveDay()}</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div>
-        <Label className="text-base font-medium mb-3 block">Medicamentos</Label>
-        <ItemsList 
-          field="medications" 
-          items={medicalInfo.medications || []} 
-          placeholder="Agregar medicamento..." 
-        />
-      </div>
+        <h4 className="text-sm font-medium mb-2">Distribución por días de la semana</h4>
+        <div className="flex space-x-1">
+          {DAY_NAMES.map((day, index) => {
+            const count = weeklyPattern[index] ?? 0;
+            const values = Object.values(weeklyPattern);
+            const maxCount = values.length > 0 ? Math.max(...values) : 0;
+            const intensity = maxCount > 0 ? (count / maxCount) * 100 : 0;
 
-      <div>
-        <Label className="text-base font-medium mb-3 block">Condiciones Médicas</Label>
-        <ItemsList 
-          field="conditions" 
-          items={medicalInfo.conditions || []} 
-          placeholder="Agregar condición..." 
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="emergency-notes">Notas de Emergencia</Label>
-        <Textarea
-          id="emergency-notes"
-          value={medicalInfo.emergency_notes || ''}
-          onChange={(e) => onChange({
-            ...medicalInfo,
-            emergency_notes: e.target.value
-          })}
-          placeholder="Información importante para emergencias médicas..."
-          rows={3}
-        />
-      </div>
-    </div>
-  );
-}
-
-function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormProps) {
-  const [newGoal, setNewGoal] = useState('');
-  const [newAccommodation, setNewAccommodation] = useState('');
-
-  const addItem = (field: string, value: string, setter: (value: string) => void) => {
-    if (value.trim()) {
-      const currentItems = educationalInfo[field] || [];
-      onChange({
-        ...educationalInfo,
-        [field]: [...currentItems, value.trim()]
-      });
-      setter('');
-    }
-  };
-
-  const removeItem = (field: string, index: number) => {
-    const currentItems = educationalInfo[field] || [];
-    onChange({
-      ...educationalInfo,
-      [field]: currentItems.filter((_: any, i: number) => i !== index)
-    });
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="school">Institución Educativa</Label>
-          <Input
-            id="school"
-            value={educationalInfo.school || ''}
-            onChange={(e) => onChange({
-              ...educationalInfo,
-              school: e.target.value
-            })}
-            placeholder="Nombre de la escuela..."
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="grade">Grado/Nivel</Label>
-          <Input
-            id="grade"
-            value={educationalInfo.grade || ''}
-            onChange={(e) => onChange({
-              ...educationalInfo,
-              grade: e.target.value
-            })}
-            placeholder="Ej: 3er grado, Preescolar..."
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="teacher">Docente Principal</Label>
-        <Input
-          id="teacher"
-          value={educationalInfo.teacher || ''}
-          onChange={(e) => onChange({
-            ...educationalInfo,
-            teacher: e.target.value
-          })}
-          placeholder="Nombre del docente..."
-        />
-      </div>
-
-      <div>
-        <Label className="text-base font-medium mb-3 block">
-          <GraduationCapIcon className="h-4 w-4 inline mr-2" />
-          Objetivos IEP
-        </Label>
-        <div className="space-y-2">
-          <div className="flex flex-wrap gap-2">
-            {(educationalInfo.iep_goals || []).map((goal: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-sm">
-                {goal}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 ml-2"
-                  onClick={() => removeItem('iep_goals', index)}
+            return (
+              <div key={`day-${day}`} className="flex-1 text-center">
+                <div
+                  className="w-full h-8 bg-blue-100 rounded mb-1 flex items-end justify-center"
+                  style={{ backgroundColor: `rgba(59, 130, 246, ${intensity / 100})` }}
+                  aria-label={`${count} registros el ${day}`}
                 >
-                  <TrashIcon className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
-          </div>
-          
-          <div className="flex space-x-2">
-            <Input
-              placeholder="Agregar objetivo IEP..."
-              value={newGoal}
-              onChange={(e) => setNewGoal(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addItem('iep_goals', newGoal, setNewGoal);
-                }
-              }}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => addItem('iep_goals', newGoal, setNewGoal)}
-            >
-              <PlusIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <Label className="text-base font-medium mb-3 block">Acomodaciones</Label>
-        <div className="space-y-2">
-          <div className="flex flex-wrap gap-2">
-            {(educationalInfo.accommodations || []).map((accommodation: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-sm">
-                {accommodation}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 ml-2"
-                  onClick={() => removeItem('accommodations', index)}
-                >
-                  <TrashIcon className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
-          </div>
-          
-          <div className="flex space-x-2">
-            <Input
-              placeholder="Agregar acomodación..."
-              value={newAccommodation}
-              onChange={(e) => setNewAccommodation(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addItem('accommodations', newAccommodation, setNewAccommodation);
-                }
-              }}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => addItem('accommodations', newAccommodation, setNewAccommodation)}
-            >
-              <PlusIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PrivacySettingsForm({ settings, onChange }: PrivacySettingsFormProps) {
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label className="text-base">Compartir con Especialistas</Label>
-            <p className="text-sm text-gray-600">
-              Permitir que especialistas accedan a los registros
-            </p>
-          </div>
-          <Switch
-            checked={settings.share_with_specialists}
-            onCheckedChange={(checked) => onChange({
-              ...settings,
-              share_with_specialists: checked
-            })}
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label className="text-base">Reportes de Progreso</Label>
-            <p className="text-sm text-gray-600">
-              Incluir en reportes de progreso generados
-            </p>
-          </div>
-          <Switch
-            checked={settings.share_progress_reports}
-            onCheckedChange={(checked) => onChange({
-              ...settings,
-              share_progress_reports: checked
-            })}
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label className="text-base">Compartir Fotos</Label>
-            <p className="text-sm text-gray-600">
-              Permitir incluir fotos en registros compartidos
-            </p>
-          </div>
-          <Switch
-            checked={settings.allow_photo_sharing}
-            onCheckedChange={(checked) => onChange({
-              ...settings,
-              allow_photo_sharing: checked
-            })}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="data-retention">Retención de Datos (meses)</Label>
-        <Input
-          id="data-retention"
-          type="number"
-          min="12"
-          max="120"
-          value={settings.data_retention_months}
-          onChange={(e) => onChange({
-            ...settings,
-            data_retention_months: parseInt(e.target.value) || 24
+                  {count > 0 && (
+                    <span className="text-xs text-white font-medium">
+                      {count}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-600">{day}</span>
+              </div>
+            );
           })}
-        />
-        <p className="text-sm text-gray-600 mt-1">
-          Tiempo que se mantendrán los datos antes de ser archivados
-        </p>
+        </div>
       </div>
     </div>
   );
 }
 
-// ================================================================
-// COMPONENTE PRINCIPAL
-// ================================================================
+// Componente CorrelationAnalysis
+export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
+  const calculateCorrelation = React.useCallback(
+    (data: Log[], field1: keyof Log, field2Func: (item: Log) => number): number => {
+      if (data.length < 2) return 0;
 
-export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFormProps) {
-  const { user } = useAuth();
-  const { createChild, updateChild } = useChildren();
-  const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState('basic');
-  const router = useRouter();
+      const x = data.map(item => Number(item[field1]));
+      const y = data.map(field2Func);
 
-  const form = useForm<ChildFormData>({
-    resolver: zodResolver(childFormSchema),
-    defaultValues: {
-      name: child?.name || '',
-      birth_date: child?.birth_date || '',
-      diagnosis: child?.diagnosis || '',
-      notes: child?.notes || '',
-      avatar_url: child?.avatar_url || '',
-      emergency_contact: child?.emergency_contact || [],
-      medical_info: child?.medical_info || {
-        allergies: [],
-        medications: [],
-        conditions: [],
-        emergency_notes: ''
-      },
-      educational_info: child?.educational_info || {
-        school: '',
-        grade: '',
-        teacher: '',
-        iep_goals: [],
-        accommodations: []
-      },
-      privacy_settings: child?.privacy_settings || {
-        share_with_specialists: true,
-        share_progress_reports: true,
-        allow_photo_sharing: false,
-        data_retention_months: 24
-      }
-    }
-  });
+      const meanX = x.reduce((a, b) => a + b, 0) / x.length;
+      const meanY = y.reduce((a, b) => a + b, 0) / y.length;
 
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
+      const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
+      const denomX = Math.sqrt(x.reduce((sum, xi) => sum + Math.pow(xi - meanX, 2), 0));
+      const denomY = Math.sqrt(y.reduce((sum, yi) => sum + Math.pow(yi - meanY, 2), 0));
 
-    try {
-      setUploading(true);
-      
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      
-      await uploadFile('avatars', fileName, file);
-      const url = getPublicUrl('avatars', fileName);
-      
-      form.setValue('avatar_url', url);
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-    } finally {
-      setUploading(false);
-    }
-  };
+      return denomX * denomY === 0 ? 0 : numerator / (denomX * denomY);
+    },
+    []
+  );
 
-  const onSubmit = async (data: ChildFormData) => {
-    try {
-      let result: Child;
-      
-      if (mode === 'create') {
-        result = await createChild(data as ChildInsert);
-      } else {
-        result = await updateChild(child!.id, data as ChildUpdate);
+  const moodIntensityCorr = React.useMemo(
+    () => calculateCorrelation(
+      logs.filter(l => l.mood_score !== undefined && l.intensity_level),
+      'mood_score',
+      log => log.intensity_level === 'low' ? 1 : log.intensity_level === 'medium' ? 2 : 3
+    ),
+    [logs, calculateCorrelation]
+  );
+
+  const categoryMoodCorr = React.useMemo(
+    () => logs.reduce((acc, log) => {
+      if (log.mood_score === undefined || !log.category_name) return acc;
+
+      if (!acc[log.category_name]) {
+        acc[log.category_name] = { total: 0, count: 0 };
       }
 
-      onSuccess?.(result);
-      
-      if (!onSuccess) {
-        router.push(`/dashboard/children/${result.id}`);
-      }
-    } catch (error) {
-      console.error('Error saving child:', error);
-    }
-  };
+      acc[log.category_name].total += log.mood_score;
+      acc[log.category_name].count += 1;
 
-  const tabs = [
-    { id: 'basic', label: 'Información Básica', icon: UserIcon },
-    { id: 'emergency', label: 'Contactos', icon: PhoneIcon },
-    { id: 'medical', label: 'Información Médica', icon: HeartIcon },
-    { id: 'educational', label: 'Información Educativa', icon: GraduationCapIcon },
-    { id: 'privacy', label: 'Privacidad', icon: ShieldIcon }
-  ];
+      return acc;
+    }, {} as Record<string, { total: number; count: number }>),
+    [logs]
+  );
+
+  const categoryAverages = React.useMemo(
+    () => Object.entries(categoryMoodCorr)
+      .map(([category, data]) => ({
+        category,
+        avgMood: data.total / data.count,
+        count: data.count
+      }))
+      .sort((a, b) => b.avgMood - a.avgMood),
+    [categoryMoodCorr]
+  );
+
+  const getCorrelationIcon = React.useCallback((correlation: number) => {
+    if (correlation > MODERATE_CORRELATION_THRESHOLD) return TrendingUp;
+    if (correlation < -MODERATE_CORRELATION_THRESHOLD) return TrendingDown;
+    return Minus;
+  }, []);
+
+  const getCorrelationColor = React.useCallback((correlation: number) => {
+    if (correlation > MODERATE_CORRELATION_THRESHOLD) return 'text-green-600';
+    if (correlation < -MODERATE_CORRELATION_THRESHOLD) return 'text-red-600';
+    return 'text-gray-600';
+  }, []);
+
+  const getCorrelationText = React.useCallback((correlation: number) => {
+    if (correlation > STRONG_CORRELATION_THRESHOLD) return 'Fuerte positiva';
+    if (correlation > MODERATE_CORRELATION_THRESHOLD) return 'Moderada positiva';
+    if (correlation < -STRONG_CORRELATION_THRESHOLD) return 'Fuerte negativa';
+    if (correlation < -MODERATE_CORRELATION_THRESHOLD) return 'Moderada negativa';
+    return 'Débil o nula';
+  }, []);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {mode === 'create' ? 'Agregar Niño' : 'Editar Niño'}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            {mode === 'create' 
-              ? 'Completa la información para agregar un nuevo niño al seguimiento'
-              : 'Actualiza la información del niño'
-            }
-          </p>
-        </div>
-        
-        <div className="flex space-x-3">
-          {onCancel && (
-            <Button variant="outline" onClick={onCancel}>
-              Cancelar
-            </Button>
-          )}
-          <Button 
-            onClick={form.handleSubmit(onSubmit)}
-            disabled={form.formState.isSubmitting}
-          >
-            <SaveIcon className="mr-2 h-4 w-4" />
-            {mode === 'create' ? 'Crear' : 'Guardar'} Niño
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Estado de Ánimo vs Intensidad</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              {React.createElement(getCorrelationIcon(moodIntensityCorr), {
+                className: `h-5 w-5 ${getCorrelationColor(moodIntensityCorr)}`,
+                'aria-label': getCorrelationText(moodIntensityCorr)
+              })}
+              <span className="text-sm font-medium">
+                {getCorrelationText(moodIntensityCorr)}
+              </span>
+            </div>
+            <Badge variant="outline" aria-label={`Coeficiente de correlación: ${moodIntensityCorr.toFixed(2)}`}>
+              r = {moodIntensityCorr.toFixed(2)}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`${
-                activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center`}
-            >
-              <tab.icon className="h-4 w-4 mr-2" />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Form Content */}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Basic Information Tab */}
-          {activeTab === 'basic' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Información Básica</CardTitle>
-                <CardDescription>
-                  Datos fundamentales del niño
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Avatar Upload */}
-                <div className="flex items-center space-x-6">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage 
-                      src={form.watch('avatar_url')} 
-                      alt={form.watch('name')}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Promedio de Estado de Ánimo por Categoría</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {categoryAverages.slice(0, 5).map(({ category, avgMood, count }) => (
+              <div key={`category-${category}`} className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium">{category}</span>
+                    <span className="text-sm text-gray-500">({count} registros)</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{ width: `${(avgMood / 5) * 100}%` }}
+                      aria-hidden="true"
                     />
-                    <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl">
-                      {form.watch('name')?.charAt(0)?.toUpperCase() || 'N'}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div>
-                    <Label htmlFor="avatar-upload" className="cursor-pointer">
-                      <div className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700">
-                        <ImageIcon className="h-4 w-4" />
-                        <span>{uploading ? 'Subiendo...' : 'Cambiar foto'}</span>
-                      </div>
-                    </Label>
-                    <input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarUpload}
-                      disabled={uploading}
-                    />
-                    <p className="text-xs text-gray-600 mt-1">
-                      JPG, PNG hasta 5MB
-                    </p>
                   </div>
                 </div>
-
-                {/* Name */}
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nombre Completo *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nombre del niño..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Birth Date */}
-                <FormField
-                  control={form.control}
-                  name="birth_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fecha de Nacimiento</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="date" 
-                          max={format(new Date(), 'yyyy-MM-dd')}
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        La fecha de nacimiento ayuda a calcular la edad automáticamente
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Diagnosis */}
-                <FormField
-                  control={form.control}
-                  name="diagnosis"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Diagnóstico</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Diagnóstico principal o condición..."
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Diagnóstico principal o condición que requiere seguimiento especial
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Notes */}
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notas Adicionales</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Información adicional importante..."
-                          rows={4}
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Cualquier información adicional relevante sobre el niño
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Emergency Contacts Tab */}
-          {activeTab === 'emergency' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Contactos de Emergencia</CardTitle>
-                <CardDescription>
-                  Personas a contactar en caso de emergencia
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <EmergencyContactForm
-                  contacts={form.watch('emergency_contact')}
-                  onChange={(contacts) => form.setValue('emergency_contact', contacts)}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Medical Information Tab */}
-          {activeTab === 'medical' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Información Médica</CardTitle>
-                <CardDescription>
-                  Datos médicos importantes para el seguimiento
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <MedicalInfoForm
-                  medicalInfo={form.watch('medical_info')}
-                  onChange={(info) => form.setValue('medical_info', info)}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Educational Information Tab */}
-          {activeTab === 'educational' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Información Educativa</CardTitle>
-                <CardDescription>
-                  Datos sobre el entorno educativo del niño
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <EducationalInfoForm
-                  educationalInfo={form.watch('educational_info')}
-                  onChange={(info) => form.setValue('educational_info', info)}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Privacy Settings Tab */}
-          {activeTab === 'privacy' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Configuración de Privacidad</CardTitle>
-                <CardDescription>
-                  Controla cómo se comparte la información del niño
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PrivacySettingsForm
-                  settings={form.watch('privacy_settings')}
-                  onChange={(settings) => form.setValue('privacy_settings', settings)}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-6 border-t">
-            {onCancel && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onCancel}
-              >
-                Cancelar
-              </Button>
-            )}
-            <Button 
-              type="submit" 
-              disabled={form.formState.isSubmitting}
-            >
-              <SaveIcon className="mr-2 h-4 w-4" />
-              {form.formState.isSubmitting
-                ? 'Guardando...'
-                : mode === 'create' 
-                  ? 'Crear Niño' 
-                  : 'Guardar Cambios'
-              }
-            </Button>
+                <Badge variant="secondary" className="ml-2" aria-label={`Promedio: ${avgMood.toFixed(1)} de 5`}>
+                  {avgMood.toFixed(1)}/5
+                </Badge>
+              </div>
+            ))}
           </div>
-        </form>
-      </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Componente AdvancedInsights
+export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
+  const insights = React.useMemo(() => {
+    const generatedInsights: Insight[] = [];
+
+    // Análisis de frecuencia
+    if (logs.length > 0) {
+      const daysWithLogs = new Set(logs.map(log =>
+        new Date(log.created_at).toDateString()
+      )).size;
+
+      const frequency = (daysWithLogs / TOTAL_DAYS_ANALYSIS) * 100;
+
+      generatedInsights.push({
+        type: frequency > 80 ? 'success' : frequency > 50 ? 'warning' : 'info',
+        icon: frequency > 80 ? CheckCircle : frequency > 50 ? Target : AlertTriangle,
+        title: 'Consistencia en el registro',
+        description: `Registros en ${daysWithLogs} de ${TOTAL_DAYS_ANALYSIS} días (${frequency.toFixed(0)}%)`,
+        recommendation: frequency < 50
+          ? 'Intenta mantener registros más regulares para obtener mejores insights'
+          : frequency < 80
+            ? 'Buen ritmo de registro, mantén la consistencia'
+            : 'Excelente consistencia en los registros'
+      });
+    }
+
+    // Análisis de estado de ánimo
+    const moodLogs = logs.filter(log => log.mood_score !== undefined);
+    if (moodLogs.length > 5) {
+      const avgMood = moodLogs.reduce((sum, log) => sum + log.mood_score!, 0) / moodLogs.length;
+      const recent = moodLogs.slice(0, 7);
+      const recentAvg = recent.reduce((sum, log) => sum + log.mood_score!, 0) / recent.length;
+
+      const trend = recentAvg - avgMood;
+
+      generatedInsights.push({
+        type: trend > MOOD_TREND_THRESHOLD ? 'success' : trend < -MOOD_TREND_THRESHOLD ? 'warning' : 'info',
+        icon: Brain,
+        title: 'Tendencia del estado de ánimo',
+        description: `Promedio general: ${avgMood.toFixed(1)}/5, últimos 7 días: ${recentAvg.toFixed(1)}/5`,
+        recommendation: trend > MOOD_TREND_THRESHOLD
+          ? 'Tendencia positiva en el estado de ánimo reciente'
+          : trend < -MOOD_TREND_THRESHOLD
+            ? 'Considera revisar factores que puedan estar afectando el bienestar'
+            : 'Estado de ánimo estable'
+      });
+    }
+
+    // Análisis de categorías
+    const categoryCount = logs.reduce((acc, log) => {
+      if (log.category_name) {
+        acc[log.category_name] = (acc[log.category_name] ?? 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    const categories = Object.entries(categoryCount);
+    if (categories.length > 0) {
+      const mostUsedCategory = categories.sort(([, a], [, b]) => b - a)[0];
+
+      generatedInsights.push({
+        type: 'info',
+        icon: Target,
+        title: 'Área de mayor atención',
+        description: `"${mostUsedCategory[0]}" representa ${((mostUsedCategory[1] / logs.length) * 100).toFixed(0)}% de los registros`,
+        recommendation: 'Esta categoría requiere mayor atención y seguimiento'
+      });
+    }
+
+    return generatedInsights;
+  }, [logs]);
+
+  if (insights.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <Brain className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+        <p className="text-lg font-medium">Generando insights...</p>
+        <p className="text-sm">Necesitas más datos para análisis avanzado</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {insights.map((insight, index) => {
+        const badgeText = insight.type === 'success' ? 'Positivo' :
+          insight.type === 'warning' ? 'Atención' : 'Info';
+
+        return (
+          <Card
+            key={`insight-${index}`}
+            className="border-l-4 border-l-blue-500"
+            aria-label={`Insight: ${insight.title}`}
+          >
+            <CardContent className="pt-4">
+              <div className="flex items-start space-x-3">
+                <div className={`p-2 rounded-lg ${insight.type === 'success' ? 'bg-green-100' :
+                    insight.type === 'warning' ? 'bg-yellow-100' :
+                      'bg-blue-100'
+                  }`}>
+                  {React.createElement(insight.icon, {
+                    className: `h-5 w-5 ${insight.type === 'success' ? 'text-green-600' :
+                        insight.type === 'warning' ? 'text-yellow-600' :
+                          'text-blue-600'
+                      }`,
+                    'aria-hidden': true
+                  })}
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900">{insight.title}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
+                  <p className="text-sm text-gray-500 mt-2 italic">{insight.recommendation}</p>
+                </div>
+                <Badge
+                  variant={
+                    insight.type === 'success' ? 'default' :
+                      insight.type === 'warning' ? 'destructive' :
+                        'secondary'
+                  }
+                  aria-label={`Estado: ${badgeText}`}
+                >
+                  {badgeText}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

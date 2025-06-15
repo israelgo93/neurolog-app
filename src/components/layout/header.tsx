@@ -32,12 +32,12 @@ import {
 } from '@/components/ui/sheet';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useLogs } from '@/hooks/use-logs';
-import { 
-  Bell, 
-  Settings, 
-  User, 
-  LogOut, 
-  Shield, 
+import {
+  Bell,
+  Settings,
+  User,
+  LogOut,
+  Shield,
   ChevronDown,
   Search,
   Plus,
@@ -59,14 +59,14 @@ export function Header() {
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
-  const totalNotifications = (stats.pending_reviews || 0) + (stats.follow_ups_due || 0);
+  const totalNotifications = (stats.pending_reviews ?? 0) + (stats.follow_ups_due ?? 0);
 
   // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -91,7 +91,7 @@ export function Header() {
       '/dashboard/admin': 'Administración',
       '/dashboard/settings': 'Configuración'
     };
-    
+
     // Find exact match or closest parent route
     let title = titles[pathname];
     if (!title) {
@@ -102,8 +102,8 @@ export function Header() {
         }
       }
     }
-    
-    return title || 'NeuroLog';
+
+    return title ?? 'NeuroLog';
   };
 
   const getUserInitials = () => {
@@ -117,21 +117,21 @@ export function Header() {
   };
 
   const quickActions = [
-    { 
-      label: 'Nuevo Registro', 
-      href: '/dashboard/logs?action=new', 
+    {
+      label: 'Nuevo Registro',
+      href: '/dashboard/logs?action=new',
       icon: Plus,
       color: 'bg-blue-600 hover:bg-blue-700 text-white'
     },
-    { 
-      label: 'Ver Niños', 
-      href: '/dashboard/children', 
+    {
+      label: 'Ver Niños',
+      href: '/dashboard/children',
       icon: Users,
       color: 'bg-green-600 hover:bg-green-700 text-white'
     },
-    { 
-      label: 'Reportes', 
-      href: '/dashboard/reports', 
+    {
+      label: 'Reportes',
+      href: '/dashboard/reports',
       icon: BarChart3,
       color: 'bg-purple-600 hover:bg-purple-700 text-white'
     }
@@ -149,7 +149,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200">
       <div className="flex items-center justify-between px-3 sm:px-4 lg:px-6 h-14 sm:h-16">
-        
+
         {/* Left Section - Logo y Title */}
         <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
           {/* Mobile Menu Button */}
@@ -180,7 +180,7 @@ export function Header() {
                       href={item.href}
                       className={cn(
                         "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                        pathname === item.href || pathname.startsWith(item.href + '/')
+                        pathname === item.href ?? pathname.startsWith(item.href + '/')
                           ? "bg-blue-100 text-blue-700"
                           : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                       )}
@@ -224,7 +224,7 @@ export function Header() {
 
         {/* Right Section - Actions y User */}
         <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
-          
+
           {/* Quick Actions - Hidden on small mobile */}
           <div className="hidden sm:flex items-center space-x-1">
             {!isMobile && (
@@ -299,13 +299,13 @@ export function Header() {
                 </Avatar>
                 <div className="hidden sm:block text-left">
                   <p className="text-xs sm:text-sm font-medium text-gray-900 truncate max-w-24 lg:max-w-32">
-                    {user?.full_name || 'Usuario'}
+                    {user?.full_name ?? 'Usuario'}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {user?.role === 'parent' ? 'Padre/Madre' : 
-                     user?.role === 'teacher' ? 'Docente' :
-                     user?.role === 'specialist' ? 'Especialista' :
-                     user?.role === 'admin' ? 'Admin' : 'Usuario'}
+                    {user?.role === 'parent' ? 'Padre/Madre' :
+                      user?.role === 'teacher' ? 'Docente' :
+                        user?.role === 'specialist' ? 'Especialista' :
+                          user?.role === 'admin' ? 'Admin' : 'Usuario'}
                   </p>
                 </div>
                 <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
@@ -335,7 +335,7 @@ export function Header() {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={handleSignOut}
                 className="flex items-center text-red-600 focus:text-red-600"
               >

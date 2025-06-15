@@ -1,6 +1,4 @@
 // src/app/dashboard/calendar/page.tsx
-// Página de calendario corregida - Error de variable no utilizada solucionado
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -8,13 +6,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarIcon, Plus, Clock, Users, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isToday
+} from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Ahora usamos currentDate y setCurrentDate
   const currentMonth = useMemo(() => {
     return format(currentDate, 'MMMM yyyy', { locale: es });
   }, [currentDate]);
@@ -24,6 +30,17 @@ export default function CalendarPage() {
     const end = endOfMonth(currentDate);
     return eachDayOfInterval({ start, end });
   }, [currentDate]);
+
+  // Simula eventos fijos en ciertos días (por ejemplo: días múltiplos de 5)
+  const fakeEventDays = useMemo(() => {
+    const result = new Set<string>();
+    calendarDays.forEach(day => {
+      if (day.getDate() % 5 === 0) {
+        result.add(day.toISOString());
+      }
+    });
+    return result;
+  }, [calendarDays]);
 
   const handlePrevMonth = () => {
     setCurrentDate(prev => subMonths(prev, 1));
@@ -101,7 +118,7 @@ export default function CalendarPage() {
                 {day}
               </div>
             ))}
-            
+
             {/* Calendar days */}
             {calendarDays.map((day) => (
               <div
@@ -114,9 +131,12 @@ export default function CalendarPage() {
                 `}
               >
                 {format(day, 'd')}
-                {/* Placeholder for events */}
-                {Math.random() > 0.8 && (
-                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
+                {/* Evento simulado si está en el set */}
+                {fakeEventDays.has(day.toISOString()) && (
+                  <div
+                    className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"
+                    title="Evento simulado"
+                  ></div>
                 )}
               </div>
             ))}
@@ -124,7 +144,7 @@ export default function CalendarPage() {
         </CardContent>
       </Card>
 
-      {/* Coming Soon Card - Mejorada */}
+      {/* Coming Soon Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-base sm:text-lg">
@@ -144,8 +164,7 @@ export default function CalendarPage() {
             <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto">
               El módulo de calendario está siendo desarrollado. Próximamente podrás:
             </p>
-            
-            {/* Feature list - Responsive */}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 max-w-4xl mx-auto">
               <div className="flex items-center justify-center sm:justify-start p-3 bg-gray-50 rounded-lg">
                 <Clock className="h-4 w-4 mr-2 text-blue-600 flex-shrink-0" />

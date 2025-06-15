@@ -8,7 +8,7 @@
 import { useCallback, useMemo } from 'react';
 import { useContext } from 'react';
 import { AuthContext } from '@/components/providers/AuthProvider';
-import type { Profile } from '@/types';
+import  { Profile } from '@/types';
 
 // ================================================================
 // CACHE TEMPORAL EN MEMORIA PARA PREVENIR PÉRDIDAS DE ESTADO
@@ -182,7 +182,7 @@ export function useAuth() {
       'admin': 'Administrador'
     };
     
-    return roleMap[user.role] || 'Usuario';
+    return roleMap[user.role] ?? 'Usuario';
   }, [user]);
 
   /**
