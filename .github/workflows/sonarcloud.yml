@@ -1,0 +1,31 @@
+name: SonarCloud analysis
+
+on:
+  push:
+    branches: [ "mejoras-calidad" ]
+  pull_request:
+    branches: [ "mejoras-calidad" ]
+  workflow_dispatch:
+
+permissions:
+  pull-requests: read
+
+jobs:
+  Analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2.2.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=VictorZ1111_ARQSOFTWARE
+            -Dsonar.organization=victorz1111
+            -Dsonar.branch.name=mejoras-calidad
