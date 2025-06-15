@@ -26,6 +26,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=VictorZ1111_ARQSOFTWARE
+            -Dsonar.projectKey=VictorZ1111_EXAMEN-ARQ
             -Dsonar.organization=victorz1111
             -Dsonar.branch.name=mejoras-calidad
