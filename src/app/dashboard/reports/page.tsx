@@ -93,6 +93,35 @@ function useMetrics(filteredLogs: any[]) {
 }
 
 function MetricsGrid({ metrics }: { metrics: ReturnType<typeof useMetrics> }) {
+  // Extraer ternarios anidados a variables independientes
+  let averageMoodColor: 'green' | 'orange' | 'red' = 'red';
+  if (metrics.averageMood >= 4) {
+    averageMoodColor = 'green';
+  } else if (metrics.averageMood >= 3) {
+    averageMoodColor = 'orange';
+  }
+
+  let trendIcon: React.ComponentType<{ className?: string }> = Target;
+  if (metrics.improvementTrend > 0) {
+    trendIcon = TrendingUp;
+  } else if (metrics.improvementTrend < 0) {
+    trendIcon = TrendingUp;
+  }
+
+  let trendColor: 'green' | 'red' | 'gray' = 'gray';
+  if (metrics.improvementTrend > 0) {
+    trendColor = 'green';
+  } else if (metrics.improvementTrend < 0) {
+    trendColor = 'red';
+  }
+
+  let trendSubtitle = 'Estable';
+  if (metrics.improvementTrend > 0) {
+    trendSubtitle = 'Mejorando';
+  } else if (metrics.improvementTrend < 0) {
+    trendSubtitle = 'Necesita atención';
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
       <MetricCard
@@ -107,15 +136,15 @@ function MetricsGrid({ metrics }: { metrics: ReturnType<typeof useMetrics> }) {
         value={metrics.averageMood.toFixed(1)}
         suffix="/5"
         icon={Heart}
-        color={metrics.averageMood >= 4 ? 'green' : metrics.averageMood >= 3 ? 'orange' : 'red'}
+        color={averageMoodColor}
         subtitle="Promedio del período"
       />
       <MetricCard
         title="Tendencia"
         value={metrics.improvementTrend > 0 ? '+' : ''}
-        icon={metrics.improvementTrend > 0 ? TrendingUp : metrics.improvementTrend < 0 ? TrendingUp : Target}
-        color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
-        subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}
+        icon={trendIcon}
+        color={trendColor}
+        subtitle={trendSubtitle}
       />
       <MetricCard
         title="Categorías"

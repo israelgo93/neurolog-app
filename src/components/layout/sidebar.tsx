@@ -142,6 +142,18 @@ export function Sidebar() {
     return pathname.startsWith(href);
   };
 
+  // Extraer el label del rol a una variable para evitar ternarios anidados
+  let roleLabel = 'Usuario';
+  if (user?.role === 'parent') {
+    roleLabel = 'Padre/Madre';
+  } else if (user?.role === 'teacher') {
+    roleLabel = 'Docente';
+  } else if (user?.role === 'specialist') {
+    roleLabel = 'Especialista';
+  } else if (user?.role === 'admin') {
+    roleLabel = 'Administrador';
+  }
+
   return (
     <>
       {/* Mobile menu button - Fixed position for better accessibility */}
@@ -219,10 +231,7 @@ export function Sidebar() {
                 {user?.full_name || 'Usuario'}
               </p>
               <p className="text-xs text-gray-500 capitalize">
-                {user?.role === 'parent' ? 'Padre/Madre' :
-                 user?.role === 'teacher' ? 'Docente' :
-                 user?.role === 'specialist' ? 'Especialista' : 
-                 user?.role === 'admin' ? 'Administrador' : 'Usuario'}
+                {roleLabel}
               </p>
             </div>
             {notifications > 0 && (

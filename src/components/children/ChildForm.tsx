@@ -156,35 +156,35 @@ function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps)
         </Button>
       </div>
 
-      {contacts.map((contact, index) => (
-        <Card key={index} className="p-4">
+      {contacts.map((contact) => (
+        <Card key={crypto.randomUUID()} className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor={`contact-name-${index}`}>Nombre</Label>
+              <Label htmlFor={`contact-name-${contact.phone}`}>Nombre</Label>
               <Input
-                id={`contact-name-${index}`}
+                id={`contact-name-${contact.phone}`}
                 value={contact.name}
-                onChange={(e) => updateContact(index, 'name', e.target.value)}
+                onChange={(e) => updateContact(contacts.indexOf(contact), 'name', e.target.value)}
                 placeholder="Nombre completo"
               />
             </div>
             
             <div>
-              <Label htmlFor={`contact-phone-${index}`}>Teléfono</Label>
+              <Label htmlFor={`contact-phone-${contact.phone}`}>Teléfono</Label>
               <Input
-                id={`contact-phone-${index}`}
+                id={`contact-phone-${contact.phone}`}
                 value={contact.phone}
-                onChange={(e) => updateContact(index, 'phone', e.target.value)}
+                onChange={(e) => updateContact(contacts.indexOf(contact), 'phone', e.target.value)}
                 placeholder="+1234567890"
               />
             </div>
             
             <div>
-              <Label htmlFor={`contact-relationship-${index}`}>Relación</Label>
+              <Label htmlFor={`contact-relationship-${contact.phone}`}>Relación</Label>
               <Input
-                id={`contact-relationship-${index}`}
+                id={`contact-relationship-${contact.phone}`}
                 value={contact.relationship}
-                onChange={(e) => updateContact(index, 'relationship', e.target.value)}
+                onChange={(e) => updateContact(contacts.indexOf(contact), 'relationship', e.target.value)}
                 placeholder="Padre, Madre, Tutor, etc."
               />
             </div>
@@ -192,18 +192,18 @@ function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps)
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Switch
-                  id={`contact-primary-${index}`}
+                  id={`contact-primary-${contact.phone}`}
                   checked={contact.is_primary}
-                  onCheckedChange={(checked) => updateContact(index, 'is_primary', checked)}
+                  onCheckedChange={(checked) => updateContact(contacts.indexOf(contact), 'is_primary', checked)}
                 />
-                <Label htmlFor={`contact-primary-${index}`}>Contacto Principal</Label>
+                <Label htmlFor={`contact-primary-${contact.phone}`}>Contacto Principal</Label>
               </div>
               
               <Button
                 type="button"
                 variant="destructive"
                 size="sm"
-                onClick={() => removeContact(index)}
+                onClick={() => removeContact(contacts.indexOf(contact))}
               >
                 <TrashIcon className="h-4 w-4" />
               </Button>
@@ -219,6 +219,61 @@ function EmergencyContactForm({ contacts, onChange }: EmergencyContactFormProps)
           <p className="text-sm">Agrega al menos un contacto de emergencia</p>
         </div>
       )}
+    </div>
+  );
+}
+
+// ===================== ItemsList fuera de MedicalInfoForm =====================
+interface ItemsListProps {
+  field: string;
+  items: string[];
+  placeholder: string;
+  value: string;
+  setValue: (v: string) => void;
+  addItem: (field: string, value: string, setter: (v: string) => void) => void;
+  removeItem: (field: string, index: number) => void;
+}
+
+function ItemsList({ field, items, placeholder, value, setValue, addItem, removeItem }: ItemsListProps) {
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => (
+          <Badge key={crypto.randomUUID()} variant="secondary" className="text-sm">
+            {item}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto p-0 ml-2"
+              onClick={() => removeItem(field, items.indexOf(item))}
+            >
+              <TrashIcon className="h-3 w-3" />
+            </Button>
+          </Badge>
+        ))}
+      </div>
+      <div className="flex space-x-2">
+        <Input
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addItem(field, value, setValue);
+            }
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => addItem(field, value, setValue)}
+        >
+          <PlusIcon className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -247,59 +302,6 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
     });
   };
 
-  const ItemsList = ({ field, items, placeholder }: { field: string, items: string[], placeholder: string }) => (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        {items.map((item, index) => (
-          <Badge key={index} variant="secondary" className="text-sm">
-            {item}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-auto p-0 ml-2"
-              onClick={() => removeItem(field, index)}
-            >
-              <TrashIcon className="h-3 w-3" />
-            </Button>
-          </Badge>
-        ))}
-      </div>
-      
-      <div className="flex space-x-2">
-        <Input
-          placeholder={placeholder}
-          value={field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition}
-          onChange={(e) => {
-            if (field === 'allergies') setNewAllergy(e.target.value);
-            else if (field === 'medications') setNewMedication(e.target.value);
-            else setNewCondition(e.target.value);
-          }}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-              const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
-              addItem(field, value, setter);
-            }
-          }}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const value = field === 'allergies' ? newAllergy : field === 'medications' ? newMedication : newCondition;
-            const setter = field === 'allergies' ? setNewAllergy : field === 'medications' ? setNewMedication : setNewCondition;
-            addItem(field, value, setter);
-          }}
-        >
-          <PlusIcon className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div>
@@ -307,31 +309,40 @@ function MedicalInfoForm({ medicalInfo, onChange }: MedicalInfoFormProps) {
           <HeartIcon className="h-4 w-4 inline mr-2" />
           Alergias
         </Label>
-        <ItemsList 
-          field="allergies" 
-          items={medicalInfo.allergies || []} 
-          placeholder="Agregar alergia..." 
+        <ItemsList
+          field="allergies"
+          items={medicalInfo.allergies || []}
+          placeholder="Agregar alergia..."
+          value={newAllergy}
+          setValue={setNewAllergy}
+          addItem={addItem}
+          removeItem={removeItem}
         />
       </div>
-
       <div>
         <Label className="text-base font-medium mb-3 block">Medicamentos</Label>
-        <ItemsList 
-          field="medications" 
-          items={medicalInfo.medications || []} 
-          placeholder="Agregar medicamento..." 
+        <ItemsList
+          field="medications"
+          items={medicalInfo.medications || []}
+          placeholder="Agregar medicamento..."
+          value={newMedication}
+          setValue={setNewMedication}
+          addItem={addItem}
+          removeItem={removeItem}
         />
       </div>
-
       <div>
         <Label className="text-base font-medium mb-3 block">Condiciones Médicas</Label>
-        <ItemsList 
-          field="conditions" 
-          items={medicalInfo.conditions || []} 
-          placeholder="Agregar condición..." 
+        <ItemsList
+          field="conditions"
+          items={medicalInfo.conditions || []}
+          placeholder="Agregar condición..."
+          value={newCondition}
+          setValue={setNewCondition}
+          addItem={addItem}
+          removeItem={removeItem}
         />
       </div>
-
       <div>
         <Label htmlFor="emergency-notes">Notas de Emergencia</Label>
         <Textarea
@@ -422,15 +433,15 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
         </Label>
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            {(educationalInfo.iep_goals || []).map((goal: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-sm">
+            {(educationalInfo.iep_goals || []).map((goal: string) => (
+              <Badge key={crypto.randomUUID()} variant="secondary" className="text-sm">
                 {goal}
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="h-auto p-0 ml-2"
-                  onClick={() => removeItem('iep_goals', index)}
+                  onClick={() => removeItem('iep_goals', educationalInfo.iep_goals.indexOf(goal))}
                 >
                   <TrashIcon className="h-3 w-3" />
                 </Button>
@@ -466,15 +477,15 @@ function EducationalInfoForm({ educationalInfo, onChange }: EducationalInfoFormP
         <Label className="text-base font-medium mb-3 block">Acomodaciones</Label>
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            {(educationalInfo.accommodations || []).map((accommodation: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-sm">
+            {(educationalInfo.accommodations || []).map((accommodation: string) => (
+              <Badge key={crypto.randomUUID()} variant="secondary" className="text-sm">
                 {accommodation}
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="h-auto p-0 ml-2"
-                  onClick={() => removeItem('accommodations', index)}
+                  onClick={() => removeItem('accommodations', educationalInfo.accommodations.indexOf(accommodation))}
                 >
                   <TrashIcon className="h-3 w-3" />
                 </Button>
@@ -533,7 +544,7 @@ function PrivacySettingsForm({ settings, onChange }: PrivacySettingsFormProps) {
           <div className="space-y-0.5">
             <Label className="text-base">Reportes de Progreso</Label>
             <p className="text-sm text-gray-600">
-              Incluir en reportes de progreso generados
+              Incluir in reportes de progreso generados
             </p>
           </div>
           <Switch
@@ -674,6 +685,13 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
     { id: 'privacy', label: 'Privacidad', icon: ShieldIcon }
   ];
 
+  let submitText = 'Guardar Cambios';
+  if (form.formState.isSubmitting) {
+    submitText = 'Guardando...';
+  } else if (mode === 'create') {
+    submitText = 'Crear Niño';
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -701,7 +719,7 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
             disabled={form.formState.isSubmitting}
           >
             <SaveIcon className="mr-2 h-4 w-4" />
-            {mode === 'create' ? 'Crear' : 'Guardar'} Niño
+            {submitText}
           </Button>
         </div>
       </div>
@@ -943,12 +961,7 @@ export default function ChildForm({ child, mode, onSuccess, onCancel }: ChildFor
               disabled={form.formState.isSubmitting}
             >
               <SaveIcon className="mr-2 h-4 w-4" />
-              {form.formState.isSubmitting
-                ? 'Guardando...'
-                : mode === 'create' 
-                  ? 'Crear Niño' 
-                  : 'Guardar Cambios'
-              }
+              {submitText}
             </Button>
           </div>
         </form>

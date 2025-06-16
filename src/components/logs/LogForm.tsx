@@ -188,18 +188,16 @@ function MoodSelector({ value, onChange }: MoodSelectorProps) {
 
 function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManagerProps) {
   const [uploading, setUploading] = useState(false);
-  const { user } = useAuth();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || !user) return;
+    if (!files) return;
 
     try {
       setUploading(true);
       const newAttachments: LogAttachment[] = [];
 
       for (const file of Array.from(files)) {
-        const fileExt = file.name.split('.').pop();
         const fileName = `${childId}/${Date.now()}-${file.name}`;
         
         await uploadFile('attachments', fileName, file);
@@ -394,11 +392,9 @@ function TagsInput({ tags, onChange }: TagsInputProps) {
 // ================================================================
 
 export default function LogForm({ log, childId, mode, onSuccess, onCancel }: LogFormProps) {
-  const { user } = useAuth();
   const { children } = useChildren();
   const { createLog, updateLog } = useLogs();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
   const router = useRouter();
 
   const form = useForm<LogFormData>({
@@ -435,8 +431,6 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
         setCategories(data || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
-      } finally {
-        setLoadingCategories(false);
       }
     }
 
@@ -465,6 +459,14 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
 
   const selectedChild = children.find(child => child.id === form.watch('child_id'));
   const followUpRequired = form.watch('follow_up_required');
+
+  // Extraer texto del botón de submit a una variable
+  let submitText = 'Guardar Cambios';
+  if (form.formState.isSubmitting) {
+    submitText = 'Guardando...';
+  } else if (mode === 'create') {
+    submitText = 'Crear Registro';
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -932,12 +934,7 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
               disabled={form.formState.isSubmitting}
             >
               <SaveIcon className="mr-2 h-4 w-4" />
-              {form.formState.isSubmitting
-                ? 'Guardando...'
-                : mode === 'create' 
-                  ? 'Crear Registro' 
-                  : 'Guardar Cambios'
-              }
+              {submitText}
             </Button>
           </div>
         </form>
