@@ -262,6 +262,91 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
 }
 
 // ================================================================
+// COMPONENTES AUXILIARES DE ESTADO
+// ================================================================
+function LoadingState() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[...Array(6)].map((_, i) => (
+        <Card key={i} className="animate-pulse">
+          <CardHeader>
+            <div className="flex items-center space-x-4">
+              <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-24"></div>
+                <div className="h-3 bg-gray-200 rounded w-16"></div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function ErrorState({ error, onRetry }: { error: string, onRetry: () => void }) {
+  return (
+    <Card className="border-red-200 bg-red-50">
+      <CardContent className="text-center py-12">
+        <p className="text-red-600 mb-4">Error al cargar los niños: {error}</p>
+        <Button variant="outline" onClick={onRetry}>
+          <RefreshCwIcon className="h-4 w-4 mr-2" />
+          Reintentar
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EmptyState() {
+  return (
+    <Card>
+      <CardContent className="text-center py-12">
+        <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+        <>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No hay niños registrados
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Comienza agregando el primer niño para empezar el seguimiento
+          </p>
+          <Button asChild>
+            <Link href="/dashboard/children/new">
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Agregar Primer Niño
+            </Link>
+          </Button>
+        </>
+      </CardContent>
+    </Card>
+  );
+}
+
+function NoResultsState({ onClearFilters }: { onClearFilters: () => void }) {
+  return (
+    <Card>
+      <CardContent className="text-center py-12">
+        <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+        <>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No se encontraron niños
+          </h3>
+          <p className="text-gray-600 mb-6">
+            No hay niños que coincidan con los filtros seleccionados
+          </p>
+          <Button 
+            variant="outline"
+            onClick={onClearFilters}
+          >
+            Limpiar Filtros
+          </Button>
+        </>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ================================================================
 // COMPONENTE PRINCIPAL
 // ================================================================
 
@@ -301,6 +386,54 @@ export default function ChildrenPage() {
           <p className="text-gray-500">Cargando...</p>
         </div>
       </div>
+    );
+  }
+
+  let content: JSX.Element | null = null;
+  if (loading) {
+    content = <LoadingState />;
+  } else if (error) {
+    content = <ErrorState error={error} onRetry={() => window.location.reload()} />;
+  } else if (filteredChildren.length === 0) {
+    content = children.length === 0
+      ? <EmptyState />
+      : <NoResultsState onClearFilters={() => setFilters({})} />;
+  } else {
+    content = (
+      <>
+        {/* View Mode Toggle */}
+        <div className="flex justify-end">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">Vista:</span>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              Tarjetas
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              Lista
+            </Button>
+          </div>
+        </div>
+        {/* Children Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredChildren.map((child) => (
+            <ChildCard
+              key={child.id}
+              child={child}
+              onEdit={handleEdit}
+              onViewDetails={handleViewDetails}
+              onManageUsers={handleManageUsers}
+            />
+          ))}
+        </div>
+      </>
     );
   }
 
@@ -389,108 +522,9 @@ export default function ChildrenPage() {
 
       {/* Filtros */}
       <FiltersCard filters={filters} onFiltersChange={setFilters} />
-
-      {/* Lista/Grid de niños */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="flex items-center space-x-4">
-                  <div className="rounded-full bg-gray-200 h-12 w-12"></div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-24"></div>
-                    <div className="h-3 bg-gray-200 rounded w-16"></div>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
-      ) : error ? (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="text-center py-12">
-            <p className="text-red-600 mb-4">Error al cargar los niños: {error}</p>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              <RefreshCwIcon className="h-4 w-4 mr-2" />
-              Reintentar
-            </Button>
-          </CardContent>
-        </Card>
-      ) : filteredChildren.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <UsersIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-            {children.length === 0 ? (
-              <>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No hay niños registrados
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Comienza agregando el primer niño para empezar el seguimiento
-                </p>
-                <Button asChild>
-                  <Link href="/dashboard/children/new">
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    Agregar Primer Niño
-                  </Link>
-                </Button>
-              </>
-            ) : (
-              <>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No se encontraron niños
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  No hay niños que coincidan con los filtros seleccionados
-                </p>
-                <Button 
-                  variant="outline"
-                  onClick={() => setFilters({})}
-                >
-                  Limpiar Filtros
-                </Button>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* View Mode Toggle */}
-          <div className="flex justify-end">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Vista:</span>
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                Tarjetas
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                Lista
-              </Button>
-            </div>
-          </div>
-
-          {/* Children Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredChildren.map((child) => (
-              <ChildCard
-                key={child.id}
-                child={child}
-                onEdit={handleEdit}
-                onViewDetails={handleViewDetails}
-                onManageUsers={handleManageUsers}
-              />
-            ))}
-          </div>
-        </>
-      )}
+      
+      {/* Lista/Grid de niños o estados */}
+      {content}
     </div>
   );
 }
