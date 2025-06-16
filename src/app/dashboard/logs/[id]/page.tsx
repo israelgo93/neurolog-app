@@ -137,7 +137,7 @@ export default function LogDetailPage() {
 
   // Estado de ánimo: extraer texto descriptivo
   let moodText = '';
-  if (log && log.mood_score) {
+  if (log?.mood_score) {
     if (log.mood_score <= 2) {
       moodText = 'Necesita atención';
     } else if (log.mood_score <= 3) {

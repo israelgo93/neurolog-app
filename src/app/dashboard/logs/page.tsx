@@ -26,7 +26,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
 import type { 
@@ -522,7 +521,6 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 // ================================================================
 
 export default function LogsPage() {
-  const { user } = useAuth();
   const { children } = useChildren({ includeInactive: false });
   const { 
     logs, 
@@ -584,8 +582,8 @@ export default function LogsPage() {
         </div>
         
         <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i} className="p-6">
+          {[...Array(5)].map(() => (
+            <Card key={crypto.randomUUID()} className="p-6">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
                 <div className="flex-1 space-y-2">
