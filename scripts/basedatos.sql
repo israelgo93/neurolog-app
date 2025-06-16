@@ -50,7 +50,6 @@ END;
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
-  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
   role TEXT CHECK (role IN (co_role_parent, co_role_teacher, co_role_specialist, co_role_admin)) DEFAULT co_role_parent,
   avatar_url TEXT,
   phone TEXT,
@@ -59,7 +58,6 @@ END;
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
-  relationship_type TEXT CHECK (relationship_type IN ('parent', 'teacher', 'specialist', 'observer', 'family')) NOT NULL,
   relationship_type TEXT CHECK (relationship_type IN (co_rel_parent, co_rel_teacher, co_rel_specialist, co_rel_observer, co_rel_family)) NOT NULL,
   can_edit BOOLEAN DEFAULT FALSE,
   can_view BOOLEAN DEFAULT TRUE,
@@ -68,7 +66,6 @@ END;
 CREATE TABLE audit_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   table_name TEXT NOT NULL,
-  operation TEXT CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE', 'SELECT')) NOT NULL,
   operation TEXT CHECK (operation IN (co_op_insert, co_op_update, co_op_delete, co_op_select)) NOT NULL,
   record_id TEXT,
   user_id UUID REFERENCES profiles(id),
@@ -77,7 +74,6 @@ CREATE TABLE audit_logs (
   ip_address INET,
   user_agent TEXT,
   session_id TEXT,
-  risk_level TEXT CHECK (risk_level IN ('low', 'medium', 'high', 'critical')) DEFAULT 'low',
   risk_level TEXT CHECK (risk_level IN (co_risk_low, co_risk_medium, co_risk_high, co_risk_critical)) DEFAULT co_risk_low,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
