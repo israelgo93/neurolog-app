@@ -102,9 +102,7 @@ function MetricsGrid({ metrics }: { metrics: ReturnType<typeof useMetrics> }) {
   }
 
   let trendIcon: React.ComponentType<{ className?: string }> = Target;
-  if (metrics.improvementTrend > 0) {
-    trendIcon = TrendingUp;
-  } else if (metrics.improvementTrend < 0) {
+  if (metrics.improvementTrend !== 0) {
     trendIcon = TrendingUp;
   }
 
