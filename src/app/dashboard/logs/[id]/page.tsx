@@ -53,7 +53,7 @@ export default function LogDetailPage() {
   const router = useRouter();
   const logId = params.id as string;
   const { user } = useAuth();
-  const { logs, loading, getLogById, addParentFeedback, markAsReviewed } = useLogs();
+  const { loading, getLogById, addParentFeedback, markAsReviewed } = useLogs();
   
   const [log, setLog] = useState<LogWithDetails | null>(null);
   const [feedback, setFeedback] = useState('');
@@ -134,6 +134,18 @@ export default function LogDetailPage() {
 
   const canReview = user?.role === 'specialist' && !log.reviewed_by;
   const canAddFeedback = user?.role === 'parent' || user?.role === 'family';
+
+  // Estado de ánimo: extraer texto descriptivo
+  let moodText = '';
+  if (log && log.mood_score) {
+    if (log.mood_score <= 2) {
+      moodText = 'Necesita atención';
+    } else if (log.mood_score <= 3) {
+      moodText = 'Normal';
+    } else {
+      moodText = 'Muy positivo';
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -248,8 +260,7 @@ export default function LogDetailPage() {
                     <div>
                       <p className="text-lg font-semibold text-gray-900">{log.mood_score}/5</p>
                       <p className="text-sm text-gray-600">
-                        {log.mood_score <= 2 ? 'Necesita atención' : 
-                         log.mood_score <= 3 ? 'Normal' : 'Muy positivo'}
+                        {moodText}
                       </p>
                     </div>
                   </div>
@@ -261,8 +272,8 @@ export default function LogDetailPage() {
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-2">Etiquetas</h4>
                   <div className="flex flex-wrap gap-2">
-                    {log.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline">
+                    {log.tags.map((tag) => (
+                      <Badge key={crypto.randomUUID()} variant="outline">
                         <TagIcon className="h-3 w-3 mr-1" />
                         {tag}
                       </Badge>
