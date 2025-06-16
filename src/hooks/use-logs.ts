@@ -147,8 +147,25 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
       throw new Error('No tienes acceso a este niño');
     }
   }
-
-  // === AUXILIARES PARA fetchLogs ===
+  function handleFetchLogsError(err: any) {
+    console.error('❌ Error fetching logs:', err);
+    if (mountedRef.current) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar los registros';
+      setError(errorMessage);
+    }
+  }
+  function updateLogsState(newLogs: LogWithDetails[], append: boolean) {
+    if (mountedRef.current) {
+      if (append) {
+        setLogs(prev => [...prev, ...newLogs]);
+      } else {
+        setLogs(newLogs);
+      }
+      setHasMore(newLogs.length === pageSize);
+      console.log(`✅ Logs fetched successfully: ${newLogs.length}`);
+    }
+  }
+  // Reubicación de helpers para evitar errores de referencia
   function buildLogsQuery(supabase: any, accessibleChildrenIds: string[], page: number, pageSize: number, childId: string | undefined, includePrivate: boolean, includeDeleted: boolean) {
     let query = supabase
       .from('daily_logs')
@@ -199,21 +216,9 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
       const { data, error } = await query;
       if (error) throw error;
       const newLogs = transformLogsData(data);
-      if (mountedRef.current) {
-        if (append) {
-          setLogs(prev => [...prev, ...newLogs]);
-        } else {
-          setLogs(newLogs);
-        }
-        setHasMore(newLogs.length === pageSize);
-        console.log(`✅ Logs fetched successfully: ${newLogs.length}`);
-      }
+      updateLogsState(newLogs, append);
     } catch (err) {
-      console.error('❌ Error fetching logs:', err);
-      if (mountedRef.current) {
-        const errorMessage = err instanceof Error ? err.message : 'Error al cargar los registros';
-        setError(errorMessage);
-      }
+      handleFetchLogsError(err);
     } finally {
       if (mountedRef.current && !append) {
         setLoading(false);
@@ -411,8 +416,6 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
   const markAsReviewed = useCallback(async (id: string, specialistNotes?: string): Promise<void> => {
     await updateLog(id, {
       needs_review: false,
-      reviewed_at: new Date().toISOString(),
-      reviewed_by: userId,
       specialist_notes: specialistNotes
     });
   }, [updateLog, userId]);
