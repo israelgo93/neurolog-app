@@ -14,7 +14,6 @@ import { useAuth } from '@/components/providers/AuthProvider'
 import { useToast } from '@/components/ui/use-toast'
 import { 
   User, 
-  Bell, 
   Shield, 
   Download,
   Trash2,
@@ -306,7 +305,7 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Bell className="h-5 w-5 mr-2" />
+            <Shield className="h-5 w-5 mr-2" />
             Preferencias de Notificaciones
           </CardTitle>
           <CardDescription>

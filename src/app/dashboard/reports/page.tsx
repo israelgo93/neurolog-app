@@ -5,10 +5,9 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Select,
@@ -92,7 +91,7 @@ function useMetrics(filteredLogs: any[]) {
   };
 }
 
-function MetricsGrid({ metrics }: { metrics: ReturnType<typeof useMetrics> }) {
+function MetricsGrid({ metrics }: Readonly<{ metrics: ReturnType<typeof useMetrics> }>) {
   // Extraer ternarios anidados a variables independientes
   let averageMoodColor: 'green' | 'orange' | 'red' = 'red';
   if (metrics.averageMood >= 4) {
@@ -384,7 +383,7 @@ interface MetricCardProps {
   suffix?: string;
 }
 
-function MetricCard({ title, value, icon: Icon, color, subtitle, suffix }: MetricCardProps) {
+function MetricCard({ title, value, icon: Icon, color, subtitle, suffix }: Readonly<MetricCardProps>) {
   const colorClasses = {
     blue: 'bg-blue-100 text-blue-600',
     red: 'bg-red-100 text-red-600',
