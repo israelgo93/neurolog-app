@@ -34,6 +34,8 @@ DECLARE
   -- Estados booleanos
   co_true CONSTANT BOOLEAN := TRUE;
   co_false CONSTANT BOOLEAN := FALSE;
+  -- Esquema público
+  co_schema_public CONSTANT TEXT := 'public';
 END;
 /
 
@@ -70,7 +72,9 @@ CREATE TABLE audit_logs (
   record_id TEXT,
   user_id UUID REFERENCES profiles(id),
   user_role TEXT,
-@@ -164,7 +203,7 @@ CREATE TABLE audit_logs (
+  new_values JSONB,
+  old_values JSONB,
+  change_reason TEXT,
   ip_address INET,
   user_agent TEXT,
   session_id TEXT,
@@ -122,7 +126,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')
+    COALESCE(NEW.raw_user_meta_data->>'role', co_role_parent)
   );
   RETURN NEW;
 END;
@@ -214,7 +218,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE VIEW user_accessible_children AS
 SELECT 
   c.*,
-  'parent'::TEXT as relationship_type,
+  co_rel_parent as relationship_type,
   true as can_edit,
   true as can_view,
   true as can_export,
@@ -340,7 +344,7 @@ BEGIN
   -- Contar tablas
   SELECT COUNT(*) INTO table_count
   FROM information_schema.tables 
-  WHERE table_schema = 'public' 
+  WHERE table_schema = co_schema_public 
     AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
@@ -348,7 +352,7 @@ BEGIN
   -- Contar políticas
   SELECT COUNT(*) INTO policy_count
   FROM pg_policies 
-  WHERE schemaname = 'public';
+  WHERE schemaname = co_schema_public;
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
   
@@ -368,7 +372,7 @@ BEGIN
   -- Verificar RLS
   IF (SELECT COUNT(*) FROM pg_class c 
       JOIN pg_namespace n ON n.oid = c.relnamespace 
-      WHERE n.nspname = 'public' 
+      WHERE n.nspname = co_schema_public 
         AND c.relname = 'children' 
         AND c.relrowsecurity = true) > 0 THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
