@@ -5,6 +5,20 @@
 -- Borra todo y crea desde cero según últimas actualizaciones
 
 -- ================================================================
+-- 0. CREAR DOMINIO PARA ROLES DE USUARIO
+-- ================================================================
+
+CREATE DOMAIN user_role AS TEXT
+  CHECK (VALUE IN ('parent', 'teacher', 'specialist', 'admin'));
+
+-- ================================================================
+-- 0.1. CREAR DOMINIO PARA INTENSITY LEVEL
+-- ================================================================
+
+CREATE DOMAIN intensity_level_type AS TEXT
+  CHECK (VALUE IN ('low', 'medium', 'high'));
+
+-- ================================================================
 -- 1. LIMPIAR TODO LO EXISTENTE
 -- ================================================================
 
@@ -51,7 +65,7 @@ CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
-  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
+  role user_role DEFAULT 'parent',
   avatar_url TEXT,
   phone TEXT,
   is_active BOOLEAN DEFAULT TRUE,
@@ -90,12 +104,7 @@ CREATE TABLE children (
   emergency_contact JSONB DEFAULT '[]',
   medical_info JSONB DEFAULT '{}',
   educational_info JSONB DEFAULT '{}',
-  privacy_settings JSONB DEFAULT '{
-    "share_with_specialists": true,
-    "share_progress_reports": true,
-    "allow_photo_sharing": false,
-    "data_retention_months": 36
-  }',
+  privacy_settings JSONB DEFAULT '{"share_with_specialists":true,"share_progress_reports":true,"allow_photo_sharing":false,"data_retention_months":36}',
   created_by UUID REFERENCES profiles(id) NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -130,7 +139,7 @@ CREATE TABLE daily_logs (
   title TEXT NOT NULL CHECK (length(trim(title)) >= 2),
   content TEXT NOT NULL,
   mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10),
-  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium',
+  intensity_level intensity_level_type DEFAULT 'medium',
   logged_by UUID REFERENCES profiles(id) NOT NULL,
   log_date DATE DEFAULT CURRENT_DATE,
   is_private BOOLEAN DEFAULT FALSE,
@@ -460,6 +469,7 @@ CREATE POLICY "System can insert audit logs" ON audit_logs
 CREATE OR REPLACE FUNCTION verify_neurolog_setup()
 RETURNS TEXT AS $$
 DECLARE
+  schema_name TEXT := 'public';
   result TEXT := '';
   table_count INTEGER;
   policy_count INTEGER;
@@ -469,7 +479,7 @@ BEGIN
   -- Contar tablas
   SELECT COUNT(*) INTO table_count
   FROM information_schema.tables 
-  WHERE table_schema = 'public' 
+  WHERE table_schema = schema_name 
     AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
@@ -477,7 +487,7 @@ BEGIN
   -- Contar políticas
   SELECT COUNT(*) INTO policy_count
   FROM pg_policies 
-  WHERE schemaname = 'public';
+  WHERE schemaname = schema_name;
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
   
@@ -497,7 +507,7 @@ BEGIN
   -- Verificar RLS
   IF (SELECT COUNT(*) FROM pg_class c 
       JOIN pg_namespace n ON n.oid = c.relnamespace 
-      WHERE n.nspname = 'public' 
+      WHERE n.nspname = schema_name 
         AND c.relname = 'children' 
         AND c.relrowsecurity = true) > 0 THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
