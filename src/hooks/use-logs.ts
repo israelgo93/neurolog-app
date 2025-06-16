@@ -135,6 +135,20 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
   // ================================================================
 
   // === AUXILIARES PARA fetchLogs ===
+  function handleNoAccessibleChildren() {
+    if (mountedRef.current) {
+      setLogs([]);
+      setHasMore(false);
+      setLoading(false);
+    }
+  }
+  function validateChildAccess(childId: string | undefined, accessibleChildrenIds: string[]): void {
+    if (childId && !accessibleChildrenIds.includes(childId)) {
+      throw new Error('No tienes acceso a este niño');
+    }
+  }
+
+  // === AUXILIARES PARA fetchLogs ===
   function buildLogsQuery(supabase: any, accessibleChildrenIds: string[], page: number, pageSize: number, childId: string | undefined, includePrivate: boolean, includeDeleted: boolean) {
     let query = supabase
       .from('daily_logs')
@@ -176,17 +190,10 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
       // Obtener niños accesibles
       const accessibleChildrenIds = await getAccessibleChildrenIds();
       if (accessibleChildrenIds.length === 0) {
-        if (mountedRef.current) {
-          setLogs([]);
-          setHasMore(false);
-          setLoading(false);
-        }
+        handleNoAccessibleChildren();
         return;
       }
-      // Validar acceso a childId si aplica
-      if (childId && !accessibleChildrenIds.includes(childId)) {
-        throw new Error('No tienes acceso a este niño');
-      }
+      validateChildAccess(childId, accessibleChildrenIds);
       // Construir query
       const query = buildLogsQuery(supabase, accessibleChildrenIds, page, pageSize, childId, includePrivate, includeDeleted);
       const { data, error } = await query;
