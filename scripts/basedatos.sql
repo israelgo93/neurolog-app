@@ -470,6 +470,8 @@ CREATE OR REPLACE FUNCTION verify_neurolog_setup()
 RETURNS TEXT AS $$
 DECLARE
   schema_name TEXT := 'public';
+  co_parent CONSTANT TEXT := 'parent';
+  co_medium CONSTANT TEXT := 'medium';
   result TEXT := '';
   table_count INTEGER;
   policy_count INTEGER;
@@ -532,6 +534,9 @@ SELECT verify_neurolog_setup();
 -- ================================================================
 
 DO $$
+DECLARE
+  co_parent CONSTANT TEXT := 'parent';
+  co_medium CONSTANT TEXT := 'medium';
 BEGIN
   RAISE NOTICE '🎉 ¡BASE DE DATOS NEUROLOG CREADA EXITOSAMENTE!';
   RAISE NOTICE '===============================================';
