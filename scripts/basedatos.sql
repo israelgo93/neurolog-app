@@ -60,6 +60,45 @@ DROP TABLE IF EXISTS profiles CASCADE;
 -- 2. CREAR TABLAS PRINCIPALES
 -- ================================================================
 
+-- Definición de constantes
+DO $$
+DECLARE
+  -- Roles de usuario
+  co_role_parent CONSTANT TEXT := 'parent';
+  co_role_teacher CONSTANT TEXT := 'teacher';
+  co_role_specialist CONSTANT TEXT := 'specialist';
+  co_role_admin CONSTANT TEXT := 'admin';
+
+  -- Tipos de relación
+  co_rel_parent CONSTANT TEXT := 'parent';
+  co_rel_teacher CONSTANT TEXT := 'teacher';
+  co_rel_specialist CONSTANT TEXT := 'specialist';
+  co_rel_observer CONSTANT TEXT := 'observer';
+  co_rel_family CONSTANT TEXT := 'family';
+
+  -- Operaciones de auditoría
+  co_op_insert CONSTANT TEXT := 'INSERT';
+  co_op_update CONSTANT TEXT := 'UPDATE';
+  co_op_delete CONSTANT TEXT := 'DELETE';
+  co_op_select CONSTANT TEXT := 'SELECT';
+
+  -- Niveles de riesgo
+  co_risk_low CONSTANT TEXT := 'low';
+  co_risk_medium CONSTANT TEXT := 'medium';
+  co_risk_high CONSTANT TEXT := 'high';
+  co_risk_critical CONSTANT TEXT := 'critical';
+
+  -- Niveles de intensidad
+  co_level_low CONSTANT TEXT := 'low';
+  co_level_medium CONSTANT TEXT := 'medium';
+  co_level_high CONSTANT TEXT := 'high';
+
+  -- Estados booleanos
+  co_true CONSTANT BOOLEAN := TRUE;
+  co_false CONSTANT BOOLEAN := FALSE;
+END;
+$$
+
 -- TABLA: profiles (usuarios del sistema)
 CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
@@ -115,7 +154,7 @@ CREATE TABLE user_child_relations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
-  relationship_type TEXT CHECK (relationship_type IN ('parent', 'teacher', 'specialist', 'observer', 'family')) NOT NULL,
+  relationship_type TEXT CHECK (relationship_type IN (co_rel_parent, co_rel_teacher, co_rel_specialist, co_rel_observer, co_rel_family)) NOT NULL,
   can_edit BOOLEAN DEFAULT FALSE,
   can_view BOOLEAN DEFAULT TRUE,
   can_export BOOLEAN DEFAULT FALSE,
@@ -163,7 +202,7 @@ CREATE TABLE daily_logs (
 CREATE TABLE audit_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   table_name TEXT NOT NULL,
-  operation TEXT CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE', 'SELECT')) NOT NULL,
+  operation TEXT CHECK (operation IN (co_op_insert, co_op_update, co_op_delete, co_op_select)) NOT NULL,
   record_id TEXT,
   user_id UUID REFERENCES profiles(id),
   user_role TEXT,
@@ -173,7 +212,7 @@ CREATE TABLE audit_logs (
   ip_address INET,
   user_agent TEXT,
   session_id TEXT,
-  risk_level TEXT CHECK (risk_level IN ('low', 'medium', 'high', 'critical')) DEFAULT 'low',
+  risk_level TEXT CHECK (risk_level IN (co_risk_low, co_risk_medium, co_risk_high, co_risk_critical)) DEFAULT co_risk_low,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
