@@ -37,6 +37,12 @@ export default function CalendarPage() {
     setCurrentDate(new Date());
   };
 
+  // Generar eventos simulados de forma determinista para evitar Math.random()
+  const simulatedEventDays = useMemo(() => {
+    // Por ejemplo, marcar los días múltiplos de 5 como "con evento"
+    return new Set(calendarDays.filter(day => day.getDate() % 5 === 0).map(day => day.toISOString()));
+  }, [calendarDays]);
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header Responsivo */}
@@ -115,7 +121,7 @@ export default function CalendarPage() {
               >
                 {format(day, 'd')}
                 {/* Placeholder for events */}
-                {Math.random() > 0.8 && (
+                {simulatedEventDays.has(day.toISOString()) && (
                   <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
                 )}
               </div>

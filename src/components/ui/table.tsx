@@ -4,7 +4,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+function Table({ className, children, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
@@ -14,7 +14,17 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
         data-slot="table"
         className={cn("w-full caption-bottom text-sm", className)}
         {...props}
-      />
+      >
+        {/* Usar nullish coalescing para mostrar children o un thead por defecto */}
+        {children ?? (
+          <thead>
+            <tr>
+              <th>Encabezado 1</th>
+              <th>Encabezado 2</th>
+            </tr>
+          </thead>
+        )}
+      </table>
     </div>
   )
 }
