@@ -3,67 +3,29 @@
 
 'use client';
 
+// Corrección de imports y tipos
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { 
-  Form, 
-  FormControl, 
-  FormDescription, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from '@/components/ui/form';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAuth } from '@/components/providers/AuthProvider';
+import { Switch } from '@/components/ui/switch';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
-import { supabase, uploadFile, getPublicUrl, STORAGE_BUCKETS } from '@/lib/supabase';
-import type { 
-  DailyLog, 
-  LogInsert, 
-  LogUpdate, 
-  Category, 
-  IntensityLevel,
-  LogAttachment,
-  ChildWithRelation
-} from '@/types';
-import { 
-  CalendarIcon, 
-  ImageIcon, 
-  PlusIcon, 
-  TrashIcon, 
-  SaveIcon,
-  HeartIcon,
-  AlertTriangleIcon,
-  EyeIcon,
-  EyeOffIcon,
-  TagIcon,
-  MapPinIcon,
-  CloudIcon,
-  ClockIcon,
-  FileIcon,
-  UploadIcon
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useRouter } from 'next/navigation';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MapPinIcon, CloudIcon, ClockIcon, FileIcon, PlusIcon, TrashIcon, SaveIcon, TagIcon, UploadIcon } from 'lucide-react';
+import { uploadFile, getPublicUrl } from '@/lib/supabase';
+import type { Category, DailyLog, LogInsert, LogUpdate, LogAttachment } from '@/types';
+import { Label } from '@/components/ui/label';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import { z } from 'zod';
 
 // ================================================================
 // ESQUEMAS DE VALIDACIÓN
@@ -135,7 +97,7 @@ interface TagsInputProps {
 // COMPONENTES AUXILIARES
 // ================================================================
 
-function MoodSelector({ value, onChange }: MoodSelectorProps) {
+function MoodSelector({ value, onChange }: Readonly<MoodSelectorProps>) {
   const moods = [
     { value: 1, emoji: '😢', label: 'Muy triste', color: 'text-red-500' },
     { value: 2, emoji: '😕', label: 'Triste', color: 'text-orange-500' },
@@ -186,7 +148,7 @@ function MoodSelector({ value, onChange }: MoodSelectorProps) {
   );
 }
 
-function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManagerProps) {
+function AttachmentsManager({ attachments, onChange, childId }: Readonly<AttachmentsManagerProps>) {
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,8 +162,8 @@ function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManag
       for (const file of Array.from(files)) {
         const fileName = `${childId}/${Date.now()}-${file.name}`;
         
-        await uploadFile('attachments', fileName, file);
-        const url = getPublicUrl('attachments', fileName);
+        await uploadFile('ATTACHMENTS', fileName, file);
+        const url = getPublicUrl('ATTACHMENTS', fileName);
         
         let type: LogAttachment['type'] = 'document';
         if (file.type.startsWith('image/')) type = 'image';
@@ -237,13 +199,8 @@ function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManag
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getFileIcon = (type: LogAttachment['type']) => {
-    switch (type) {
-      case 'image': return ImageIcon;
-      case 'video': return FileIcon;
-      case 'audio': return FileIcon;
-      default: return FileIcon;
-    }
+  const getFileIcon = (type: string) => {
+    return FileIcon;
   };
 
   return (
@@ -324,7 +281,7 @@ function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManag
   );
 }
 
-function TagsInput({ tags, onChange }: TagsInputProps) {
+function TagsInput({ tags, onChange }: Readonly<TagsInputProps>) {
   const [newTag, setNewTag] = useState('');
 
   const addTag = () => {
@@ -391,7 +348,7 @@ function TagsInput({ tags, onChange }: TagsInputProps) {
 // COMPONENTE PRINCIPAL
 // ================================================================
 
-export default function LogForm({ log, childId, mode, onSuccess, onCancel }: LogFormProps) {
+export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Readonly<LogFormProps>) {
   const { children } = useChildren();
   const { createLog, updateLog } = useLogs();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -400,20 +357,20 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
   const form = useForm<LogFormData>({
     resolver: zodResolver(logFormSchema),
     defaultValues: {
-      child_id: log?.child_id || childId || '',
-      category_id: log?.category_id || '',
-      title: log?.title || '',
-      content: log?.content || '',
-      mood_score: log?.mood_score || undefined,
-      intensity_level: log?.intensity_level || 'medium',
-      log_date: log?.log_date || format(new Date(), 'yyyy-MM-dd'),
-      is_private: log?.is_private || false,
-      tags: log?.tags || [],
-      location: log?.location || '',
-      weather: log?.weather || '',
-      follow_up_required: log?.follow_up_required || false,
-      follow_up_date: log?.follow_up_date || '',
-      attachments: log?.attachments || []
+      child_id: log?.child_id ?? childId ?? '',
+      category_id: log?.category_id ?? '',
+      title: log?.title ?? '',
+      content: log?.content ?? '',
+      mood_score: log?.mood_score ?? undefined,
+      intensity_level: log?.intensity_level ?? 'medium',
+      log_date: log?.log_date ?? format(new Date(), 'yyyy-MM-dd'),
+      is_private: log?.is_private ?? false,
+      tags: log?.tags ?? [],
+      location: log?.location ?? '',
+      weather: log?.weather ?? '',
+      follow_up_required: log?.follow_up_required ?? false,
+      follow_up_date: log?.follow_up_date ?? '',
+      attachments: log?.attachments ?? []
     }
   });
 
@@ -500,7 +457,7 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
         </div>
       </div>
 
-      <Form {...form}>
+      <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Child Selection & Basic Info */}
           <Card>
@@ -529,7 +486,7 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
                           <SelectItem key={child.id} value={child.id}>
                             <div className="flex items-center space-x-2">
                               <Avatar className="h-6 w-6">
-                                <AvatarImage src={child.avatar_url} />
+                                <AvatarImage src={child.avatar_url ?? undefined} alt={child.name ?? ''} />
                                 <AvatarFallback className="text-xs">
                                   {child.name.charAt(0)}
                                 </AvatarFallback>
@@ -549,7 +506,7 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
               {selectedChild && (
                 <div className="p-4 bg-blue-50 rounded-lg flex items-center space-x-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={selectedChild.avatar_url} />
+                    <AvatarImage src={selectedChild.avatar_url ?? undefined} alt={selectedChild.name ?? ''} />
                     <AvatarFallback className="bg-blue-200 text-blue-700">
                       {selectedChild.name.charAt(0)}
                     </AvatarFallback>
@@ -938,7 +895,7 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
             </Button>
           </div>
         </form>
-      </Form>
+      </FormProvider>
     </div>
   );
 }
