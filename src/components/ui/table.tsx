@@ -15,9 +15,8 @@ function Table({ className, children, ...props }: React.ComponentProps<"table">)
         className={cn("w-full caption-bottom text-sm", className)}
         {...props}
       >
-        {children ? (
-          children
-        ) : (
+        {/* Usar nullish coalescing para mostrar children o un thead por defecto */}
+        {children ?? (
           <thead>
             <tr>
               <th>Encabezado 1</th>
