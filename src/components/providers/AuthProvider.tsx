@@ -13,7 +13,6 @@ import React, {
   useCallback,
   useMemo 
 } from 'react';
-import { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase';
 import type { Profile, UserRole } from '@/types';
 
@@ -49,7 +48,7 @@ interface AuthProviderProps {
 // AUTH PROVIDER COMPONENT - VERSIÓN CORREGIDA
 // ================================================================
 
-export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
+export function AuthProvider({ children }: Readonly<AuthProviderProps>): JSX.Element {
   const [user, setUser] = useState<Profile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,18 +94,18 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
         
         if (authUser?.user && !authError) {
           const userData = authUser.user;
-          const fullName = userData.user_metadata?.full_name || 
-                          userData.user_metadata?.name ||
-                          userData.email?.split('@')[0] || 
+          const fullName = userData.user_metadata?.full_name ?? 
+                          userData.user_metadata?.name ??
+                          userData.email?.split('@')[0] ?? 
                           'Usuario';
           
           const { data: newProfile, error: createError } = await supabase
             .from('profiles')
             .insert({
               id: userId,
-              email: userData.email || '',
+              email: userData.email ?? '',
               full_name: fullName,
-              role: userData.user_metadata?.role || 'parent',
+              role: userData.user_metadata?.role ?? 'parent',
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
@@ -155,7 +154,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
         return false;
       }
 
-      return data.role === 'admin';
+      return data?.role === 'admin';
     } catch (err) {
       console.error('❌ Error checking admin status:', err);
       return false;
@@ -195,7 +194,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       // El perfil se cargará automáticamente por el listener
     } catch (err: any) {
       console.error('❌ Sign in error:', err);
-      setError(err.message || 'Error al iniciar sesión');
+      setError(err.message ?? 'Error al iniciar sesión');
       throw err;
     } finally {
       setLoading(false);
@@ -226,7 +225,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       if (error) throw error;
     } catch (err: any) {
       console.error('❌ Sign up error:', err);
-      setError(err.message || 'Error al registrarse');
+      setError(err.message ?? 'Error al registrarse');
       throw err;
     } finally {
       setLoading(false);
@@ -246,7 +245,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       setError(null);
     } catch (err: any) {
       console.error('❌ Sign out error:', err);
-      setError(err.message || 'Error al cerrar sesión');
+      setError(err.message ?? 'Error al cerrar sesión');
       throw err;
     } finally {
       setLoading(false);
@@ -271,7 +270,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       setUser(prev => prev ? { ...prev, ...updates } : null);
     } catch (err: any) {
       console.error('❌ Update profile error:', err);
-      setError(err.message || 'Error al actualizar perfil');
+      setError(err.message ?? 'Error al actualizar perfil');
       throw err;
     } finally {
       setLoading(false);
@@ -286,7 +285,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       if (error) throw error;
     } catch (err: any) {
       console.error('❌ Reset password error:', err);
-      setError(err.message || 'Error al enviar email de recuperación');
+      setError(err.message ?? 'Error al enviar email de recuperación');
       throw err;
     }
   }, [supabase]);

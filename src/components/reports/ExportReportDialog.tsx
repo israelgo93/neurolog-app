@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Download, Mail } from 'lucide-react';
+import { Download, Mail } from 'lucide-react';
 
 interface ExportReportDialogProps {
   open: boolean;
@@ -19,7 +19,7 @@ interface ExportReportDialogProps {
   metrics: any;
 }
 
-export function ExportReportDialog({ open, onOpenChange, data, metrics }: ExportReportDialogProps) {
+export function ExportReportDialog({ open, onOpenChange, data, metrics }: Readonly<ExportReportDialogProps>) {
   const [format, setFormat] = useState('pdf');
   const [includeCharts, setIncludeCharts] = useState(true);
   const [includeRawData, setIncludeRawData] = useState(false);

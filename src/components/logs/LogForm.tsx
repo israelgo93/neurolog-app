@@ -23,7 +23,7 @@ import { MapPinIcon, CloudIcon, ClockIcon, FileIcon, PlusIcon, TrashIcon, SaveIc
 import { uploadFile, getPublicUrl } from '@/lib/supabase';
 import type { Category, DailyLog, LogInsert, LogUpdate, LogAttachment } from '@/types';
 import { Label } from '@/components/ui/label';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { z } from 'zod';
 

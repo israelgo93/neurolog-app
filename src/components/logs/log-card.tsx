@@ -29,7 +29,7 @@ interface LogCardProps {
   log: LogWithDetails
 }
 
-export function LogCard({ log }: LogCardProps) {
+export function LogCard({ log }: Readonly<LogCardProps>) {
   const [isEditOpen, setIsEditOpen] = useState(false)
 
   const intensityConfig = {
