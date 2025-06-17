@@ -19,7 +19,7 @@ import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
 import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPinIcon, CloudIcon, ClockIcon, FileIcon, PlusIcon, TrashIcon, SaveIcon, TagIcon, UploadIcon } from 'lucide-react';
+import { FileIcon, PlusIcon, TrashIcon, SaveIcon, TagIcon, UploadIcon, MapPinIcon, CloudIcon, ClockIcon } from 'lucide-react';
 import { uploadFile, getPublicUrl } from '@/lib/supabase';
 import type { Category, DailyLog, LogInsert, LogUpdate, LogAttachment } from '@/types';
 import { Label } from '@/components/ui/label';

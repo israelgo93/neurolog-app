@@ -30,14 +30,16 @@ export function TimePatterns({ logs }: Readonly<TimePatternsProps>) {
   // Analizar patrones por hora del día
   const hourlyPattern = logs.reduce((acc, log) => {
     const hour = new Date(log.created_at).getHours();
-    acc[hour] = (acc[hour] ?? 0) + 1;
+    acc[hour] ??= 0;
+    acc[hour] += 1;
     return acc;
   }, {} as Record<number, number>);
 
   // Analizar patrones por día de la semana
   const weeklyPattern = logs.reduce((acc, log) => {
     const day = new Date(log.created_at).getDay();
-    acc[day] = (acc[day] ?? 0) + 1;
+    acc[day] ??= 0;
+    acc[day] += 1;
     return acc;
   }, {} as Record<number, number>);
 
@@ -289,75 +291,10 @@ export function AdvancedInsights({ logs }: Readonly<AdvancedInsightsProps>) {
   function getCategoryInsight(logs: any[]) {
     const categoryCount = logs.reduce((acc, log) => {
       if (log.category_name) {
-        acc[log.category_name] = (acc[log.category_name] ?? 0) + 1;
+        acc[log.category_name] ??= 0;
+        acc[log.category_name] += 1;
       }
       return acc;
     }, {} as Record<string, number>);
     const categories = Object.entries(categoryCount);
-    if (categories.length === 0) return null;
-    // Cast explícito a number
-    const mostUsedCategory = categories.sort(([,a], [,b]) => (b as number) - (a as number))[0];
-    return {
-      type: 'info',
-      icon: Target,
-      title: 'Área de mayor atención',
-      description: `"${mostUsedCategory[0]}" representa ${(((mostUsedCategory[1] as number) / logs.length) * 100).toFixed(0)}% de los registros`,
-      recommendation: 'Esta categoría requiere mayor atención y seguimiento'
-    };
-  }
-  // === ORQUESTADOR DE INSIGHTS ===
-  // Filtrar insights nulos antes de mapear
-  const insights = [
-    getFrequencyInsight(logs),
-    getMoodInsight(logs),
-    getCategoryInsight(logs)
-  ].filter((i): i is NonNullable<typeof i> => i !== null);
-  if (insights.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <Brain className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-        <p className="text-lg font-medium">Generando insights...</p>
-        <p className="text-sm">Necesitas más datos para análisis avanzado</p>
-      </div>
-    );
-  }
-  return (
-    <div className="space-y-4">
-      {insights.map((insight, index) => (
-        <Card key={index} className="border-l-4 border-l-blue-500">
-          <CardContent className="pt-4">
-            <div className="flex items-start space-x-3">
-              <div className={`p-2 rounded-lg ${
-                insight.type === 'success' ? 'bg-green-100' :
-                insight.type === 'warning' ? 'bg-yellow-100' :
-                'bg-blue-100'
-              }`}>
-                {React.createElement(insight.icon, {
-                  className: `h-5 w-5 ${
-                    insight.type === 'success' ? 'text-green-600' :
-                    insight.type === 'warning' ? 'text-yellow-600' :
-                    'text-blue-600'
-                  }`
-                })}
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium text-gray-900">{insight.title}</h4>
-                <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
-                <p className="text-sm text-gray-500 mt-2 italic">{insight.recommendation}</p>
-              </div>
-              <Badge variant={
-                insight.type === 'success' ? 'default' :
-                insight.type === 'warning' ? 'destructive' :
-                'secondary'
-              }>
-                {insight.type === 'success' ? 'Positivo' :
-                 insight.type === 'warning' ? 'Atención' :
-                 'Info'}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
+    if

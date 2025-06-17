@@ -28,7 +28,7 @@ export function DatePickerWithRange({
   className,
   date,
   setDate,
-}: DatePickerWithRangeProps) {
+}: Readonly<DatePickerWithRangeProps>) {
   let dateLabel: React.ReactNode = <span>Seleccionar fechas</span>;
   if (date?.from) {
     if (date.to) {
