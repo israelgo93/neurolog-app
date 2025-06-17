@@ -17,22 +17,16 @@ import {
   Users, 
   BookOpen, 
   TrendingUp, 
-  Calendar, 
   Heart,
   AlertCircle,
-  Clock,
   Eye,
   Plus,
   BarChart3,
-  Bell,
   Activity,
-  Target,
-  Award,
-  ChevronRight,
-  MoreHorizontal
+  ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
-import { format, isToday, isYesterday, startOfWeek, endOfWeek } from 'date-fns';
+import { format, isToday, isYesterday } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 // ================================================================
@@ -58,41 +52,41 @@ interface RecentLogsProps {
 // COMPONENTE DE ESTADÍSTICAS RÁPIDAS RESPONSIVO
 // ================================================================
 
-function QuickStats({ stats, loading }: QuickStatsProps) {
+function QuickStats({ stats, loading }: Readonly<QuickStatsProps>) {
   const statCards = [
     {
       title: 'Niños',
-      value: stats.total_children || 0,
+      value: stats.total_children ?? 0,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200',
       description: 'En seguimiento',
-      trend: stats.children_growth || 0
+      trend: stats.children_growth ?? 0
     },
     {
       title: 'Registros',
-      value: stats.total_logs || 0,
+      value: stats.total_logs ?? 0,
       icon: BookOpen,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200',
       description: 'Documentados',
-      trend: stats.logs_growth || 0
+      trend: stats.logs_growth ?? 0
     },
     {
       title: 'Esta Semana',
-      value: stats.logs_this_week || 0,
+      value: stats.logs_this_week ?? 0,
       icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
       description: 'Nuevos registros',
-      trend: stats.weekly_growth || 0
+      trend: stats.weekly_growth ?? 0
     },
     {
       title: 'Pendientes',
-      value: stats.pending_reviews || 0,
+      value: stats.pending_reviews ?? 0,
       icon: AlertCircle,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
@@ -161,7 +155,7 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
 // COMPONENTE DE NIÑOS ACCESIBLES RESPONSIVO
 // ================================================================
 
-function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
+function AccessibleChildren({ children, loading }: Readonly<AccessibleChildrenProps>) {
   if (loading) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -210,9 +204,9 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {children.slice(0, 6).map((child) => {
           let progressColor = "bg-red-500";
-          if ((child.weekly_logs || 0) >= 5) {
+          if ((child.weekly_logs ?? 0) >= 5) {
             progressColor = "bg-green-500";
-          } else if ((child.weekly_logs || 0) >= 3) {
+          } else if ((child.weekly_logs ?? 0) >= 3) {
             progressColor = "bg-yellow-500";
           }
           return (
@@ -258,10 +252,10 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
                 <div className="mt-4 space-y-2">
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>Actividad semanal</span>
-                    <span>{child.weekly_logs || 0}/7</span>
+                    <span>{child.weekly_logs ?? 0}/7</span>
                   </div>
                   <Progress 
-                    value={((child.weekly_logs || 0) / 7) * 100} 
+                    value={((child.weekly_logs ?? 0) / 7) * 100} 
                     className="h-2"
                     indicatorClassName={progressColor}
                   />
@@ -290,7 +284,7 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
 // COMPONENTE DE REGISTROS RECIENTES RESPONSIVO
 // ================================================================
 
-function RecentLogs({ logs, loading }: RecentLogsProps) {
+function RecentLogs({ logs, loading }: Readonly<RecentLogsProps>) {
   if (loading) {
     return (
       <div className="space-y-3 sm:space-y-4">
@@ -366,7 +360,7 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
                     </div>
                   )}
                   <Badge variant="outline" className="text-xs">
-                    {log.category_name || 'General'}
+                    {log.category_name ?? 'General'}
                   </Badge>
                 </div>
               </div>
@@ -426,7 +420,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] || 'Usuario'}
+            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] ?? 'Usuario'}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
             Aquí está el resumen de hoy para tus niños en seguimiento
