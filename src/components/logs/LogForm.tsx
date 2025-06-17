@@ -161,17 +161,17 @@ function AttachmentsManager({ attachments, onChange, childId }: Readonly<Attachm
 
       for (const file of Array.from(files)) {
         const fileName = `${childId}/${Date.now()}-${file.name}`;
-        
-        await uploadFile('ATTACHMENTS', fileName, file);
+        // Corregido: el orden correcto de los argumentos para uploadFile
+        await uploadFile('ATTACHMENTS', file, fileName);
         const url = getPublicUrl('ATTACHMENTS', fileName);
-        
         let type: LogAttachment['type'] = 'document';
         if (file.type.startsWith('image/')) type = 'image';
         else if (file.type.startsWith('video/')) type = 'video';
         else if (file.type.startsWith('audio/')) type = 'audio';
-        
+        // Generar un id seguro y determinista para el adjunto
+        const safeId = `${childId}-${fileName}`;
         newAttachments.push({
-          id: `${Date.now()}-${Math.random()}`,
+          id: safeId,
           name: file.name,
           url,
           type,
