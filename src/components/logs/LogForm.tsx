@@ -32,27 +32,20 @@ import {
   FormMessage 
 } from '@/components/ui/form';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
-import { supabase, uploadFile, getPublicUrl, STORAGE_BUCKETS } from '@/lib/supabase';
+import { createClient, uploadFile } from '@/lib/supabase';
 import type { 
   DailyLog, 
   LogInsert, 
   LogUpdate, 
-  Category, 
-  IntensityLevel,
-  LogAttachment,
-  ChildWithRelation
+  Category
 } from '@/types';
 import { 
-  CalendarIcon, 
   ImageIcon, 
   PlusIcon, 
   TrashIcon, 
   SaveIcon,
-  HeartIcon,
-  AlertTriangleIcon,
   EyeIcon,
   EyeOffIcon,
   TagIcon,
@@ -63,7 +56,38 @@ import {
   UploadIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+
+// ================================================================
+// UTILIDADES SEGURAS
+// ================================================================
+
+// Generador de IDs seguros usando crypto.getRandomValues() con fallback determinístico
+function generateSecureId(): string {
+  const timestamp = Date.now().toString(36);
+  
+  if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+    // Cliente: usar Web Crypto API
+    const array = new Uint32Array(2);
+    window.crypto.getRandomValues(array);
+    return `${timestamp}-${array[0].toString(36)}-${array[1].toString(36)}`;
+  } else if (typeof require !== 'undefined') {
+    // Servidor: usar Node.js crypto
+    try {
+      const crypto = require('crypto');
+      const randomBytes = crypto.randomBytes(8);
+      return `${timestamp}-${randomBytes.toString('hex')}`;
+    } catch (error) {
+      // Fallar silenciosamente y usar el fallback determinístico
+      console.warn('Node.js crypto module not available:', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+  
+  // Fallback determinístico (sin Math.random())
+  let counter = 0;
+  const deterministicPart = (++counter).toString(36).padStart(4, '0');
+  const processId = typeof process !== 'undefined' && process.pid ? process.pid.toString(36) : 'web';
+  return `${timestamp}-${processId}-${deterministicPart}`;
+}
 
 // ================================================================
 // ESQUEMAS DE VALIDACIÓN
@@ -103,32 +127,41 @@ const logFormSchema = z.object({
 
 type LogFormData = z.infer<typeof logFormSchema>;
 
+// Tipo para archivos adjuntos
+interface LogAttachment {
+  id: string;
+  name: string;
+  url: string;
+  type: 'image' | 'video' | 'audio' | 'document';
+  size: number;
+}
+
 // ================================================================
 // PROPS E INTERFACES
 // ================================================================
 
 interface LogFormProps {
-  log?: DailyLog;
-  childId?: string;
-  mode: 'create' | 'edit';
-  onSuccess?: (log: DailyLog) => void;
-  onCancel?: () => void;
+  readonly log?: DailyLog;
+  readonly childId?: string;
+  readonly mode: 'create' | 'edit';
+  readonly onSuccess?: (log: DailyLog) => void;
+  readonly onCancel?: () => void;
 }
 
 interface MoodSelectorProps {
-  value?: number;
-  onChange: (value: number | undefined) => void;
+  readonly value?: number;
+  readonly onChange: (value: number | undefined) => void;
 }
 
 interface AttachmentsManagerProps {
-  attachments: LogAttachment[];
-  onChange: (attachments: LogAttachment[]) => void;
-  childId: string;
+  readonly attachments: LogAttachment[];
+  readonly onChange: (attachments: LogAttachment[]) => void;
+  readonly childId: string;
 }
 
 interface TagsInputProps {
-  tags: string[];
-  onChange: (tags: string[]) => void;
+  readonly tags: string[];
+  readonly onChange: (tags: string[]) => void;
 }
 
 // ================================================================
@@ -188,22 +221,19 @@ function MoodSelector({ value, onChange }: MoodSelectorProps) {
 
 function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManagerProps) {
   const [uploading, setUploading] = useState(false);
-  const { user } = useAuth();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || !user) return;
+    if (!files) return;
 
     try {
       setUploading(true);
       const newAttachments: LogAttachment[] = [];
 
       for (const file of Array.from(files)) {
-        const fileExt = file.name.split('.').pop();
         const fileName = `${childId}/${Date.now()}-${file.name}`;
         
-        await uploadFile('attachments', fileName, file);
-        const url = getPublicUrl('attachments', fileName);
+        const { url } = await uploadFile('ATTACHMENTS', file, fileName);
         
         let type: LogAttachment['type'] = 'document';
         if (file.type.startsWith('image/')) type = 'image';
@@ -211,7 +241,7 @@ function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManag
         else if (file.type.startsWith('audio/')) type = 'audio';
         
         newAttachments.push({
-          id: `${Date.now()}-${Math.random()}`,
+          id: generateSecureId(),
           name: file.name,
           url,
           type,
@@ -369,7 +399,7 @@ function TagsInput({ tags, onChange }: TagsInputProps) {
           placeholder="Agregar etiqueta..."
           value={newTag}
           onChange={(e) => setNewTag(e.target.value)}
-          onKeyPress={(e) => {
+          onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
               addTag();
@@ -394,30 +424,28 @@ function TagsInput({ tags, onChange }: TagsInputProps) {
 // ================================================================
 
 export default function LogForm({ log, childId, mode, onSuccess, onCancel }: LogFormProps) {
-  const { user } = useAuth();
   const { children } = useChildren();
   const { createLog, updateLog } = useLogs();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
   const router = useRouter();
 
   const form = useForm<LogFormData>({
     resolver: zodResolver(logFormSchema),
     defaultValues: {
-      child_id: log?.child_id || childId || '',
-      category_id: log?.category_id || '',
-      title: log?.title || '',
-      content: log?.content || '',
-      mood_score: log?.mood_score || undefined,
-      intensity_level: log?.intensity_level || 'medium',
-      log_date: log?.log_date || format(new Date(), 'yyyy-MM-dd'),
-      is_private: log?.is_private || false,
-      tags: log?.tags || [],
-      location: log?.location || '',
-      weather: log?.weather || '',
-      follow_up_required: log?.follow_up_required || false,
-      follow_up_date: log?.follow_up_date || '',
-      attachments: log?.attachments || []
+      child_id: log?.child_id ?? childId ?? '',
+      category_id: log?.category_id ?? '',
+      title: log?.title ?? '',
+      content: log?.content ?? '',
+      mood_score: log?.mood_score ?? undefined,
+      intensity_level: log?.intensity_level ?? 'medium',
+      log_date: log?.log_date ?? format(new Date(), 'yyyy-MM-dd'),
+      is_private: log?.is_private ?? false,
+      tags: log?.tags ?? [],
+      location: log?.location ?? '',
+      weather: log?.weather ?? '',
+      follow_up_required: log?.follow_up_required ?? false,
+      follow_up_date: log?.follow_up_date ?? '',
+      attachments: log?.attachments ?? []
     }
   });
 
@@ -425,6 +453,7 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
   useEffect(() => {
     async function fetchCategories() {
       try {
+        const supabase = createClient();
         const { data, error } = await supabase
           .from('categories')
           .select('*')
@@ -432,11 +461,9 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
           .order('sort_order');
 
         if (error) throw error;
-        setCategories(data || []);
+        setCategories(data ?? []);
       } catch (error) {
         console.error('Error fetching categories:', error);
-      } finally {
-        setLoadingCategories(false);
       }
     }
 
@@ -461,6 +488,13 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
     } catch (error) {
       console.error('Error saving log:', error);
     }
+  };
+
+  const getSubmitButtonText = () => {
+    if (form.formState.isSubmitting) {
+      return 'Guardando...';
+    }
+    return mode === 'create' ? 'Crear Registro' : 'Guardar Cambios';
   };
 
   const selectedChild = children.find(child => child.id === form.watch('child_id'));
@@ -527,7 +561,7 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
                           <SelectItem key={child.id} value={child.id}>
                             <div className="flex items-center space-x-2">
                               <Avatar className="h-6 w-6">
-                                <AvatarImage src={child.avatar_url} />
+                                <AvatarImage src={child.avatar_url ?? undefined} />
                                 <AvatarFallback className="text-xs">
                                   {child.name.charAt(0)}
                                 </AvatarFallback>
@@ -547,7 +581,7 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
               {selectedChild && (
                 <div className="p-4 bg-blue-50 rounded-lg flex items-center space-x-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={selectedChild.avatar_url} />
+                    <AvatarImage src={selectedChild.avatar_url ?? undefined} />
                     <AvatarFallback className="bg-blue-200 text-blue-700">
                       {selectedChild.name.charAt(0)}
                     </AvatarFallback>
@@ -932,12 +966,7 @@ export default function LogForm({ log, childId, mode, onSuccess, onCancel }: Log
               disabled={form.formState.isSubmitting}
             >
               <SaveIcon className="mr-2 h-4 w-4" />
-              {form.formState.isSubmitting
-                ? 'Guardando...'
-                : mode === 'create' 
-                  ? 'Crear Registro' 
-                  : 'Guardar Cambios'
-              }
+              {getSubmitButtonText()}
             </Button>
           </div>
         </form>

@@ -59,7 +59,7 @@ export function Header() {
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
-  const totalNotifications = (stats.pending_reviews || 0) + (stats.follow_ups_due || 0);
+  const totalNotifications = (stats.pending_reviews ?? 0) + (stats.follow_ups_due ?? 0);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -103,7 +103,7 @@ export function Header() {
       }
     }
     
-    return title || 'NeuroLog';
+    return title ?? 'NeuroLog';
   };
 
   const getUserInitials = () => {
@@ -114,6 +114,23 @@ export function Header() {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const getUserRoleLabel = () => {
+    if (!user?.role) return 'Usuario';
+    
+    switch (user.role) {
+      case 'parent':
+        return 'Padre/Madre';
+      case 'teacher':
+        return 'Docente';
+      case 'specialist':
+        return 'Especialista';
+      case 'admin':
+        return 'Admin';
+      default:
+        return 'Usuario';
+    }
   };
 
   const quickActions = [
@@ -292,20 +309,17 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2 h-8 sm:h-10 px-2 sm:px-3">
                 <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
-                  <AvatarImage src={user?.avatar_url} />
+                  <AvatarImage src={user?.avatar_url ?? undefined} />
                   <AvatarFallback className="text-xs sm:text-sm">
                     {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:block text-left">
                   <p className="text-xs sm:text-sm font-medium text-gray-900 truncate max-w-24 lg:max-w-32">
-                    {user?.full_name || 'Usuario'}
+                    {user?.full_name ?? 'Usuario'}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {user?.role === 'parent' ? 'Padre/Madre' : 
-                     user?.role === 'teacher' ? 'Docente' :
-                     user?.role === 'specialist' ? 'Especialista' :
-                     user?.role === 'admin' ? 'Admin' : 'Usuario'}
+                    {getUserRoleLabel()}
                   </p>
                 </div>
                 <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />

@@ -22,28 +22,28 @@ import { useLogs } from '@/hooks/use-logs'
 import { Star, Loader2 } from 'lucide-react'
 
 interface LogData {
-  id: string
-  title: string
-  content: string
-  mood_score: number | null
-  intensity_level: 'low' | 'medium' | 'high'
-  log_date: string
-  category_id: string | null
+  readonly id: string
+  readonly title: string
+  readonly content: string
+  readonly mood_score: number | null
+  readonly intensity_level: 'low' | 'medium' | 'high'
+  readonly log_date: string
+  readonly category_id: string | null
 }
 
 interface EditLogDialogProps {
-  log: LogData
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  readonly log: LogData
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
 }
 
 interface FormData {
-  title: string
-  content: string
-  mood_score: number | null
-  intensity_level: 'low' | 'medium' | 'high'
-  log_date: string
-  category_id: string
+  readonly title: string
+  readonly content: string
+  readonly mood_score: number | null
+  readonly intensity_level: 'low' | 'medium' | 'high'
+  readonly log_date: string
+  readonly category_id: string
 }
 
 export function EditLogDialog({ log, open, onOpenChange }: EditLogDialogProps) {
@@ -58,7 +58,7 @@ export function EditLogDialog({ log, open, onOpenChange }: EditLogDialogProps) {
   const [loading, setLoading] = useState(false)
 
   const { categories } = useCategories()
-  const { updateLog } = useLogs({})
+  const { updateLog } = useLogs()
   const { toast } = useToast()
 
   // Cargar datos del log cuando se abre el diálogo
@@ -70,7 +70,7 @@ export function EditLogDialog({ log, open, onOpenChange }: EditLogDialogProps) {
         mood_score: log.mood_score,
         intensity_level: log.intensity_level,
         log_date: log.log_date,
-        category_id: log.category_id || ''
+        category_id: log.category_id ?? ''
       })
     }
   }, [open, log])
@@ -114,7 +114,7 @@ export function EditLogDialog({ log, open, onOpenChange }: EditLogDialogProps) {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "No se pudo actualizar el registro",
+        description: error.message ?? "No se pudo actualizar el registro",
         variant: "destructive",
       })
     } finally {

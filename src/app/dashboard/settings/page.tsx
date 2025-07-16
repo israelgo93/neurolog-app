@@ -13,7 +13,6 @@ import { Switch } from '@/components/ui/switch'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useToast } from '@/components/ui/use-toast'
 import { 
-  Settings, 
   User, 
   Bell, 
   Shield, 
@@ -23,6 +22,29 @@ import {
   Eye,
   Loader2
 } from 'lucide-react'
+
+// ================================================================
+// FUNCIONES HELPER
+// ================================================================
+
+/**
+ * Obtiene la etiqueta de rol en español basada en el rol del usuario
+ */
+function getRoleLabel(role: string): string {
+  if (role === 'parent') {
+    return 'Padre/Madre';
+  }
+  if (role === 'teacher') {
+    return 'Docente';
+  }
+  if (role === 'specialist') {
+    return 'Especialista';
+  }
+  if (role === 'admin') {
+    return 'Administrador';
+  }
+  return 'Usuario';
+}
 
 export default function SettingsPage() {
   // ✅ CORREGIDO: Usar 'user' en lugar de 'profile'
@@ -91,7 +113,7 @@ export default function SettingsPage() {
       console.error('Error updating profile:', error)
       toast({
         title: "Error al actualizar",
-        description: error.message || "No se pudieron guardar los cambios.",
+        description: error.message ?? "No se pudieron guardar los cambios.",
         variant: "destructive"
       })
     } finally {
@@ -186,10 +208,7 @@ export default function SettingsPage() {
               </p>
               <p className="text-sm text-gray-600">{user.email}</p>
               <p className="text-xs text-blue-600 capitalize">
-                {user.role === 'parent' ? 'Padre/Madre' :
-                 user.role === 'teacher' ? 'Docente' :
-                 user.role === 'specialist' ? 'Especialista' : 
-                 user.role === 'admin' ? 'Administrador' : 'Usuario'}
+                {getRoleLabel(user.role)}
               </p>
             </div>
           </div>

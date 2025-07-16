@@ -3,10 +3,29 @@
 
 import { cn } from "@/lib/utils"
 
+// Contador global para generar IDs únicos
+let globalCounter = 0;
+
+// Función helper para generar IDs únicos de forma segura
+function generateSecureId(): string {
+  // Usar crypto.getRandomValues() si está disponible (navegador)
+  if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+    const array = new Uint32Array(2);
+    window.crypto.getRandomValues(array);
+    return `skeleton-${Date.now()}-${array[0].toString(36)}${array[1].toString(36)}`;
+  }
+  
+  // Fallback más seguro usando timestamp y contador
+  const timestamp = Date.now();
+  globalCounter = (globalCounter + 1) % 999999; // Resetear el contador después de 999999
+  const randomSuffix = (timestamp * globalCounter).toString(36);
+  return `skeleton-${timestamp}-${randomSuffix}`;
+}
+
 function Skeleton({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: Readonly<React.HTMLAttributes<HTMLDivElement>>) {
   return (
     <div
       className={cn(
@@ -63,15 +82,21 @@ function SkeletonAvatar() {
   return <Skeleton className="h-8 w-8 rounded-full" />
 }
 
-function SkeletonText({ lines = 3 }: { lines?: number }) {
+function SkeletonText({ lines = 3 }: Readonly<{ lines?: number }>) {
+  // Generar IDs únicos para cada línea de skeleton usando crypto seguro
+  const skeletonLines = Array.from({ length: lines }, (_, i) => ({
+    id: generateSecureId(),
+    isLastLine: i === lines - 1
+  }));
+
   return (
     <div className="space-y-2">
-      {Array.from({ length: lines }).map((_, i) => (
+      {skeletonLines.map((line) => (
         <Skeleton 
-          key={i} 
+          key={line.id}
           className={cn(
             "h-4",
-            i === lines - 1 ? "w-[80%]" : "w-full"
+            line.isLastLine ? "w-[80%]" : "w-full"
           )} 
         />
       ))}

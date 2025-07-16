@@ -9,6 +9,10 @@ import { DayPicker } from 'react-day-picker';
 
 import { cn } from '@/lib/utils';
 
+// Componentes de iconos extraídos para evitar definiciones anidadas
+const IconLeft = () => <ChevronLeftIcon className="h-4 w-4" />;
+const IconRight = () => <ChevronRightIcon className="h-4 w-4" />;
+
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 function Calendar({
@@ -60,8 +64,8 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeftIcon className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRightIcon className="h-4 w-4" />,
+        IconLeft,
+        IconRight,
       }}
       {...props}
     />

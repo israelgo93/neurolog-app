@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useLogs } from '@/hooks/use-logs';
 import {
@@ -23,9 +22,7 @@ import {
   Menu,
   X,
   LogOut,
-  Bell,
   Shield,
-  FileText,
   Calendar,
   Download,
   HelpCircle,
@@ -51,7 +48,7 @@ export function Sidebar() {
   // Calcular notificaciones
   useEffect(() => {
     if (!statsLoading) {
-      const totalNotifications = (stats.pending_reviews || 0) + (stats.follow_ups_due || 0);
+      const totalNotifications = (stats.pending_reviews ?? 0) + (stats.follow_ups_due ?? 0);
       setNotifications(totalNotifications);
     }
   }, [stats, statsLoading]);
@@ -142,6 +139,23 @@ export function Sidebar() {
     return pathname.startsWith(href);
   };
 
+  const getUserRoleLabel = () => {
+    if (!user?.role) return 'Usuario';
+    
+    switch (user.role) {
+      case 'parent':
+        return 'Padre/Madre';
+      case 'teacher':
+        return 'Docente';
+      case 'specialist':
+        return 'Especialista';
+      case 'admin':
+        return 'Administrador';
+      default:
+        return 'Usuario';
+    }
+  };
+
   return (
     <>
       {/* Mobile menu button - Fixed position for better accessibility */}
@@ -209,20 +223,17 @@ export function Sidebar() {
         <div className="p-4 lg:p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <Avatar className="h-10 w-10 ring-2 ring-blue-100">
-              <AvatarImage src={user?.avatar_url} alt={user?.full_name} />
+              <AvatarImage src={user?.avatar_url ?? undefined} alt={user?.full_name ?? undefined} />
               <AvatarFallback className="bg-gradient-to-br from-blue-100 to-purple-100 text-blue-700 font-semibold">
-                {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                {user?.full_name?.charAt(0)?.toUpperCase() ?? 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.full_name || 'Usuario'}
+                {user?.full_name ?? 'Usuario'}
               </p>
               <p className="text-xs text-gray-500 capitalize">
-                {user?.role === 'parent' ? 'Padre/Madre' :
-                 user?.role === 'teacher' ? 'Docente' :
-                 user?.role === 'specialist' ? 'Especialista' : 
-                 user?.role === 'admin' ? 'Administrador' : 'Usuario'}
+                {getUserRoleLabel()}
               </p>
             </div>
             {notifications > 0 && (

@@ -5,8 +5,7 @@
 
 'use client';
 
-import { useCallback, useMemo } from 'react';
-import { useContext } from 'react';
+import { useCallback, useMemo, useContext } from 'react';
 import { AuthContext } from '@/components/providers/AuthProvider';
 import type { Profile } from '@/types';
 
@@ -153,7 +152,7 @@ export function useAuth() {
    */
   const displayName = useMemo(() => {
     if (!user) return 'Usuario';
-    return user.full_name || user.email?.split('@')[0] || 'Usuario';
+    return user.full_name ?? user.email?.split('@')[0] ?? 'Usuario';
   }, [user]);
 
   /**
@@ -163,7 +162,7 @@ export function useAuth() {
     if (!user?.full_name) return 'U';
     return user.full_name
       .split(' ')
-      .map(name => name.charAt(0))
+      .map((name: string) => name.charAt(0))
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -175,14 +174,14 @@ export function useAuth() {
   const roleDisplayName = useMemo(() => {
     if (!user?.role) return 'Usuario';
     
-    const roleMap = {
+    const roleMap: Record<string, string> = {
       'parent': 'Padre/Madre',
       'teacher': 'Docente',
       'specialist': 'Especialista',
       'admin': 'Administrador'
     };
     
-    return roleMap[user.role] || 'Usuario';
+    return roleMap[user.role] ?? 'Usuario';
   }, [user]);
 
   /**
