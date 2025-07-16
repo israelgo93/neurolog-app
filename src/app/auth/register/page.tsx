@@ -83,9 +83,9 @@ export default function RegisterPage() {
         router.refresh()
       }, 2000)
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error signing up:', err)
-      setError(err.message ?? 'Error al crear la cuenta')
+      setError(err instanceof Error ? err.message : 'Error al crear la cuenta')
     } finally {
       setLoading(false)
     }

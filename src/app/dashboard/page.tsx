@@ -27,23 +27,24 @@ import {
 import Link from 'next/link';
 import { format, isToday, isYesterday } from 'date-fns';
 import { es } from 'date-fns/locale';
+import type { DashboardStats, ChildWithRelation, LogWithDetails } from '@/types';
 
 // ================================================================
 // INTERFACES Y TIPOS
 // ================================================================
 
 interface QuickStatsProps {
-  stats: any;
+  stats: DashboardStats;
   loading: boolean;
 }
 
 interface AccessibleChildrenProps {
-  children: any[];
+  childrenList: ChildWithRelation[];
   loading: boolean;
 }
 
 interface RecentLogsProps {
-  logs: any[];
+  logs: LogWithDetails[];
   loading: boolean;
 }
 
@@ -185,7 +186,7 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
 // COMPONENTE DE NIÑOS ACCESIBLES RESPONSIVO
 // ================================================================
 
-function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
+function AccessibleChildren({ childrenList, loading }: AccessibleChildrenProps) {
   if (loading) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -207,7 +208,7 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
     );
   }
 
-  if (children.length === 0) {
+  if (childrenList.length === 0) {
     return (
       <div className="text-center py-8 sm:py-12">
         <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -232,7 +233,7 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {children.slice(0, 6).map((child) => (
+        {childrenList.slice(0, 6).map((child) => (
           <Card key={child.id} className="hover:shadow-md transition-all duration-200 group">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center space-x-3 sm:space-x-4">
@@ -293,11 +294,11 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
         ))}
       </div>
       
-      {children.length > 6 && (
+      {childrenList.length > 6 && (
         <div className="text-center pt-4">
           <Button variant="outline" asChild>
             <Link href="/dashboard/children">
-              Ver todos los niños ({children.length})
+              Ver todos los niños ({childrenList.length})
               <ChevronRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -496,7 +497,7 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <AccessibleChildren children={children} loading={childrenLoading} />
+              <AccessibleChildren childrenList={children} loading={childrenLoading} />
             </CardContent>
           </Card>
         </div>

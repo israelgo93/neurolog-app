@@ -83,9 +83,16 @@ export function useChildren(options: UseChildrenOptions = {}): UseChildrenReturn
     console.log('👶 Fetching children for user:', userId);
 
     // ✅ CORRECCIÓN: La vista ya filtra por auth.uid(), no necesita filtro adicional
-    const { data: childrenData, error: fetchError } = await supabase
+    let query = supabase
       .from('user_accessible_children')
-      .select('*')
+      .select('*');
+    
+    // Aplicar filtro de activos/inactivos si es necesario
+    if (!includeInactive) {
+      query = query.eq('is_active', true);
+    }
+    
+    const { data: childrenData, error: fetchError } = await query
       .order('created_at', { ascending: false });
 
     if (fetchError) {

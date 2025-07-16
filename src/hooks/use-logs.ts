@@ -517,7 +517,7 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     return await userCanEditChild(log.child_id, userId);
   }, [logs, userId]);
 
-  const exportLogs = useCallback(async (format: 'csv' | 'pdf', _filters?: LogFilters): Promise<void> => {
+  const exportLogs = useCallback(async (format: 'csv' | 'pdf'): Promise<void> => {
     throw new Error(`Exportación en formato ${format} no implementada aún`);
   }, []);
 
@@ -554,7 +554,7 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     };
 
     initializeLogs();
-  }, [userId, optionsChanged]); // Solo dependencias estables
+  }, [userId, optionsChanged, fetchLogs, fetchStats]); // Solo dependencias estables
 
   // EFECTO REALTIME - GESTIÓN CORRECTA DE SUSCRIPCIONES
   useEffect(() => {

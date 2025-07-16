@@ -414,7 +414,7 @@ export default function ChildrenPage() {
   // Aplicar filtros
   const filteredChildren = useMemo(() => {
     return filterChildren(filters);
-  }, [children, filters, filterChildren]);
+  }, [filters, filterChildren]);
 
   // Handlers
   const handleEdit = (child: ChildWithRelation) => {

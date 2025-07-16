@@ -546,7 +546,7 @@ export default function LogsPage() {
   // Aplicar filtros
   const filteredLogs = useMemo(() => {
     return filterLogs(filters);
-  }, [logs, filters, filterLogs]);
+  }, [filters, filterLogs]);
 
   // Handlers
   const handleEdit = (log: LogWithDetails) => {

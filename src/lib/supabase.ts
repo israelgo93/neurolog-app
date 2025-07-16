@@ -2,6 +2,7 @@
 // Configuración de Supabase separada para Client y Server Components
 
 import { createBrowserClient } from '@supabase/ssr'
+import type { RealtimePayload } from '@/types'
 
 // ================================================================
 // CONFIGURACIÓN DE ENVIRONMENT
@@ -97,13 +98,14 @@ export interface SupabaseError {
   code?: string
 }
 
-export function handleSupabaseError(error: any): SupabaseError {
-  if (error?.message) {
+export function handleSupabaseError(error: unknown): SupabaseError {
+  if (error && typeof error === 'object' && 'message' in error) {
+    const err = error as { message?: string; details?: string; hint?: string; code?: string };
     return {
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-      code: error.code
+      message: err.message || 'Ha ocurrido un error inesperado',
+      details: err.details,
+      hint: err.hint,
+      code: err.code
     }
   }
   
@@ -113,10 +115,14 @@ export function handleSupabaseError(error: any): SupabaseError {
   }
 }
 
-export function isAuthError(error: any): boolean {
-  return error?.message?.includes('Invalid login credentials') ??
-         error?.message?.includes('Email not confirmed') ??
-         error?.message?.includes('User not found')
+export function isAuthError(error: unknown): boolean {
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message?: string }).message;
+    return message?.includes('Invalid login credentials') ||
+           message?.includes('Email not confirmed') ||
+           message?.includes('User not found') || false;
+  }
+  return false;
 }
 
 // ================================================================
@@ -196,14 +202,14 @@ export async function deleteFile(
 /**
  * Suscribirse a cambios en tiempo real de una tabla
  */
-export function subscribeToTable(
+export function subscribeToTable<T = Record<string, unknown>>(
   table: string,
-  callback: (payload: any) => void,
+  callback: (payload: RealtimePayload<T>) => void,
   filter?: string
 ) {
   const supabase = createClient()
   
-  let channel = supabase
+  const channel = supabase
     .channel(`public:${table}`)
     .on('postgres_changes', {
       event: '*',

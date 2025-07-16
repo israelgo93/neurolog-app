@@ -38,9 +38,9 @@ export default function LoginPage() {
       // Redirigir al dashboard
       router.push('/dashboard')
       router.refresh()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error signing in:', err)
-      setError(err.message ?? 'Error al iniciar sesión')
+      setError(err instanceof Error ? err.message : 'Error al iniciar sesión')
     } finally {
       setLoading(false)
     }

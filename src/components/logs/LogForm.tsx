@@ -73,6 +73,7 @@ function generateSecureId(): string {
   } else if (typeof require !== 'undefined') {
     // Servidor: usar Node.js crypto
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const crypto = require('crypto');
       const randomBytes = crypto.randomBytes(8);
       return `${timestamp}-${randomBytes.toString('hex')}`;

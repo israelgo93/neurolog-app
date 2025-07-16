@@ -1,25 +1,12 @@
 -- ================================================================
--- NEUROLOG APP - SCRIPT COMPLETO DE BASE DE DATOS
+-- NEUROLOG APP - SCRIPT COMPLETO DE BASE DE DATOS CORREGIDO
 -- ================================================================
 -- Ejecutar completo en Supabase SQL Editor
--- Borra todo y crea desde cero según últimas actualizaciones
+-- Versión corregida con sintaxis PostgreSQL correcta
 
 -- ================================================================
 -- 1. LIMPIAR TODO LO EXISTENTE
 -- ================================================================
-
-DO $$
-DECLARE
-  parent CONSTANT VARCHAR2(7) := 'parent';
-  medium CONSTANT VARCHAR2(7) := 'medium';
-  public CONSTANT VARCHAR2(7) := 'public' ;
-  low CONSTANT VARCHAR2(7) := 'low';
-  high CONSTANT VARCHAR2(7) := 'high';
-  critical CONSTANT VARCHAR2(7) := 'critical';
-BEGIN
-  -- These constants will be used throughout the script
-  NULL;
-END $$;
 
 -- Deshabilitar RLS temporalmente
 ALTER TABLE IF EXISTS daily_logs DISABLE ROW LEVEL SECURITY;
@@ -64,7 +51,7 @@ CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
-  role TEXT CHECK (role IN (parent, 'teacher', 'specialist', 'admin')) DEFAULT parent,
+  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
   avatar_url TEXT,
   phone TEXT,
   is_active BOOLEAN DEFAULT TRUE,
@@ -103,7 +90,7 @@ CREATE TABLE children (
   emergency_contact JSONB DEFAULT '[]',
   medical_info JSONB DEFAULT '{}',
   educational_info JSONB DEFAULT '{}',
-  privacy_settings JSONB DEFAULT '{"share_with_specialists": true, "share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}'
+  privacy_settings JSONB DEFAULT '{"share_with_specialists": true, "share_progress_reports": true, "allow_photo_sharing": false, "data_retention_months": 36}',
   created_by UUID REFERENCES profiles(id) NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -114,7 +101,7 @@ CREATE TABLE user_child_relations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
-  relationship_type TEXT CHECK (relationship_type IN (parent, 'teacher', 'specialist', 'observer', 'family')) NOT NULL,
+  relationship_type TEXT CHECK (relationship_type IN ('parent', 'teacher', 'specialist', 'observer', 'family')) NOT NULL,
   can_edit BOOLEAN DEFAULT FALSE,
   can_view BOOLEAN DEFAULT TRUE,
   can_export BOOLEAN DEFAULT FALSE,
@@ -138,7 +125,7 @@ CREATE TABLE daily_logs (
   title TEXT NOT NULL CHECK (length(trim(title)) >= 2),
   content TEXT NOT NULL,
   mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10),
-  intensity_level TEXT CHECK (intensity_level IN ('low', medium, 'high')) DEFAULT medium,
+  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium',
   logged_by UUID REFERENCES profiles(id) NOT NULL,
   log_date DATE DEFAULT CURRENT_DATE,
   is_private BOOLEAN DEFAULT FALSE,
@@ -172,7 +159,7 @@ CREATE TABLE audit_logs (
   ip_address INET,
   user_agent TEXT,
   session_id TEXT,
-  risk_level TEXT CHECK (risk_level IN ('low', medium, 'high', 'critical')) DEFAULT 'low',
+  risk_level TEXT CHECK (risk_level IN ('low', 'medium', 'high', 'critical')) DEFAULT 'low',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -228,7 +215,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', parent)
+    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')
   );
   RETURN NEW;
 END;
@@ -321,11 +308,11 @@ BEGIN
       'details', action_details,
       'timestamp', NOW()
     ),
-    medium
+    'medium'
   );
 EXCEPTION
   WHEN OTHERS THEN
-    RAISE NOTICE 'Audit log error: %', SQLERRM; -- Log the error instead of ignoring
+    RAISE NOTICE 'Audit log error: %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -337,7 +324,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE VIEW user_accessible_children AS
 SELECT 
   c.*,
-  parent::TEXT as relationship_type,
+  'parent'::TEXT as relationship_type,
   true as can_edit,
   true as can_view,
   true as can_export,
@@ -386,7 +373,7 @@ INSERT INTO categories (name, description, color, icon, sort_order) VALUES
 ('Otros', 'Otros registros importantes', '#6B7280', 'more-horizontal', 10);
 
 -- ================================================================
--- 9. HABILITAR RLS Y CREAR POLÍTICAS SIMPLES
+-- 9. HABILITAR RLS Y CREAR POLÍTICAS
 -- ================================================================
 
 -- Habilitar RLS
@@ -407,7 +394,7 @@ CREATE POLICY "Users can update own profile" ON profiles
 CREATE POLICY "Users can insert own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
--- POLÍTICAS PARA CHILDREN (SIMPLES, SIN RECURSIÓN)
+-- POLÍTICAS PARA CHILDREN
 CREATE POLICY "Users can view own created children" ON children
   FOR SELECT USING (created_by = auth.uid());
 
@@ -421,7 +408,7 @@ CREATE POLICY "Creators can update own children" ON children
   FOR UPDATE USING (created_by = auth.uid())
   WITH CHECK (created_by = auth.uid());
 
--- POLÍTICAS PARA USER_CHILD_RELATIONS (SIMPLES)
+-- POLÍTICAS PARA USER_CHILD_RELATIONS
 CREATE POLICY "Users can view own relations" ON user_child_relations
   FOR SELECT USING (user_id = auth.uid());
 
@@ -435,7 +422,7 @@ CREATE POLICY "Users can create relations for own children" ON user_child_relati
     )
   );
 
--- POLÍTICAS PARA DAILY_LOGS (SIMPLES)
+-- POLÍTICAS PARA DAILY_LOGS
 CREATE POLICY "Users can view logs of own children" ON daily_logs
   FOR SELECT USING (
     EXISTS (
@@ -483,7 +470,7 @@ BEGIN
   -- Contar tablas
   SELECT COUNT(*) INTO table_count
   FROM information_schema.tables 
-  WHERE table_schema = public
+  WHERE table_schema = 'public'
     AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
@@ -491,7 +478,7 @@ BEGIN
   -- Contar políticas
   SELECT COUNT(*) INTO policy_count
   FROM pg_policies 
-  WHERE schemaname = public;
+  WHERE schemaname = 'public';
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
   
@@ -511,7 +498,7 @@ BEGIN
   -- Verificar RLS
   IF (SELECT COUNT(*) FROM pg_class c 
       JOIN pg_namespace n ON n.oid = c.relnamespace 
-      WHERE n.nspname = public
+      WHERE n.nspname = 'public'
         AND c.relname = 'children' 
         AND c.relrowsecurity = true) > 0 THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
@@ -541,18 +528,4 @@ BEGIN
   RAISE NOTICE '===============================================';
   RAISE NOTICE 'Todas las tablas, funciones, vistas y políticas han sido creadas.';
   RAISE NOTICE 'La base de datos está lista para usar.';
-  RAISE NOTICE '';
-  RAISE NOTICE 'FUNCIONALIDADES INCLUIDAS:';
-  RAISE NOTICE '✅ Gestión de usuarios (profiles)';
-  RAISE NOTICE '✅ Gestión de niños (children)';
-  RAISE NOTICE '✅ Relaciones usuario-niño (user_child_relations)';
-  RAISE NOTICE '✅ Registros diarios (daily_logs)';
-  RAISE NOTICE '✅ Categorías predefinidas (categories)';
-  RAISE NOTICE '✅ Sistema de auditoría (audit_logs)';
-  RAISE NOTICE '✅ Políticas RLS funcionales';
-  RAISE NOTICE '✅ Funciones RPC necesarias';
-  RAISE NOTICE '✅ Vistas optimizadas';
-  RAISE NOTICE '✅ Índices para performance';
-  RAISE NOTICE '';
-  RAISE NOTICE 'PRÓXIMO PASO: Probar la aplicación NeuroLog';
 END $$;
