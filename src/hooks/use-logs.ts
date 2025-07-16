@@ -116,14 +116,16 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     if (!userId) return [];
     
     try {
-      // ✅ CORRECCIÓN: Quitar el filtro .eq('user_id', userId) 
-      // porque la vista user_accessible_children ya filtra automáticamente por auth.uid()
+      // ✅ CORRECCIÓN: Usar la tabla user_child_relations en lugar de la vista
       const { data, error } = await supabase
-        .from('user_accessible_children')
-        .select('id');  // ← Sin filtro adicional
+        .from('user_child_relations')
+        .select('child_id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .eq('can_view', true);
       
       if (error) throw error;
-      return data?.map(child => child.id) || [];
+      return data?.map(relation => relation.child_id) || [];
     } catch (err) {
       console.error('❌ Error getting accessible children:', err);
       return [];
@@ -153,12 +155,12 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
       .from('daily_logs')
       .select(`
         *,
-        child:children!inner(id, name, avatar_url),
-        category:categories(id, name, color, icon),
-        logged_by_profile:profiles!daily_logs_logged_by_fkey(id, full_name, avatar_url)
+        children(id, name, avatar_url),
+        categories(id, name, color, icon),
+        profiles(id, full_name, avatar_url)
       `)
       .in('child_id', accessibleChildrenIds)
-      .eq('is_active', !includeDeleted)
+      .eq('is_deleted', false)
       .order('created_at', { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1);
   }, [supabase, includeDeleted, pageSize]);
@@ -189,12 +191,27 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
    * Transforma los datos de logs con valores por defecto
    */
   const transformLogsData = useCallback((data: any[]): LogWithDetails[] => {
-    return (data ?? []).map(log => ({
-      ...log,
-      child: log.child ?? { id: log.child_id, name: 'Niño desconocido', avatar_url: null },
-      category: log.category ?? { id: '', name: 'Sin categoría', color: '#gray', icon: 'circle' },
-      logged_by_profile: log.logged_by_profile ?? { id: log.logged_by, full_name: 'Usuario desconocido', avatar_url: null }
-    })) as LogWithDetails[];
+    return (data ?? []).map(log => {
+      const child = log.children ?? { id: log.child_id, name: 'Niño desconocido', avatar_url: null };
+      const category = log.categories ?? { id: '', name: 'Sin categoría', color: '#gray', icon: 'circle' };
+      const loggedByProfile = log.profiles ?? { id: log.logged_by, full_name: 'Usuario desconocido', avatar_url: null };
+      
+      return {
+        ...log,
+        child,
+        category,
+        logged_by_profile: loggedByProfile,
+        // Propiedades auxiliares para compatibilidad con componentes existentes
+        child_name: child.name,
+        child_avatar_url: child.avatar_url,
+        category_name: category?.name || null,
+        category_color: category?.color || null,
+        logged_by_name: loggedByProfile.full_name,
+        logged_by_avatar: loggedByProfile.avatar_url,
+        reviewer_name: null, // Se debe obtener de otra consulta si es necesario
+        can_edit: true // Se debe verificar con permisos reales
+      };
+    }) as LogWithDetails[];
   }, []);
 
   /**
@@ -219,7 +236,25 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
   const handleFetchError = useCallback((err: any) => {
     console.error('❌ Error fetching logs:', err);
     if (mountedRef.current) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al cargar los registros';
+      let errorMessage = 'Error al cargar los registros';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (err && typeof err === 'object') {
+        // Manejar errores de Supabase
+        if (err.message) {
+          errorMessage = err.message;
+        } else if (err.error) {
+          errorMessage = err.error;
+        } else if (err.details) {
+          errorMessage = err.details;
+        } else {
+          errorMessage = `Error: ${JSON.stringify(err)}`;
+        }
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+      
       setError(errorMessage);
     }
   }, []);

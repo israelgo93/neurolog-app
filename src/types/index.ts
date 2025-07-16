@@ -285,6 +285,15 @@ export interface LogWithDetails extends DailyLog {
     full_name: string;
     avatar_url?: string | null;
   };
+  // Propiedades auxiliares para compatibilidad
+  child_name: string;
+  child_avatar_url?: string | null;
+  category_name?: string | null;
+  category_color?: string | null;
+  logged_by_name: string;
+  logged_by_avatar?: string | null;
+  reviewer_name?: string | null;
+  can_edit: boolean;
 }
 
 // ================================================================
