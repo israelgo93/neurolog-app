@@ -88,42 +88,54 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
     }
   };
 
+  const getPermissionLabel = (canEdit: boolean) => {
+    return canEdit ? 'Editor' : 'Solo lectura';
+  };
+
+  const getPermissionIcon = (canEdit: boolean) => {
+    return canEdit ? <EditIcon className="h-3 w-3" /> : <EyeIcon className="h-3 w-3" />;
+  };
+
   return (
-    <Card className="group hover:shadow-md transition-all duration-200">
-      <CardHeader className="pb-3">
+    <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-sm bg-white">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-12 w-12">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
+            <Avatar className="h-14 w-14 border-2 border-white shadow-md">
               <AvatarImage src={child.avatar_url ?? undefined} />
-              <AvatarFallback className="bg-blue-100 text-blue-600">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-semibold">
                 {child.name.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h3 className="font-semibold text-lg">{child.name}</h3>
-              <div className="flex items-center space-x-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-lg text-gray-900 truncate" title={child.name}>
+                {child.name}
+              </h3>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
                 <Badge 
                   variant="secondary" 
-                  className={getRelationshipColor(child.relationship_type)}
+                  className={`${getRelationshipColor(child.relationship_type)} text-xs font-medium`}
                 >
                   {getRelationshipLabel(child.relationship_type)}
                 </Badge>
-                {child.can_edit && (
-                  <Badge variant="outline" className="text-xs">
-                    Editor
-                  </Badge>
-                )}
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs font-medium ${child.can_edit ? 'border-green-200 text-green-700 bg-green-50' : 'border-gray-200 text-gray-600 bg-gray-50'}`}
+                >
+                  <span className="mr-1">{getPermissionIcon(child.can_edit)}</span>
+                  {getPermissionLabel(child.can_edit)}
+                </Badge>
               </div>
             </div>
           </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 <MoreVerticalIcon className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Acciones</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onViewDetails(child)}>
@@ -133,7 +145,7 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
               {child.can_edit && (
                 <DropdownMenuItem onClick={() => onEdit(child)}>
                   <EditIcon className="mr-2 h-4 w-4" />
-                  Editar
+                  Editar información
                 </DropdownMenuItem>
               )}
               {child.can_invite_others && (
@@ -147,39 +159,62 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        {/* Información básica */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          {child.birth_date && (
-            <div className="flex items-center space-x-2">
-              <CalendarIcon className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-600">
-                {calculateAge(child.birth_date)} años
-              </span>
-            </div>
-          )}
-          
-          {child.diagnosis && (
-            <div className="flex items-center space-x-2">
-              <HeartIcon className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-600 truncate" title={child.diagnosis}>
-                {child.diagnosis}
-              </span>
-            </div>
-          )}
-        </div>
+      <CardContent className="pt-0">
+        <div className="space-y-4">
+          {/* Información principal */}
+          <div className="grid grid-cols-1 gap-3">
+            {child.birth_date && (
+              <div className="flex items-center space-x-2 text-sm">
+                <CalendarIcon className="h-4 w-4 text-blue-500" />
+                <span className="text-gray-700 font-medium">
+                  {calculateAge(child.birth_date)} años
+                </span>
+                <span className="text-gray-500">
+                  • {format(new Date(child.birth_date), 'dd/MM/yyyy')}
+                </span>
+              </div>
+            )}
+            
+            {child.diagnosis && (
+              <div className="flex items-center space-x-2 text-sm">
+                <HeartIcon className="h-4 w-4 text-red-500" />
+                <span className="text-gray-700 font-medium">Diagnóstico:</span>
+                <span className="text-gray-600 truncate flex-1" title={child.diagnosis}>
+                  {child.diagnosis}
+                </span>
+              </div>
+            )}
 
-        {/* Estadísticas rápidas */}
-        <div className="flex justify-between items-center pt-2 border-t">
-          <div className="text-center">
-            <p className="text-sm font-medium text-gray-900">Registros</p>
-            <p className="text-xs text-gray-500">Este mes</p>
+            {!child.birth_date && !child.diagnosis && (
+              <div className="text-sm text-gray-500 italic">
+                Sin información adicional registrada
+              </div>
+            )}
           </div>
-          <div className="text-center">
-            <p className="text-sm font-medium text-gray-900">Última actividad</p>
-            <p className="text-xs text-gray-500">
-              {child.updated_at ? format(new Date(child.updated_at), 'dd MMM', { locale: es }) : 'N/A'}
-            </p>
+
+          {/* Estadísticas y actividad */}
+          <div className="pt-3 border-t border-gray-100">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-1 mb-1">
+                  <BookOpenIcon className="h-4 w-4 text-gray-400" />
+                  <p className="text-sm font-medium text-gray-900">Registros</p>
+                </div>
+                <p className="text-xs text-gray-500">Este mes</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-1 mb-1">
+                  <TrendingUpIcon className="h-4 w-4 text-gray-400" />
+                  <p className="text-sm font-medium text-gray-900">Actividad</p>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {child.updated_at 
+                    ? format(new Date(child.updated_at), 'dd MMM', { locale: es }) 
+                    : 'Sin actividad'
+                  }
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -472,8 +507,16 @@ export default function ChildrenPage() {
           </div>
         </div>
 
-        {/* Children Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Children Grid - Responsive adaptado al número de niños */}
+        <div className={`grid gap-6 ${
+          filteredChildren.length === 1 
+            ? 'grid-cols-1 max-w-md mx-auto' 
+            : filteredChildren.length === 2
+            ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto'
+            : filteredChildren.length === 3
+            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+        }`}>
           {filteredChildren.map((child) => (
             <ChildCard
               key={child.id}

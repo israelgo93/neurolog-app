@@ -38,7 +38,7 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
     notes: ''
   })
   const [loading, setLoading] = useState(false)
-  const { addChild } = useChildren()
+  const { createChild } = useChildren()
   const { toast } = useToast()
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -76,7 +76,7 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
         ...(formData.notes.trim() && { notes: formData.notes.trim() })
       }
 
-      await addChild(childData)
+      await createChild(childData)
       
       toast({
         title: "¡Éxito!",

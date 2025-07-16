@@ -131,13 +131,14 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <Card key={`quickstats-skeleton-${i}`} className="animate-pulse">
+          <Card key={`quickstats-skeleton-${i}`} className="animate-pulse border-l-4 border-gray-200">
             <CardContent className="p-3 sm:p-4 md:p-6">
               <div className="flex items-center justify-between space-x-2">
                 <div className="space-y-2 flex-1">
                   <Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
                   <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
                   <Skeleton className="h-2 sm:h-3 w-14 sm:w-18" />
+                  <Skeleton className="h-2 w-10" />
                 </div>
                 <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" />
               </div>
@@ -189,17 +190,27 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
 function AccessibleChildren({ childrenList, loading }: AccessibleChildrenProps) {
   if (loading) {
     return (
-      <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 3 }, (_, i) => (
-          <Card key={`children-skeleton-${i}`} className="animate-pulse">
+          <Card key={`children-skeleton-${i}`} className="animate-pulse border-0 shadow-sm">
             <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center space-x-3 sm:space-x-4">
-                <Skeleton className="h-12 w-12 sm:h-16 sm:w-16 rounded-full" />
+              <div className="flex items-start space-x-3 sm:space-x-4">
+                <Skeleton className="h-14 w-14 sm:h-16 sm:w-16 rounded-full" />
                 <div className="space-y-2 flex-1">
                   <Skeleton className="h-4 w-24 sm:w-32" />
-                  <Skeleton className="h-3 w-16 sm:w-20" />
+                  <div className="flex space-x-2">
+                    <Skeleton className="h-3 w-16 sm:w-20" />
+                    <Skeleton className="h-3 w-12 sm:w-16" />
+                  </div>
                   <Skeleton className="h-3 w-20 sm:w-24" />
                 </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-center mb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-8" />
+                </div>
+                <Skeleton className="h-2 w-full rounded-full" />
               </div>
             </CardContent>
           </Card>
@@ -230,42 +241,105 @@ function AccessibleChildren({ childrenList, loading }: AccessibleChildrenProps) 
     );
   }
 
+  const getRelationshipColor = (type: string) => {
+    switch (type) {
+      case 'parent': return 'bg-blue-100 text-blue-800';
+      case 'teacher': return 'bg-green-100 text-green-800';
+      case 'specialist': return 'bg-purple-100 text-purple-800';
+      case 'observer': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getRelationshipLabel = (type: string) => {
+    switch (type) {
+      case 'parent': return 'Padre/Madre';
+      case 'teacher': return 'Docente';
+      case 'specialist': return 'Especialista';
+      case 'observer': return 'Observador';
+      case 'family': return 'Familia';
+      default: return type;
+    }
+  };
+
+  const getPermissionIcon = (canEdit: boolean) => {
+    return canEdit ? 'text-green-600' : 'text-gray-600';
+  };
+
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return null;
+    const birth = new Date(birthDate);
+    const today = new Date();
+    const age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      return age - 1;
+    }
+    return age;
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Grid responsivo adaptado al número de niños */}
+      <div className={`grid gap-4 sm:gap-6 ${
+        childrenList.length === 1 
+          ? 'grid-cols-1 max-w-lg mx-auto' 
+          : childrenList.length === 2
+          ? 'grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto'
+          : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+      }`}>
         {childrenList.slice(0, 6).map((child) => (
-          <Card key={child.id} className="hover:shadow-md transition-all duration-200 group">
+          <Card key={child.id} className="hover:shadow-lg transition-all duration-300 border-0 shadow-sm bg-white group">
             <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center space-x-3 sm:space-x-4">
-                <Avatar className="h-12 w-12 sm:h-16 sm:w-16 border-2 border-gray-100">
+              <div className="flex items-start space-x-3 sm:space-x-4">
+                <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-white shadow-md">
                   <AvatarImage 
-                    src={child.avatar_url} 
+                    src={child.avatar_url ?? undefined} 
                     alt={child.name}
                   />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-lg">
                     {child.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
+                  <h4 className="text-base sm:text-lg font-semibold text-gray-900 truncate mb-2" title={child.name}>
                     {child.name}
                   </h4>
                   
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Badge variant={child.can_edit ? "default" : "secondary"} className="text-xs">
-                      {child.can_edit ? "Editor" : "Lectura"}
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <Badge 
+                      variant="secondary" 
+                      className={`${getRelationshipColor(child.relationship_type)} text-xs font-medium`}
+                    >
+                      {getRelationshipLabel(child.relationship_type)}
                     </Badge>
-                    <span className="text-xs text-gray-500">
-                      {child.relationship_type}
-                    </span>
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs font-medium ${child.can_edit ? 'border-green-200 text-green-700 bg-green-50' : 'border-gray-200 text-gray-600 bg-gray-50'}`}
+                    >
+                      <Eye className={`h-3 w-3 mr-1 ${getPermissionIcon(child.can_edit)}`} />
+                      {child.can_edit ? "Editor" : "Solo lectura"}
+                    </Badge>
                   </div>
                   
-                  {child.last_log_date && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Último registro: {format(new Date(child.last_log_date), 'dd MMM', { locale: es })}
-                    </p>
-                  )}
+                  {/* Información adicional */}
+                  <div className="space-y-1 text-sm text-gray-600">
+                    {child.birth_date && (
+                      <div className="flex items-center">
+                        <span className="font-medium">{calculateAge(child.birth_date)} años</span>
+                        <span className="mx-1">•</span>
+                        <span>{format(new Date(child.birth_date), 'dd/MM/yyyy')}</span>
+                      </div>
+                    )}
+                    {child.last_log_date && (
+                      <div className="flex items-center text-xs text-gray-500">
+                        <Activity className="h-3 w-3 mr-1" />
+                        <span>Último registro: {format(new Date(child.last_log_date), 'dd MMM', { locale: es })}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -277,11 +351,16 @@ function AccessibleChildren({ childrenList, loading }: AccessibleChildrenProps) 
                 </div>
               </div>
               
-              {/* Progress bar de actividad */}
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Actividad semanal</span>
-                  <span>{child.weekly_logs ?? 0}/7</span>
+              {/* Progress bar de actividad mejorado */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center space-x-1">
+                    <TrendingUp className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-700">Actividad semanal</span>
+                  </div>
+                  <span className="text-sm font-bold text-gray-900">
+                    {child.weekly_logs ?? 0}/7
+                  </span>
                 </div>
                 <Progress 
                   value={((child.weekly_logs ?? 0) / 7) * 100} 
@@ -317,13 +396,23 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
     return (
       <div className="space-y-3 sm:space-y-4">
         {Array.from({ length: 3 }, (_, i) => (
-          <div key={`logs-skeleton-${i}`} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white animate-pulse">
-            <Skeleton className="h-10 w-10 rounded-full" />
+          <div key={`logs-skeleton-${i}`} className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white animate-pulse">
+            <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
             <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
+              <div className="flex justify-between items-start">
+                <Skeleton className="h-4 w-32" />
+                <div className="flex space-x-2">
+                  <Skeleton className="h-4 w-8" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              </div>
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-3/4" />
+              <div className="flex justify-between items-center">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-6 w-6 rounded" />
+              </div>
             </div>
-            <Skeleton className="h-6 w-12" />
           </div>
         ))}
       </div>
@@ -358,7 +447,7 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
         <div key={log.id} className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white hover:bg-gray-50 transition-colors group">
           <Avatar className="h-10 w-10 flex-shrink-0">
             <AvatarImage 
-              src={log.child_avatar_url} 
+              src={log.child_avatar_url ?? undefined} 
               alt={log.child_name}
             />
             <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
@@ -513,41 +602,64 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Registros diarios</span>
-                <span className="font-medium">
-                  {stats.logs_this_week ? Math.round(stats.logs_this_week / 7) : 0} registros/día
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Humor promedio</span>
-                <div className="flex items-center">
-                  <Heart className="h-4 w-4 text-red-400 mr-1" />
-                  <span className="font-medium">
-                    {stats.avg_mood_score ? stats.avg_mood_score.toFixed(1) : 'N/A'}/5
-                  </span>
+              {logsLoading ? (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-26" />
+                    <Skeleton className="h-4 w-18" />
+                  </div>
+                  <Skeleton className="h-9 w-full" />
                 </div>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Último registro</span>
-                <span className="text-xs text-gray-500">
-                  {stats.last_log_date ? 
-                    format(new Date(stats.last_log_date), 'dd MMM', { locale: es }) : 
-                    'Ninguno'
-                  }
-                </span>
-              </div>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Registros diarios</span>
+                    <span className="font-medium">
+                      {stats.logs_this_week ? Math.round(stats.logs_this_week / 7) : 0} registros/día
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Humor promedio</span>
+                    <div className="flex items-center">
+                      <Heart className="h-4 w-4 text-red-400 mr-1" />
+                      <span className="font-medium">
+                        {logs.length > 0 ? 
+                          (logs.reduce((acc, log) => acc + (log.mood_score || 0), 0) / logs.filter(l => l.mood_score).length || 0).toFixed(1) : 
+                          'N/A'
+                        }/5
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Último registro</span>
+                    <span className="text-xs text-gray-500">
+                      {logs.length > 0 ? 
+                        format(new Date(logs[0].created_at), 'dd MMM', { locale: es }) : 
+                        'Ninguno'
+                      }
+                    </span>
+                  </div>
 
-              <div className="pt-2">
-                <Button variant="outline" size="sm" className="w-full" asChild>
-                  <Link href="/dashboard/reports">
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    Ver Reportes Completos
-                  </Link>
-                </Button>
-              </div>
+                  <div className="pt-2">
+                    <Button variant="outline" size="sm" className="w-full" asChild>
+                      <Link href="/dashboard/reports">
+                        <BarChart3 className="mr-2 h-4 w-4" />
+                        Ver Reportes Completos
+                      </Link>
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
