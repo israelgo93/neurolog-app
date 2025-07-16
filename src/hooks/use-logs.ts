@@ -116,15 +116,25 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     if (!userId) return [];
     
     try {
-      // ✅ CORRECCIÓN: Usar la tabla user_child_relations en lugar de la vista
+      // Usar la tabla user_child_relations con verificación de existencia
       const { data, error } = await supabase
         .from('user_child_relations')
         .select('child_id')
         .eq('user_id', userId)
-        .eq('is_active', true)
-        .eq('can_view', true);
+        .eq('is_active', true);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error en user_child_relations:', error);
+        // Si la tabla no existe, intentar con children directamente
+        const { data: childrenData, error: childrenError } = await supabase
+          .from('children')
+          .select('id')
+          .eq('created_by', userId);
+          
+        if (childrenError) throw childrenError;
+        return childrenData?.map(child => child.id) || [];
+      }
+      
       return data?.map(relation => relation.child_id) || [];
     } catch (err) {
       console.error('❌ Error getting accessible children:', err);
@@ -155,15 +165,15 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
       .from('daily_logs')
       .select(`
         *,
-        children(id, name, avatar_url),
+        children!inner(id, name, avatar_url),
         categories(id, name, color, icon),
-        profiles(id, full_name, avatar_url)
+        profiles!daily_logs_logged_by_fkey(id, full_name, avatar_url)
       `)
       .in('child_id', accessibleChildrenIds)
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1);
-  }, [supabase, includeDeleted, pageSize]);
+  }, [supabase, pageSize]);
 
   /**
    * Aplica filtros a la query
@@ -231,7 +241,7 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
   }, [pageSize]);
 
   /**
-   * Maneja errores de fetch
+   * Maneja errores de fetch con mejor formateo
    */
   const handleFetchError = useCallback((err: any) => {
     console.error('❌ Error fetching logs:', err);
@@ -244,12 +254,26 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
         // Manejar errores de Supabase
         if (err.message) {
           errorMessage = err.message;
+        } else if (err.error_description) {
+          errorMessage = err.error_description;
         } else if (err.error) {
-          errorMessage = err.error;
+          errorMessage = typeof err.error === 'string' ? err.error : JSON.stringify(err.error);
         } else if (err.details) {
           errorMessage = err.details;
+        } else if (err.hint) {
+          errorMessage = err.hint;
         } else {
-          errorMessage = `Error: ${JSON.stringify(err)}`;
+          // Solo mostrar propiedades relevantes del error
+          const relevantProps = Object.keys(err).filter(key => 
+            key !== 'stack' && key !== 'name' && typeof err[key] !== 'function'
+          );
+          if (relevantProps.length > 0) {
+            const errorObj = relevantProps.reduce((acc, key) => {
+              acc[key] = err[key];
+              return acc;
+            }, {} as any);
+            errorMessage = `Error: ${JSON.stringify(errorObj)}`;
+          }
         }
       } else if (typeof err === 'string') {
         errorMessage = err;
@@ -339,11 +363,11 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
         { count: followUpsDue },
         { count: activeCategories }
       ] = await Promise.all([
-        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds),
-        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
-        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
-        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).eq('needs_review', true),
-        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).not('follow_up_date', 'is', null).lte('follow_up_date', new Date().toISOString()),
+        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).eq('is_deleted', false),
+        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).eq('is_deleted', false).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
+        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).eq('is_deleted', false).gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).eq('is_deleted', false).is('reviewed_by', null),
+        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).eq('is_deleted', false).eq('follow_up_required', true).not('follow_up_date', 'is', null).lte('follow_up_date', new Date().toISOString()),
         supabase.from('categories').select('*', { count: 'exact', head: true }).eq('is_active', true)
       ]);
 

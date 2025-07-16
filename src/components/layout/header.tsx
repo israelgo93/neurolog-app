@@ -4,7 +4,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -58,6 +58,7 @@ export function Header() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   const totalNotifications = (stats.pending_reviews ?? 0) + (stats.follow_ups_due ?? 0);
 
@@ -75,6 +76,8 @@ export function Header() {
   const handleSignOut = async () => {
     try {
       await signOut();
+      // Redirección manual a la página principal (replace para evitar historial)
+      router.replace('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }

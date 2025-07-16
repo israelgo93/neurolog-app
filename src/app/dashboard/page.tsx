@@ -438,26 +438,26 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8 px-4 sm:px-6 lg:px-8">
       {/* Header responsivo */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] ?? 'Usuario'}
+            {greeting()}, {user?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'Usuario'}
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600 max-w-2xl">
             Aquí está el resumen de hoy para tus niños en seguimiento
           </p>
         </div>
         
-        <div className="flex items-center space-x-2 sm:space-x-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
           <Button variant="outline" size="sm" asChild className="hidden sm:flex">
             <Link href="/dashboard/reports">
               <BarChart3 className="mr-2 h-4 w-4" />
               Reportes
             </Link>
           </Button>
-          <Button size="sm" asChild>
+          <Button size="sm" asChild className="w-full sm:w-auto">
             <Link href="/dashboard/logs/new">
               <Plus className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Nuevo Registro</span>
@@ -471,9 +471,9 @@ export default function DashboardPage() {
       <QuickStats stats={stats} loading={logsLoading} />
 
       {/* Grid principal responsivo */}
-      <div className="grid gap-6 lg:gap-8 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-3">
         {/* Columna principal */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Niños accesibles */}
           <Card>
             <CardHeader className="pb-4">
@@ -503,7 +503,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Sidebar derecho */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Resumen de actividad */}
           <Card>
             <CardHeader className="pb-4">

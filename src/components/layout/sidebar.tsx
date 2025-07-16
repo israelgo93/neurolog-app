@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +42,7 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState(0);
   const pathname = usePathname();
+  const router = useRouter();
   const { user, signOut, isAdmin } = useAuth();
   const { stats, loading: statsLoading } = useLogs({ pageSize: 1 });
 
@@ -127,6 +128,8 @@ export function Sidebar() {
   const handleSignOut = async () => {
     try {
       await signOut();
+      // Redirección manual a la página principal (replace para evitar historial)
+      router.replace('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }

@@ -6,7 +6,10 @@
       "Bash(mv:*)",
       "mcp__supabase__list_tables",
       "mcp__supabase__execute_sql",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(timeout 5 npm run dev)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
