@@ -5,7 +5,8 @@
       "Bash(npm run lint)",
       "Bash(mv:*)",
       "mcp__supabase__list_tables",
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "Bash(npm run dev:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

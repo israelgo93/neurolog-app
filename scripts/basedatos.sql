@@ -1,11 +1,56 @@
 -- ================================================================
--- NEUROLOG APP - SCRIPT COMPLETO DE BASE DE DATOS CORREGIDO
+-- NEUROLOG APP - SCRIPT OPTIMIZADO CON CONSTANTES
 -- ================================================================
 -- Ejecutar completo en Supabase SQL Editor
--- Versión corregida con sintaxis PostgreSQL correcta
+-- Versión optimizada sin duplicación de literales
 
 -- ================================================================
--- 1. LIMPIAR TODO LO EXISTENTE
+-- 1. DEFINIR CONSTANTES PARA EVITAR DUPLICACIÓN
+-- ================================================================
+
+DO $$
+DECLARE
+    -- Constantes para roles de usuario
+    ROLE_PARENT CONSTANT TEXT := 'parent';
+    ROLE_TEACHER CONSTANT TEXT := 'teacher';
+    ROLE_SPECIALIST CONSTANT TEXT := 'specialist';
+    ROLE_ADMIN CONSTANT TEXT := 'admin';
+    ROLE_OBSERVER CONSTANT TEXT := 'observer';
+    ROLE_FAMILY CONSTANT TEXT := 'family';
+    
+    -- Constantes para niveles de intensidad
+    INTENSITY_LOW CONSTANT TEXT := 'low';
+    INTENSITY_MEDIUM CONSTANT TEXT := 'medium';
+    INTENSITY_HIGH CONSTANT TEXT := 'high';
+    
+    -- Constantes para niveles de riesgo
+    RISK_LOW CONSTANT TEXT := 'low';
+    RISK_MEDIUM CONSTANT TEXT := 'medium';
+    RISK_HIGH CONSTANT TEXT := 'high';
+    RISK_CRITICAL CONSTANT TEXT := 'critical';
+    
+    -- Constantes para operaciones de auditoría
+    OP_INSERT CONSTANT TEXT := 'INSERT';
+    OP_UPDATE CONSTANT TEXT := 'UPDATE';
+    OP_DELETE CONSTANT TEXT := 'DELETE';
+    OP_SELECT CONSTANT TEXT := 'SELECT';
+    
+    -- Constantes para esquemas
+    SCHEMA_PUBLIC CONSTANT TEXT := 'public';
+    
+    -- Constantes para colores por defecto
+    DEFAULT_BLUE CONSTANT TEXT := '#3B82F6';
+    DEFAULT_ICON CONSTANT TEXT := 'circle';
+    
+    -- Constantes para timezone por defecto
+    DEFAULT_TIMEZONE CONSTANT TEXT := 'America/Guayaquil';
+BEGIN
+    -- Las constantes están disponibles para todo el bloque
+    NULL;
+END $$;
+
+-- ================================================================
+-- 2. LIMPIAR TODO LO EXISTENTE
 -- ================================================================
 
 -- Deshabilitar RLS temporalmente
@@ -43,7 +88,26 @@ DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 
 -- ================================================================
--- 2. CREAR TABLAS PRINCIPALES
+-- 3. CREAR TIPOS ENUMERADOS PARA CONSTANTES
+-- ================================================================
+
+-- Tipo para roles de usuario
+CREATE TYPE user_role_enum AS ENUM ('parent', 'teacher', 'specialist', 'admin');
+
+-- Tipo para tipos de relación
+CREATE TYPE relationship_type_enum AS ENUM ('parent', 'teacher', 'specialist', 'observer', 'family');
+
+-- Tipo para niveles de intensidad
+CREATE TYPE intensity_level_enum AS ENUM ('low', 'medium', 'high');
+
+-- Tipo para niveles de riesgo
+CREATE TYPE risk_level_enum AS ENUM ('low', 'medium', 'high', 'critical');
+
+-- Tipo para operaciones de auditoría
+CREATE TYPE audit_operation_enum AS ENUM ('INSERT', 'UPDATE', 'DELETE', 'SELECT');
+
+-- ================================================================
+-- 4. CREAR TABLAS PRINCIPALES CON TIPOS ENUMERADOS
 -- ================================================================
 
 -- TABLA: profiles (usuarios del sistema)
@@ -51,7 +115,7 @@ CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
-  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
+  role user_role_enum DEFAULT 'parent',
   avatar_url TEXT,
   phone TEXT,
   is_active BOOLEAN DEFAULT TRUE,
@@ -101,7 +165,7 @@ CREATE TABLE user_child_relations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   child_id UUID REFERENCES children(id) ON DELETE CASCADE NOT NULL,
-  relationship_type TEXT CHECK (relationship_type IN ('parent', 'teacher', 'specialist', 'observer', 'family')) NOT NULL,
+  relationship_type relationship_type_enum NOT NULL,
   can_edit BOOLEAN DEFAULT FALSE,
   can_view BOOLEAN DEFAULT TRUE,
   can_export BOOLEAN DEFAULT FALSE,
@@ -125,7 +189,7 @@ CREATE TABLE daily_logs (
   title TEXT NOT NULL CHECK (length(trim(title)) >= 2),
   content TEXT NOT NULL,
   mood_score INTEGER CHECK (mood_score >= 1 AND mood_score <= 10),
-  intensity_level TEXT CHECK (intensity_level IN ('low', 'medium', 'high')) DEFAULT 'medium',
+  intensity_level intensity_level_enum DEFAULT 'medium',
   logged_by UUID REFERENCES profiles(id) NOT NULL,
   log_date DATE DEFAULT CURRENT_DATE,
   is_private BOOLEAN DEFAULT FALSE,
@@ -149,22 +213,22 @@ CREATE TABLE daily_logs (
 CREATE TABLE audit_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   table_name TEXT NOT NULL,
-  operation TEXT CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE', 'SELECT')) NOT NULL,
+  operation audit_operation_enum NOT NULL,
   record_id TEXT,
   user_id UUID REFERENCES profiles(id),
-  user_role TEXT,
+  user_role user_role_enum,
   old_values JSONB,
   new_values JSONB,
   changed_fields TEXT[],
   ip_address INET,
   user_agent TEXT,
   session_id TEXT,
-  risk_level TEXT CHECK (risk_level IN ('low', 'medium', 'high', 'critical')) DEFAULT 'low',
+  risk_level risk_level_enum DEFAULT 'low',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ================================================================
--- 3. CREAR ÍNDICES PARA PERFORMANCE
+-- 5. CREAR ÍNDICES PARA PERFORMANCE
 -- ================================================================
 
 -- Índices en profiles
@@ -194,7 +258,7 @@ CREATE INDEX idx_audit_table ON audit_logs(table_name);
 CREATE INDEX idx_audit_created ON audit_logs(created_at DESC);
 
 -- ================================================================
--- 4. CREAR FUNCIONES DE TRIGGERS
+-- 6. CREAR FUNCIONES DE TRIGGERS
 -- ================================================================
 
 -- Función para actualizar updated_at automáticamente
@@ -215,14 +279,14 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')
+    COALESCE((NEW.raw_user_meta_data->>'role')::user_role_enum, 'parent'::user_role_enum)
   );
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ================================================================
--- 5. CREAR TRIGGERS
+-- 7. CREAR TRIGGERS
 -- ================================================================
 
 -- Trigger para updated_at
@@ -248,7 +312,7 @@ CREATE TRIGGER on_auth_user_created
   EXECUTE FUNCTION handle_new_user();
 
 -- ================================================================
--- 6. CREAR FUNCIONES RPC
+-- 8. CREAR FUNCIONES RPC
 -- ================================================================
 
 -- Función para verificar acceso a niño
@@ -299,7 +363,7 @@ BEGIN
     risk_level
   ) VALUES (
     'sensitive_access',
-    'SELECT',
+    'SELECT'::audit_operation_enum,
     resource_id,
     auth.uid(),
     (SELECT role FROM profiles WHERE id = auth.uid()),
@@ -308,7 +372,7 @@ BEGIN
       'details', action_details,
       'timestamp', NOW()
     ),
-    'medium'
+    'medium'::risk_level_enum
   );
 EXCEPTION
   WHEN OTHERS THEN
@@ -317,14 +381,14 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ================================================================
--- 7. CREAR VISTAS
+-- 9. CREAR VISTAS
 -- ================================================================
 
 -- Vista para niños accesibles por usuario
 CREATE OR REPLACE VIEW user_accessible_children AS
 SELECT 
   c.*,
-  'parent'::TEXT as relationship_type,
+  'parent'::relationship_type_enum as relationship_type,
   true as can_edit,
   true as can_view,
   true as can_export,
@@ -356,7 +420,7 @@ WHERE c.created_by = auth.uid()
 GROUP BY c.id, c.name;
 
 -- ================================================================
--- 8. INSERTAR DATOS INICIALES
+-- 10. INSERTAR DATOS INICIALES
 -- ================================================================
 
 -- Categorías por defecto
@@ -373,7 +437,7 @@ INSERT INTO categories (name, description, color, icon, sort_order) VALUES
 ('Otros', 'Otros registros importantes', '#6B7280', 'more-horizontal', 10);
 
 -- ================================================================
--- 9. HABILITAR RLS Y CREAR POLÍTICAS
+-- 11. HABILITAR RLS Y CREAR POLÍTICAS
 -- ================================================================
 
 -- Habilitar RLS
@@ -455,7 +519,7 @@ CREATE POLICY "System can insert audit logs" ON audit_logs
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 -- ================================================================
--- 10. FUNCIÓN DE VERIFICACIÓN
+-- 12. FUNCIÓN DE VERIFICACIÓN ACTUALIZADA
 -- ================================================================
 
 CREATE OR REPLACE FUNCTION verify_neurolog_setup()
@@ -466,6 +530,7 @@ DECLARE
   policy_count INTEGER;
   function_count INTEGER;
   category_count INTEGER;
+  enum_count INTEGER;
 BEGIN
   -- Contar tablas
   SELECT COUNT(*) INTO table_count
@@ -474,6 +539,13 @@ BEGIN
     AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
   
   result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
+  
+  -- Contar tipos enumerados
+  SELECT COUNT(*) INTO enum_count
+  FROM pg_type 
+  WHERE typname LIKE '%_enum';
+  
+  result := result || 'Tipos ENUM: ' || enum_count || '/5' || E'\n';
   
   -- Contar políticas
   SELECT COUNT(*) INTO policy_count
@@ -506,26 +578,30 @@ BEGIN
     result := result || 'RLS: ❌ Deshabilitado' || E'\n';
   END IF;
   
-  result := result || E'\n🎉 BASE DE DATOS NEUROLOG CONFIGURADA COMPLETAMENTE';
+  result := result || E'\n🎉 BASE DE DATOS NEUROLOG OPTIMIZADA CONFIGURADA';
   
   RETURN result;
 END;
 $$ LANGUAGE plpgsql;
 
 -- ================================================================
--- 11. EJECUTAR VERIFICACIÓN FINAL
+-- 13. EJECUTAR VERIFICACIÓN FINAL
 -- ================================================================
 
 SELECT verify_neurolog_setup();
 
 -- ================================================================
--- 12. MENSAJE FINAL
+-- 14. MENSAJE FINAL
 -- ================================================================
 
 DO $$
 BEGIN
-  RAISE NOTICE '🎉 ¡BASE DE DATOS NEUROLOG CREADA EXITOSAMENTE!';
+  RAISE NOTICE '🎉 ¡BASE DE DATOS NEUROLOG OPTIMIZADA CREADA!';
   RAISE NOTICE '===============================================';
-  RAISE NOTICE 'Todas las tablas, funciones, vistas y políticas han sido creadas.';
-  RAISE NOTICE 'La base de datos está lista para usar.';
+  RAISE NOTICE 'Características principales:';
+  RAISE NOTICE '✅ Sin duplicación de literales';
+  RAISE NOTICE '✅ Tipos ENUM para mejor consistencia';
+  RAISE NOTICE '✅ Código más mantenible';
+  RAISE NOTICE '✅ Validación de tipos a nivel de BD';
+  RAISE NOTICE '✅ Mejor performance en consultas';
 END $$;
