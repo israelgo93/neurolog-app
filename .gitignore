@@ -44,3 +44,4 @@ next-env.d.ts
 .vscode
 # local env files
 .env.local
+.mcp.json
