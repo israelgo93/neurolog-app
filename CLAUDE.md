@@ -22,7 +22,7 @@ Es importante que siempre respondas en español. Todas tus respuestas deben ser 
 - `npm run test:ci` - Run tests in CI mode
 
 ### Database Setup
-Execute the SQL script from `scripts/basedatos.txt` in Supabase SQL Editor to create the complete database schema.
+Execute the SQL script from `scripts/basedatos.sql` in Supabase SQL Editor to create the complete database schema.
 
 ## Architecture Overview
 
@@ -68,7 +68,7 @@ Execute the SQL script from `scripts/basedatos.txt` in Supabase SQL Editor to cr
 - `src/types/` - TypeScript type definitions
 
 #### Database Schema
-Key tables managed via `scripts/basedatos.txt`:
+Key tables managed via `scripts/basedatos.sql`:
 - `profiles` - User information extending auth.users
 - `children` - Child profiles being monitored
 - `daily_logs` - All daily entries with categories
@@ -114,7 +114,7 @@ When adding new features:
 6. Test with `npm run type-check` and `npm run lint`
 
 For database changes:
-1. Modify `scripts/basedatos.txt` with new schema
+1. Modify `scripts/basedatos.sql` with new schema
 2. Test locally in Supabase SQL Editor
 3. Update TypeScript types to match schema
 4. Add corresponding custom hooks for new data operations

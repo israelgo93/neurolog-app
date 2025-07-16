@@ -331,12 +331,12 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
 interface FiltersBarProps {
   filters: LogFilters;
   onFiltersChange: (filters: LogFilters) => void;
-  children: ChildWithRelation[];
+  childrenList: ChildWithRelation[];
   totalCount: number;
   filteredCount: number;
 }
 
-function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCount }: FiltersBarProps) {
+function FiltersBar({ filters, onFiltersChange, childrenList, totalCount, filteredCount }: FiltersBarProps) {
   return (
     <Card>
       <CardHeader>
@@ -385,7 +385,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos los niños</SelectItem>
-              {children.map((child) => (
+              {childrenList.map((child) => (
                 <SelectItem key={child.id} value={child.id}>
                   {child.name}
                 </SelectItem>
@@ -708,7 +708,7 @@ export default function LogsPage() {
       <FiltersBar
         filters={filters}
         onFiltersChange={setFilters}
-        children={children}
+        childrenList={children}
         totalCount={logs.length}
         filteredCount={filteredLogs.length}
       />
