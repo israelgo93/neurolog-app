@@ -34,18 +34,18 @@ import type { DashboardStats, ChildWithRelation, LogWithDetails } from '@/types'
 // ================================================================
 
 interface QuickStatsProps {
-  stats: DashboardStats;
-  loading: boolean;
+  readonly stats: DashboardStats;
+  readonly loading: boolean;
 }
 
 interface AccessibleChildrenProps {
-  childrenList: ChildWithRelation[];
-  loading: boolean;
+  readonly childrenList: ChildWithRelation[];
+  readonly loading: boolean;
 }
 
 interface RecentLogsProps {
-  logs: LogWithDetails[];
-  loading: boolean;
+  readonly logs: LogWithDetails[];
+  readonly loading: boolean;
 }
 
 // ================================================================
@@ -93,7 +93,7 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200',
       description: 'En seguimiento',
-      trend: stats.children_growth ?? 0
+      trend: 0
     },
     {
       title: 'Registros',
@@ -103,7 +103,7 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200',
       description: 'Documentados',
-      trend: stats.logs_growth ?? 0
+      trend: 0
     },
     {
       title: 'Esta Semana',
@@ -113,7 +113,7 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
       description: 'Nuevos registros',
-      trend: stats.weekly_growth ?? 0
+      trend: 0
     },
     {
       title: 'Pendientes',
@@ -333,12 +333,6 @@ function AccessibleChildren({ childrenList, loading }: AccessibleChildrenProps) 
                         <span>{format(new Date(child.birth_date), 'dd/MM/yyyy')}</span>
                       </div>
                     )}
-                    {child.last_log_date && (
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Activity className="h-3 w-3 mr-1" />
-                        <span>Último registro: {format(new Date(child.last_log_date), 'dd MMM', { locale: es })}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
                 
@@ -359,13 +353,13 @@ function AccessibleChildren({ childrenList, loading }: AccessibleChildrenProps) 
                     <span className="text-sm font-medium text-gray-700">Actividad semanal</span>
                   </div>
                   <span className="text-sm font-bold text-gray-900">
-                    {child.weekly_logs ?? 0}/7
+                    0/7
                   </span>
                 </div>
                 <Progress 
-                  value={((child.weekly_logs ?? 0) / 7) * 100} 
+                  value={0} 
                   className="h-2"
-                  indicatorClassName={getProgressIndicatorColor(child.weekly_logs ?? 0)}
+                  indicatorClassName={getProgressIndicatorColor(0)}
                 />
               </div>
             </CardContent>
