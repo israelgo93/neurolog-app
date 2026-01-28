@@ -1,7 +1,7 @@
 // ================================================================
 // src/components/reports/CategoryDistribution.tsx
 // Componente de distribución por categorías
-// ================================================================
+// ===============================================================
 
 'use client';
 
@@ -17,7 +17,7 @@ export function CategoryDistribution({ data }: CategoryDistributionProps) {
     const category = log.category_name || 'Sin categoría';
     acc[category] = (acc[category] || 0) + 1;
     return acc;
-  }, {});
+  }, {} as Record<string, number>);
 
   const chartData = Object.entries(categoryCount).map(([name, value]) => ({
     name,

@@ -22,7 +22,7 @@ export const viewport = {
   initialScale: 1,
 }
 
-// ✅ COMPONENTE DE FALLBACK ESPECÍFICO PARA EL LAYOUT
+// ✅ COMPONENTE DE FALLBACK ESPECÍFICO PARA EL LAYOUT.
 function LayoutErrorFallback() {
   return (
     <html lang="es">
