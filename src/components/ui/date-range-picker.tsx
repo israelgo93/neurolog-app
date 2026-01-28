@@ -28,7 +28,20 @@ export function DatePickerWithRange({
   className,
   date,
   setDate,
-}: DatePickerWithRangeProps) {
+}: Readonly<DatePickerWithRangeProps>) {
+  let dateLabel: React.ReactNode = <span>Seleccionar fechas</span>;
+  if (date?.from) {
+    if (date.to) {
+      dateLabel = (
+        <>
+          {format(date.from, 'dd LLL y', { locale: es })} -{' '}
+          {format(date.to, 'dd LLL y', { locale: es })}
+        </>
+      );
+    } else {
+      dateLabel = format(date.from, 'dd LLL y', { locale: es });
+    }
+  }
   return (
     <div className={cn('grid gap-2', className)}>
       <Popover>
@@ -42,18 +55,7 @@ export function DatePickerWithRange({
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date?.from ? (
-              date.to ? (
-                <>
-                  {format(date.from, 'dd LLL y', { locale: es })} -{' '}
-                  {format(date.to, 'dd LLL y', { locale: es })}
-                </>
-              ) : (
-                format(date.from, 'dd LLL y', { locale: es })
-              )
-            ) : (
-              <span>Seleccionar fechas</span>
-            )}
+            {dateLabel}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">

@@ -6,14 +6,14 @@
 'use client';
 
 import { Area, AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { format, startOfWeek, endOfWeek, eachWeekOfInterval, subWeeks } from 'date-fns';
+import { format, endOfWeek, eachWeekOfInterval, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 interface MoodTrendChartProps {
   data: any[];
 }
 
-export function MoodTrendChart({ data }: MoodTrendChartProps) {
+export function MoodTrendChart({ data }: Readonly<MoodTrendChartProps>) {
   // Agrupar datos por semana
   const now = new Date();
   const startDate = subWeeks(now, 12); // Últimas 12 semanas

@@ -26,7 +26,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
 import type { 
@@ -43,19 +42,18 @@ import {
   EditIcon,
   EyeIcon,
   EyeOffIcon,
-  HeartIcon,
+  AlertCircleIcon,
+  MessageSquareIcon,
+  CheckCircleIcon,
   ClockIcon,
+  FileIcon,
   TagIcon,
   MapPinIcon,
   CloudIcon,
-  FileIcon,
-  MessageSquareIcon,
-  AlertCircleIcon,
-  CheckCircleIcon,
-  DownloadIcon,
   RefreshCwIcon,
-  CalendarIcon,
-  TrendingUpIcon
+  DownloadIcon,
+  TrendingUp,
+  CalendarIcon
 } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -72,7 +70,7 @@ interface LogCardProps {
   onAddFeedback: (log: LogWithDetails) => void;
 }
 
-function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }: LogCardProps) {
+function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }: Readonly<LogCardProps>) {
   const getIntensityColor = (level: IntensityLevel) => {
     switch (level) {
       case 'low': return 'bg-green-100 text-green-800';
@@ -94,6 +92,15 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
     return format(date, 'dd MMM', { locale: es });
   };
 
+  // Fallbacks seguros para propiedades opcionales
+  const childName = (log as any).child_name ?? '';
+  const childAvatar = (log as any).child_avatar_url ?? '';
+  const categoryName = (log as any).category_name ?? '';
+  const categoryColor = (log as any).category_color ?? '';
+  const canEdit = (log as any).can_edit ?? false;
+  const reviewerName = (log as any).reviewer_name ?? '';
+  const loggedByName = (log as any).logged_by_name ?? '';
+
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200 group">
       <CardContent className="p-6">
@@ -102,11 +109,11 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
           <div className="flex items-start space-x-4 flex-1">
             <Avatar className="h-12 w-12">
               <AvatarImage 
-                src={log.child_avatar_url} 
-                alt={log.child_name}
+                src={childAvatar} 
+                alt={childName}
               />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
-                {log.child_name.charAt(0).toUpperCase()}
+                {childName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             
@@ -116,16 +123,16 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                   {log.title}
                 </h3>
                 {log.is_private && (
-                  <EyeOffIcon className="h-4 w-4 text-gray-400" title="Registro privado" />
+                  <EyeOffIcon className="h-4 w-4 text-gray-400" />
                 )}
                 {log.is_flagged && (
-                  <AlertCircleIcon className="h-4 w-4 text-red-500" title="Marcado para atención" />
+                  <AlertCircleIcon className="h-4 w-4 text-red-500" />
                 )}
               </div>
               
               <div className="flex items-center space-x-2 mb-2">
                 <span className="text-sm font-medium text-blue-600">
-                  {log.child_name}
+                  {childName}
                 </span>
                 <span className="text-gray-300">•</span>
                 <span className="text-sm text-gray-600">
@@ -141,16 +148,16 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
               </div>
 
               <div className="flex items-center space-x-2 mb-3">
-                {log.category_name && (
+                {categoryName && (
                   <Badge 
                     variant="secondary" 
                     className="text-xs"
                     style={{ 
-                      backgroundColor: `${log.category_color}20`,
-                      color: log.category_color 
+                      backgroundColor: `${categoryColor}20`,
+                      color: categoryColor
                     }}
                   >
-                    {log.category_name}
+                    {categoryName}
                   </Badge>
                 )}
                 
@@ -219,7 +226,7 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                 <EyeIcon className="mr-2 h-4 w-4" />
                 Ver Detalles
               </DropdownMenuItem>
-              {log.can_edit && (
+              {canEdit && (
                 <DropdownMenuItem onClick={() => onEdit(log)}>
                   <EditIcon className="mr-2 h-4 w-4" />
                   Editar
@@ -255,7 +262,7 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
               {log.reviewed_by ? (
                 <div className="flex items-center text-xs text-green-600">
                   <CheckCircleIcon className="h-3 w-3 mr-1" />
-                  <span>Revisado por {log.reviewer_name}</span>
+                  <span>Revisado por {reviewerName}</span>
                 </div>
               ) : (
                 <div className="flex items-center text-xs text-orange-600">
@@ -280,7 +287,7 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
 
             {/* Logged by */}
             <div className="text-xs text-gray-500">
-              por {log.logged_by_name}
+              por {loggedByName}
             </div>
           </div>
 
@@ -314,7 +321,7 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
             <EyeIcon className="mr-2 h-4 w-4" />
             Ver Completo
           </Button>
-          {log.can_edit && (
+          {canEdit && (
             <Button 
               size="sm" 
               variant="outline"
@@ -338,7 +345,7 @@ interface FiltersBarProps {
   filteredCount: number;
 }
 
-function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCount }: FiltersBarProps) {
+function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCount }: Readonly<FiltersBarProps>) {
   return (
     <Card>
       <CardHeader>
@@ -368,7 +375,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Buscar en título y contenido..."
-              value={filters.search_term || ''}
+              value={filters.search_term ?? ''}
               onChange={(e) => onFiltersChange({ ...filters, search_term: e.target.value })}
               className="pl-10"
             />
@@ -376,7 +383,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 
           {/* Child Filter */}
           <Select 
-            value={filters.child_id || 'all'} 
+            value={filters.child_id ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               child_id: value === 'all' ? undefined : value 
@@ -399,23 +406,23 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
           <Input
             type="date"
             placeholder="Desde"
-            value={filters.date_from || ''}
+            value={filters.date_from ?? ''}
             onChange={(e) => onFiltersChange({ ...filters, date_from: e.target.value })}
           />
 
           <Input
             type="date"
             placeholder="Hasta"
-            value={filters.date_to || ''}
+            value={filters.date_to ?? ''}
             onChange={(e) => onFiltersChange({ ...filters, date_to: e.target.value })}
           />
 
           {/* Review Status */}
           <Select 
-            value={filters.reviewed_status || 'all'} 
+            value={filters.reviewed_status ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
-              reviewed_status: value === 'all' ? undefined : value as any
+              reviewed_status: value === 'all' ? undefined : value as 'reviewed' | 'pending'
             })}
           >
             <SelectTrigger>
@@ -433,7 +440,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Intensity Level */}
           <Select 
-            value={filters.intensity_level || 'all'} 
+            value={filters.intensity_level ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               intensity_level: value === 'all' ? undefined : value as IntensityLevel
@@ -457,7 +464,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               placeholder="Humor mín"
               min="1"
               max="5"
-              value={filters.mood_score_min || ''}
+              value={filters.mood_score_min ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 mood_score_min: e.target.value ? parseInt(e.target.value) : undefined 
@@ -468,7 +475,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               placeholder="Humor máx"
               min="1"
               max="5"
-              value={filters.mood_score_max || ''}
+              value={filters.mood_score_max ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 mood_score_max: e.target.value ? parseInt(e.target.value) : undefined 
@@ -496,10 +503,10 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 
           {/* Follow-up Status */}
           <Select 
-            value={filters.follow_up_status || 'all'} 
+            value={filters.follow_up_status ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
-              follow_up_status: value === 'all' ? undefined : value as any
+              follow_up_status: value === 'all' ? undefined : value as 'required' | 'completed'
             })}
           >
             <SelectTrigger>
@@ -522,7 +529,6 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 // ================================================================
 
 export default function LogsPage() {
-  const { user } = useAuth();
   const { children } = useChildren({ includeInactive: false });
   const { 
     logs, 
@@ -542,8 +548,8 @@ export default function LogsPage() {
 
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<LogFilters>({
-    child_id: searchParams.get('child_id') || undefined,
-    category_id: searchParams.get('category_id') || undefined,
+    child_id: searchParams.get('child_id') ?? undefined,
+    category_id: searchParams.get('category_id') ?? undefined,
   });
 
   // Aplicar filtros
@@ -584,8 +590,8 @@ export default function LogsPage() {
         </div>
         
         <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i} className="p-6">
+          {[...Array(5)].map(() => (
+            <Card key={crypto.randomUUID()} className="p-6">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
                 <div className="flex-1 space-y-2">
@@ -665,7 +671,7 @@ export default function LogsPage() {
                 <p className="text-sm font-medium text-gray-600">Total Registros</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.total_logs}</p>
               </div>
-              <TrendingUpIcon className="h-8 w-8 text-blue-600 ml-auto" />
+              <TrendingUp className="h-8 w-8 text-blue-600 ml-auto" />
             </div>
           </CardContent>
         </Card>
