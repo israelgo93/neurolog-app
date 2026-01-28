@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "luis-m25",
+        "projectKey": "Luis-M25_neurolog-app"
+    }
+}

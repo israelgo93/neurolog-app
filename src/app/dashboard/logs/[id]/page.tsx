@@ -29,20 +29,17 @@ import {
   EditIcon,
   MoreVerticalIcon,
   CalendarIcon,
-  HeartIcon,
   MapPinIcon,
   CloudIcon,
   FileIcon,
   MessageSquareIcon,
   AlertCircleIcon,
   CheckCircleIcon,
-  EyeIcon,
   EyeOffIcon,
   ClockIcon,
   ArrowLeftIcon,
   UserIcon,
   TagIcon,
-  ThermometerIcon,
   ReplyIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -53,7 +50,7 @@ export default function LogDetailPage() {
   const router = useRouter();
   const logId = params.id as string;
   const { user } = useAuth();
-  const { logs, loading, getLogById, addParentFeedback, markAsReviewed } = useLogs();
+  const { loading, getLogById, addParentFeedback, markAsReviewed } = useLogs();
   
   const [log, setLog] = useState<LogWithDetails | null>(null);
   const [feedback, setFeedback] = useState('');
@@ -207,7 +204,7 @@ export default function LogDetailPage() {
                     style={{ backgroundColor: log.category_color }}
                   />
                   <div>
-                    <CardTitle className="text-lg">{log.category_name || 'Sin categoría'}</CardTitle>
+                    <CardTitle className="text-lg">{log.category_name ?? 'Sin categoría'}</CardTitle>
                     <CardDescription>
                       Registrado por {log.logged_by_name}
                     </CardDescription>
@@ -240,29 +237,38 @@ export default function LogDetailPage() {
               </div>
 
               {/* Mood Score */}
-              {log.mood_score && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Estado de ánimo</h4>
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{getMoodEmoji(log.mood_score)}</span>
-                    <div>
-                      <p className="text-lg font-semibold text-gray-900">{log.mood_score}/5</p>
-                      <p className="text-sm text-gray-600">
-                        {log.mood_score <= 2 ? 'Necesita atención' : 
-                         log.mood_score <= 3 ? 'Normal' : 'Muy positivo'}
-                      </p>
+              {log.mood_score && (() => {
+                let moodDescription = '';
+                if (log.mood_score <= 2) {
+                  moodDescription = 'Necesita atención';
+                } else if (log.mood_score <= 3) {
+                  moodDescription = 'Normal';
+                } else {
+                  moodDescription = 'Muy positivo';
+                }
+                return (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">Estado de ánimo</h4>
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">{getMoodEmoji(log.mood_score)}</span>
+                      <div>
+                        <p className="text-lg font-semibold text-gray-900">{log.mood_score}/5</p>
+                        <p className="text-sm text-gray-600">
+                          {moodDescription}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Tags */}
               {log.tags && log.tags.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-2">Etiquetas</h4>
                   <div className="flex flex-wrap gap-2">
-                    {log.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline">
+                    {log.tags.map((tag) => (
+                      <Badge key={tag} variant="outline">
                         <TagIcon className="h-3 w-3 mr-1" />
                         {tag}
                       </Badge>
@@ -317,7 +323,7 @@ export default function LogDetailPage() {
                     <h4 className="text-sm font-medium text-green-900">Revisado por especialista</h4>
                   </div>
                   <p className="text-sm text-green-700 mt-1">
-                    Revisado por {log.reviewer_name} el {format(new Date(log.reviewed_at!), 'dd MMM yyyy', { locale: es })}
+                    Revisado por {log.reviewer_name} el {format(new Date(log.reviewed_at), 'dd MMM yyyy', { locale: es })}
                   </p>
                   {log.specialist_notes && (
                     <div className="mt-3">

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 function Skeleton({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: Readonly<React.HTMLAttributes<HTMLDivElement>>) {
   return (
     <div
       className={cn(
@@ -63,12 +63,19 @@ function SkeletonAvatar() {
   return <Skeleton className="h-8 w-8 rounded-full" />
 }
 
-function SkeletonText({ lines = 3 }: { lines?: number }) {
+// Utilidad para generar un string aleatorio seguro
+function getSecureRandomString(length = 8) {
+  const array = new Uint8Array(length);
+  window.crypto.getRandomValues(array);
+  return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function SkeletonText({ lines = 3 }: Readonly<{ lines?: number }>) {
   return (
     <div className="space-y-2">
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton 
-          key={i} 
+          key={`skeleton-text-line-${lines}-${i}-${getSecureRandomString(8)}`}
           className={cn(
             "h-4",
             i === lines - 1 ? "w-[80%]" : "w-full"

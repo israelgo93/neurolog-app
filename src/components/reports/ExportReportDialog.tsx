@@ -10,13 +10,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Download, Mail } from 'lucide-react';
+import { Download, Mail } from 'lucide-react';
 
 interface ExportReportDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  data: any[];
-  metrics: any;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly data: any[];
+  readonly metrics: any;
 }
 
 export function ExportReportDialog({ open, onOpenChange, data, metrics }: ExportReportDialogProps) {
@@ -61,11 +61,11 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
         
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label htmlFor="format-select" className="text-sm font-medium text-gray-700 mb-2 block">
               Formato
             </label>
             <Select value={format} onValueChange={setFormat}>
-              <SelectTrigger>
+              <SelectTrigger id="format-select">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -77,7 +77,7 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
           </div>
           
           <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-700 block">
+            <label htmlFor="include-options" className="text-sm font-medium text-gray-700 block">
               Incluir en el reporte
             </label>
             
