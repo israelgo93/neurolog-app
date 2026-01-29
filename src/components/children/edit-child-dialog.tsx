@@ -27,9 +27,9 @@ interface Child {
 }
 
 interface EditChildDialogProps {
-  child: Child
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  readonly child: Child
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
 }
 
 interface FormData {

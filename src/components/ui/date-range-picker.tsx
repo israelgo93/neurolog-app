@@ -19,9 +19,9 @@ import {
 } from '@/components/ui/popover';
 
 interface DatePickerWithRangeProps {
-  className?: string;
-  date?: DateRange;
-  setDate: (date: DateRange | undefined) => void;
+  readonly className?: string;
+  readonly date?: DateRange;
+  readonly setDate: (date: DateRange | undefined) => void;
 }
 
 export function DatePickerWithRange({

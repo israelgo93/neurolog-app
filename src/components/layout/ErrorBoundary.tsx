@@ -9,9 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-  showError?: boolean;
+  readonly children: ReactNode;
+  readonly fallback?: ReactNode;
+  readonly showError?: boolean;
 }
 
 interface State {

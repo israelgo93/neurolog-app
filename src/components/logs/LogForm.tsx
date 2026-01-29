@@ -102,27 +102,27 @@ type LogFormData = z.infer<typeof logFormSchema>;
 // ================================================================
 
 interface LogFormProps {
-  log?: DailyLog;
-  childId?: string;
-  mode: 'create' | 'edit';
-  onSuccess?: (log: DailyLog) => void;
-  onCancel?: () => void;
+  readonly log?: DailyLog;
+  readonly childId?: string;
+  readonly mode: 'create' | 'edit';
+  readonly onSuccess?: (log: DailyLog) => void;
+  readonly onCancel?: () => void;
 }
 
 interface MoodSelectorProps {
-  value?: number;
-  onChange: (value: number | undefined) => void;
+  readonly value?: number;
+  readonly onChange: (value: number | undefined) => void;
 }
 
 interface AttachmentsManagerProps {
-  attachments: LogAttachment[];
-  onChange: (attachments: LogAttachment[]) => void;
-  childId: string;
+  readonly attachments: LogAttachment[];
+  readonly onChange: (attachments: LogAttachment[]) => void;
+  readonly childId: string;
 }
 
 interface TagsInputProps {
-  tags: string[];
-  onChange: (tags: string[]) => void;
+  readonly tags: string[];
+  readonly onChange: (tags: string[]) => void;
 }
 
 // ================================================================

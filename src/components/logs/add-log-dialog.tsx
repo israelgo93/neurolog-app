@@ -23,9 +23,9 @@ import { useLogs } from '@/hooks/use-logs'
 import { Star, Loader2 } from 'lucide-react'
 
 interface AddLogDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  preselectedChildId?: string
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+  readonly preselectedChildId?: string
 }
 
 interface FormData {

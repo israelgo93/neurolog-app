@@ -33,18 +33,18 @@ import { es } from 'date-fns/locale';
 // ================================================================
 
 interface QuickStatsProps {
-  stats: any;
-  loading: boolean;
+  readonly stats: any;
+  readonly loading: boolean;
 }
 
 interface AccessibleChildrenProps {
-  children: any[];
-  loading: boolean;
+  readonlychildren: any[];
+  readonly loading: boolean;
 }
 
 interface RecentLogsProps {
-  logs: any[];
-  loading: boolean;
+  readonly logs: any[];
+  readonly loading: boolean;
 }
 
 // ================================================================

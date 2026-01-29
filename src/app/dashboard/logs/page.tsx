@@ -64,11 +64,11 @@ import { es } from 'date-fns/locale';
 // ================================================================
 
 interface LogCardProps {
-  log: LogWithDetails;
-  onEdit: (log: LogWithDetails) => void;
-  onViewDetails: (log: LogWithDetails) => void;
-  onTogglePrivacy: (log: LogWithDetails) => void;
-  onAddFeedback: (log: LogWithDetails) => void;
+  readonly log: LogWithDetails;
+  readonly onEdit: (log: LogWithDetails) => void;
+  readonly onViewDetails: (log: LogWithDetails) => void;
+  readonly onTogglePrivacy: (log: LogWithDetails) => void;
+  readonly onAddFeedback: (log: LogWithDetails) => void;
 }
 
 function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }: LogCardProps) {

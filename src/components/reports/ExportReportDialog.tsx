@@ -13,10 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Download, Mail } from 'lucide-react';
 
 interface ExportReportDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  data: any[];
-  metrics: any;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly data: any[];
+  readonly metrics: any;
 }
 
 export function ExportReportDialog({ open, onOpenChange, data, metrics }: ExportReportDialogProps) {

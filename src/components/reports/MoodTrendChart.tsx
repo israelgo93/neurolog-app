@@ -10,7 +10,7 @@ import { format, endOfWeek, eachWeekOfInterval, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 interface MoodTrendChartProps {
-  data: any[];
+  readonly data: any[];
 }
 
 export function MoodTrendChart({ data }: MoodTrendChartProps) {

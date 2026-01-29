@@ -88,30 +88,30 @@ type ChildFormData = z.infer<typeof childFormSchema>;
 // ================================================================
 
 interface ChildFormProps {
-  child?: Child;
-  mode: 'create' | 'edit';
-  onSuccess?: (child: Child) => void;
-  onCancel?: () => void;
+  readonly child?: Child;
+  readonly mode: 'create' | 'edit';
+  readonly onSuccess?: (child: Child) => void;
+  readonly onCancel?: () => void;
 }
 
 interface EmergencyContactFormProps {
-  contacts: EmergencyContact[];
-  onChange: (contacts: EmergencyContact[]) => void;
+  readonly contacts: EmergencyContact[];
+  readonly onChange: (contacts: EmergencyContact[]) => void;
 }
 
 interface MedicalInfoFormProps {
-  medicalInfo: any;
-  onChange: (info: any) => void;
+  readonly medicalInfo: any;
+  readonly onChange: (info: any) => void;
 }
 
 interface EducationalInfoFormProps {
-  educationalInfo: any;
-  onChange: (info: any) => void;
+  readonly educationalInfo: any;
+  readonly onChange: (info: any) => void;
 }
 
 interface PrivacySettingsFormProps {
-  settings: any;
-  onChange: (settings: any) => void;
+  readonly settings: any;
+  readonly onChange: (settings: any) => void;
 }
 
 // ================================================================

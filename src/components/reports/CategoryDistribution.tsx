@@ -8,7 +8,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 interface CategoryDistributionProps {
-  data: any[];
+  readonly data: any[];
 }
 
 export function CategoryDistribution({ data }: CategoryDistributionProps) {
