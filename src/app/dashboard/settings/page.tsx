@@ -13,7 +13,6 @@ import { Switch } from '@/components/ui/switch'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useToast } from '@/components/ui/use-toast'
 import { 
-  Settings, 
   User, 
   Bell, 
   Shield, 
@@ -51,9 +50,9 @@ export default function SettingsPage() {
     if (user) {
       console.log('👤 Setting profile data from user:', user.full_name);
       setProfileData({
-        full_name: user.full_name || '',
-        email: user.email || '',
-        role: user.role || 'parent'
+        full_name: user.full_name  ?? '',
+        email: user.email ?? '',
+        role: user.role ?? 'parent'
       })
     }
   }, [user])
@@ -91,7 +90,7 @@ export default function SettingsPage() {
       console.error('Error updating profile:', error)
       toast({
         title: "Error al actualizar",
-        description: error.message || "No se pudieron guardar los cambios.",
+        description: error.message??  "No se pudieron guardar los cambios.",
         variant: "destructive"
       })
     } finally {
@@ -103,9 +102,9 @@ export default function SettingsPage() {
     // ✅ Restaurar datos originales del usuario
     if (user) {
       setProfileData({
-        full_name: user.full_name || '',
-        email: user.email || '',
-        role: user.role || 'parent'
+        full_name: user.full_name ??'',
+        email: user.email ?? '',
+        role: user.role ?? 'parent'
       })
     }
     setIsEditing(false)
@@ -150,7 +149,7 @@ export default function SettingsPage() {
   }
 
   // ✅ MOSTRAR LOADING SI NO HAY USUARIO O ESTÁ CARGANDO
-  if (authLoading || !user) {
+  if (authLoading ?? !user) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center space-y-4">
@@ -177,12 +176,12 @@ export default function SettingsPage() {
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-lg">
-                {user.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                {user.full_name?.charAt(0)?.toUpperCase()  ?? 'U'}
               </span>
             </div>
             <div>
               <p className="font-medium text-gray-900">
-                {user.full_name || 'Usuario'}
+                {user.full_name ?? 'Usuario'}
               </p>
               <p className="text-sm text-gray-600">{user.email}</p>
               <p className="text-xs text-blue-600 capitalize">

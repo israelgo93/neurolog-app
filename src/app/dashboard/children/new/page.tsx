@@ -13,13 +13,13 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Plus, Save, X } from 'lucide-react';
 import Link from 'next/link';
-import type { ChildInsert, EmergencyContact, MedicalInfo, EducationalInfo, PrivacySettings } from '@/types';
+import type { ChildInsert, EmergencyContact } from '@/types';
 
 export default function NewChildPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { createChild, loading } = useChildren();
-  
+
   const [formData, setFormData] = useState<ChildInsert>({
     name: '',
     birth_date: '',
@@ -85,7 +85,7 @@ export default function NewChildPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -102,17 +102,17 @@ export default function NewChildPage() {
         ...formData,
         name: formData.name.trim(),
         emergency_contact: emergencyContacts,
-        birth_date: formData.birth_date || null,
-        diagnosis: formData.diagnosis || null,
-        notes: formData.notes || null
+        birth_date: formData.birth_date ?? null,
+        diagnosis: formData.diagnosis ?? null,
+        notes: formData.notes ?? null
       });
-      
+
       // Redirigir a la lista de niños
       router.push('/dashboard/children');
     } catch (error) {
-      console.error('Error creating child:', error);
-      setErrors({ 
-        submit: error instanceof Error ? error.message : 'Error al crear el niño' 
+      setErrors({ submit: 'Error al crear el niño' });
+      setErrors({
+        submit: error instanceof Error ? error.message : 'Error al crear el niño'
       });
     }
   };
@@ -169,7 +169,7 @@ export default function NewChildPage() {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Nombre del niño/a"
                   className={errors.name ? 'border-red-500' : ''}
                   required
@@ -178,7 +178,7 @@ export default function NewChildPage() {
                   <p className="text-sm text-red-500">{errors.name}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="birth_date" className="text-sm font-medium">
                   Fecha de nacimiento
@@ -186,8 +186,8 @@ export default function NewChildPage() {
                 <Input
                   id="birth_date"
                   type="date"
-                  value={formData.birth_date}
-                  onChange={(e) => setFormData({...formData, birth_date: e.target.value})}
+                  value={formData.birth_date ?? ''}
+                  onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
                   className={errors.birth_date ? 'border-red-500' : ''}
                 />
                 {errors.birth_date && (
@@ -195,27 +195,27 @@ export default function NewChildPage() {
                 )}
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="diagnosis" className="text-sm font-medium">
                 Diagnóstico o condición
               </Label>
               <Input
                 id="diagnosis"
-                value={formData.diagnosis}
-                onChange={(e) => setFormData({...formData, diagnosis: e.target.value})}
+                value={formData.diagnosis ?? ''}
+                onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
                 placeholder="TEA, TDAH, Síndrome de Down, etc."
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="notes" className="text-sm font-medium">
                 Notas adicionales
               </Label>
               <Textarea
                 id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                value={formData.notes ?? ''}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Información relevante, características especiales, etc."
                 rows={3}
               />
@@ -237,7 +237,7 @@ export default function NewChildPage() {
                 <Input
                   id="emergency_name"
                   value={emergencyContact.name}
-                  onChange={(e) => setEmergencyContact({...emergencyContact, name: e.target.value})}
+                  onChange={(e) => setEmergencyContact({ ...emergencyContact, name: e.target.value })}
                   placeholder="Nombre completo"
                   className={errors.emergency_name ? 'border-red-500' : ''}
                 />
@@ -245,7 +245,7 @@ export default function NewChildPage() {
                   <p className="text-sm text-red-500">{errors.emergency_name}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="emergency_phone" className="text-sm font-medium">
                   Teléfono
@@ -254,7 +254,7 @@ export default function NewChildPage() {
                   id="emergency_phone"
                   type="tel"
                   value={emergencyContact.phone}
-                  onChange={(e) => setEmergencyContact({...emergencyContact, phone: e.target.value})}
+                  onChange={(e) => setEmergencyContact({ ...emergencyContact, phone: e.target.value })}
                   placeholder="+593 99 123 4567"
                   className={errors.emergency_phone ? 'border-red-500' : ''}
                 />
@@ -262,7 +262,7 @@ export default function NewChildPage() {
                   <p className="text-sm text-red-500">{errors.emergency_phone}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="emergency_relationship" className="text-sm font-medium">
                   Relación
@@ -270,7 +270,7 @@ export default function NewChildPage() {
                 <Input
                   id="emergency_relationship"
                   value={emergencyContact.relationship}
-                  onChange={(e) => setEmergencyContact({...emergencyContact, relationship: e.target.value})}
+                  onChange={(e) => setEmergencyContact({ ...emergencyContact, relationship: e.target.value })}
                   placeholder="Madre, Padre, Tutor, etc."
                 />
               </div>
@@ -291,7 +291,7 @@ export default function NewChildPage() {
                 </Label>
                 <Input
                   id="school"
-                  value={formData.educational_info?.school || ''}
+                  value={formData.educational_info?.school ?? ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     educational_info: {
@@ -302,14 +302,14 @@ export default function NewChildPage() {
                   placeholder="Nombre de la escuela/colegio"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="grade" className="text-sm font-medium">
                   Grado/Nivel
                 </Label>
                 <Input
                   id="grade"
-                  value={formData.educational_info?.grade || ''}
+                  value={formData.educational_info?.grade ?? ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     educational_info: {
@@ -321,14 +321,14 @@ export default function NewChildPage() {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="teacher" className="text-sm font-medium">
                 Profesor/a principal
               </Label>
               <Input
                 id="teacher"
-                value={formData.educational_info?.teacher || ''}
+                value={formData.educational_info?.teacher ?? ''}
                 onChange={(e) => setFormData({
                   ...formData,
                   educational_info: {
@@ -430,8 +430,8 @@ export default function NewChildPage() {
 
         {/* Botones de acción */}
         <div className="flex justify-end space-x-4 pt-6">
-          <Button 
-            type="button" 
+          <Button
+            type="button"
             variant="outline"
             onClick={handleCancel}
             disabled={loading}
@@ -439,8 +439,8 @@ export default function NewChildPage() {
             <X className="h-4 w-4 mr-2" />
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={loading}
             className="min-w-[120px]"
           >

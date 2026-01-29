@@ -56,7 +56,7 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.name.trim()) {
       toast({
         title: "Error de validación",
@@ -67,7 +67,7 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
     }
 
     setLoading(true)
-    
+
     try {
       const childData = {
         name: formData.name.trim(),
@@ -77,18 +77,18 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
       }
 
       await addChild(childData)
-      
+
       toast({
         title: "¡Éxito!",
         description: "Niño agregado correctamente",
       })
-      
+
       resetForm()
       onOpenChange(false)
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "No se pudo agregar el niño",
+        description: error.message ?? "No se pudo agregar el niño",
         variant: "destructive",
       })
     } finally {
@@ -114,7 +114,7 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
             Completa la información básica del niño para comenzar el seguimiento.
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre completo *</Label>

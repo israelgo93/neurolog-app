@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "NeuroLog-app",
+        "projectKey": "odaliasengell_neurolog-app"
+    }
+}

@@ -14,6 +14,7 @@ import type {
   LogFilters,
   DashboardStats
 } from '@/types';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 // ================================================================
 // INTERFACES DEL HOOK
@@ -133,19 +134,67 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
   // ================================================================
   // FUNCIONES DE FETCH ESTABILIZADAS
   // ================================================================
-
+  function getDefaultChild(child: { id: string; name: string; avatar_url: string | null } | undefined, child_id: any) {
+    return child || { id: child_id, name: 'Niño desconocido', avatar_url: null };
+  }
+  
+  function getDefaultCategory(category: any) {
+    return category || { id: '', name: 'Sin categoría', color: '#gray', icon: 'circle' };
+  }
+  
+  function getDefaultProfile(profile: any, logged_by: any) {
+    return profile || { id: logged_by, full_name: 'Usuario desconocido', avatar_url: null };
+  }
+  
+  function mapLogWithDefaults(log: { child: { id: string; name: string; avatar_url: string | null; } | undefined; child_id: any; category: any; logged_by_profile: any; logged_by: any; }) {
+    return {
+      ...log,
+      child: getDefaultChild(log.child, log.child_id),
+      category: getDefaultCategory(log.category),
+      logged_by_profile: getDefaultProfile(log.logged_by_profile, log.logged_by)
+    };
+  }
+  
+  async function getLogsQuery(supabase: SupabaseClient<any, "public", any>, accessibleChildrenIds: string[], childId: string | undefined, includeDeleted: boolean, includePrivate: boolean, page: number, pageSize: number) {
+    let query = supabase
+      .from('daily_logs')
+      .select(`
+        *,
+        child:children!inner(id, name, avatar_url),
+        category:categories(id, name, color, icon),
+        logged_by_profile:profiles!daily_logs_logged_by_fkey(id, full_name, avatar_url)
+      `)
+      .in('child_id', accessibleChildrenIds.length > 0 ? accessibleChildrenIds : [])
+      .eq('is_active', !includeDeleted)
+      .order('created_at', { ascending: false })
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+  
+    if (childId) {
+      if (!accessibleChildrenIds.includes(childId)) {
+        throw new Error('No tienes acceso a este niño');
+      }
+      query = query.eq('child_id', childId);
+    }
+  
+    if (!includePrivate) {
+      query = query.eq('is_private', false);
+    }
+  
+    return query;
+  }
+  
+  // --- fetchLogs refactorizado ---
   const fetchLogs = useCallback(async (page: number = 0, append: boolean = false): Promise<void> => {
     if (!userId) return;
-
+  
     try {
       if (!append) {
         setLoading(true);
         setError(null);
       }
-
+  
       console.log(`📊 Fetching logs - Page: ${page}, Append: ${append}`);
-      
-      // Obtener niños accesibles
+  
       const accessibleChildrenIds = await getAccessibleChildrenIds();
       if (accessibleChildrenIds.length === 0) {
         if (mountedRef.current) {
@@ -155,57 +204,28 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
         }
         return;
       }
-
-      // Query base
-      let query = supabase
-        .from('daily_logs')
-        .select(`
-          *,
-          child:children!inner(id, name, avatar_url),
-          category:categories(id, name, color, icon),
-          logged_by_profile:profiles!daily_logs_logged_by_fkey(id, full_name, avatar_url)
-        `)
-        .in('child_id', accessibleChildrenIds)
-        .eq('is_active', !includeDeleted)
-        .order('created_at', { ascending: false })
-        .range(page * pageSize, (page + 1) * pageSize - 1);
-
-      // Filtrar por niño específico si se proporciona
-      if (childId) {
-        if (!accessibleChildrenIds.includes(childId)) {
-          throw new Error('No tienes acceso a este niño');
-        }
-        query = query.eq('child_id', childId);
-      }
-
-      // Filtrar por privacidad
-      if (!includePrivate) {
-        query = query.eq('is_private', false);
-      }
-
+  
+      const query = await getLogsQuery(
+        supabase,
+        accessibleChildrenIds,
+        childId,
+        includeDeleted,
+        includePrivate,
+        page,
+        pageSize
+      );
+  
       const { data, error } = await query;
-      
       if (error) throw error;
-
-      const newLogs = (data || []).map(log => ({
-        ...log,
-        child: log.child || { id: log.child_id, name: 'Niño desconocido', avatar_url: null },
-        category: log.category || { id: '', name: 'Sin categoría', color: '#gray', icon: 'circle' },
-        logged_by_profile: log.logged_by_profile || { id: log.logged_by, full_name: 'Usuario desconocido', avatar_url: null }
-      })) as LogWithDetails[];
-
+  
+      const newLogs = (data || []).map(mapLogWithDefaults) as LogWithDetails[];
+  
       if (mountedRef.current) {
-        if (append) {
-          setLogs(prev => [...prev, ...newLogs]);
-        } else {
-          setLogs(newLogs);
-        }
-        
+        setLogs(prev => (append ? [...prev, ...newLogs] : newLogs));
         setHasMore(newLogs.length === pageSize);
         console.log(`✅ Logs fetched successfully: ${newLogs.length}`);
       }
-
-    } catch (err) {
+  } catch (err) {
       console.error('❌ Error fetching logs:', err);
       if (mountedRef.current) {
         const errorMessage = err instanceof Error ? err.message : 'Error al cargar los registros';
@@ -222,49 +242,23 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
     if (!userId) return;
 
     try {
-      console.log('📈 Fetching dashboard stats...');
-      
-      const accessibleChildrenIds = await getAccessibleChildrenIds();
-      if (accessibleChildrenIds.length === 0) {
-        return;
-      }
+      const { data, error } = await supabase
+        .from('dashboard_stats')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
 
-      // Obtener estadísticas básicas
-      const [
-        { count: totalLogs },
-        { count: logsThisWeek },
-        { count: logsThisMonth },
-        { count: pendingReviews },
-        { count: followUpsDue },
-        { count: activeCategories }
-      ] = await Promise.all([
-        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds),
-        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
-        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
-        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).eq('needs_review', true),
-        supabase.from('daily_logs').select('*', { count: 'exact', head: true }).in('child_id', accessibleChildrenIds).not('follow_up_date', 'is', null).lte('follow_up_date', new Date().toISOString()),
-        supabase.from('categories').select('*', { count: 'exact', head: true }).eq('is_active', true)
-      ]);
-
-      const newStats: DashboardStats = {
-        total_children: accessibleChildrenIds.length,
-        total_logs: totalLogs || 0,
-        logs_this_week: logsThisWeek || 0,
-        logs_this_month: logsThisMonth || 0,
-        active_categories: activeCategories || 0,
-        pending_reviews: pendingReviews || 0,
-        follow_ups_due: followUpsDue || 0
-      };
+      if (error) throw error;
 
       if (mountedRef.current) {
-        setStats(newStats);
-        console.log('✅ Stats fetched successfully:', newStats);
+        setStats(data);
       }
-
     } catch (err) {
       console.error('❌ Error fetching stats:', err);
     }
-  }, [userId, getAccessibleChildrenIds, supabase]);
+  }, [userId, supabase]);
+  // --- fetch
+  
 
   // ================================================================
   // FUNCIONES PRINCIPALES DEL HOOK

@@ -11,14 +11,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -29,21 +29,20 @@ import {
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
-import type { 
-  LogWithDetails, 
-  LogFilters, 
-  IntensityLevel, 
-  ChildWithRelation 
+import type {
+  LogWithDetails,
+  LogFilters,
+  IntensityLevel,
+  ChildWithRelation
 } from '@/types';
-import { 
-  PlusIcon, 
-  SearchIcon, 
+import {
+  PlusIcon,
+  SearchIcon,
   FilterIcon,
   MoreVerticalIcon,
   EditIcon,
   EyeIcon,
   EyeOffIcon,
-  HeartIcon,
   ClockIcon,
   TagIcon,
   MapPinIcon,
@@ -65,11 +64,11 @@ import { es } from 'date-fns/locale';
 // ================================================================
 
 interface LogCardProps {
-  log: LogWithDetails;
-  onEdit: (log: LogWithDetails) => void;
-  onViewDetails: (log: LogWithDetails) => void;
-  onTogglePrivacy: (log: LogWithDetails) => void;
-  onAddFeedback: (log: LogWithDetails) => void;
+  readonly log: LogWithDetails;
+  readonly onEdit: (log: LogWithDetails) => void;
+  readonly onViewDetails: (log: LogWithDetails) => void;
+  readonly onTogglePrivacy: (log: LogWithDetails) => void;
+  readonly onAddFeedback: (log: LogWithDetails) => void;
 }
 
 function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }: LogCardProps) {
@@ -101,28 +100,28 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
           {/* Log Header */}
           <div className="flex items-start space-x-4 flex-1">
             <Avatar className="h-12 w-12">
-              <AvatarImage 
-                src={log.child_avatar_url} 
+              <AvatarImage
+                src={log.child_avatar_url}
                 alt={log.child_name}
               />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
                 {log.child_name.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
                 <h3 className="text-lg font-semibold text-gray-900 truncate">
                   {log.title}
                 </h3>
                 {log.is_private && (
-                  <EyeOffIcon className="h-4 w-4 text-gray-400" title="Registro privado" />
+                  <EyeOffIcon className="h-4 w-4 text-gray-400" />
                 )}
                 {log.is_flagged && (
-                  <AlertCircleIcon className="h-4 w-4 text-red-500" title="Marcado para atención" />
+                  <AlertCircleIcon className="h-4 w-4 text-red-500" />
                 )}
               </div>
-              
+
               <div className="flex items-center space-x-2 mb-2">
                 <span className="text-sm font-medium text-blue-600">
                   {log.child_name}
@@ -133,27 +132,27 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                 </span>
                 <span className="text-gray-300">•</span>
                 <span className="text-xs text-gray-500">
-                  {formatDistanceToNow(new Date(log.created_at), { 
-                    addSuffix: true, 
-                    locale: es 
+                  {formatDistanceToNow(new Date(log.created_at), {
+                    addSuffix: true,
+                    locale: es
                   })}
                 </span>
               </div>
 
               <div className="flex items-center space-x-2 mb-3">
                 {log.category_name && (
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className="text-xs"
-                    style={{ 
+                    style={{
                       backgroundColor: `${log.category_color}20`,
-                      color: log.category_color 
+                      color: log.category_color
                     }}
                   >
                     {log.category_name}
                   </Badge>
                 )}
-                
+
                 <Badge className={`text-xs ${getIntensityColor(log.intensity_level)}`}>
                   {log.intensity_level === 'low' && 'Bajo'}
                   {log.intensity_level === 'medium' && 'Medio'}
@@ -167,7 +166,7 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                   </div>
                 )}
               </div>
-              
+
               <p className="text-sm text-gray-600 line-clamp-2 mb-3">
                 {log.content}
               </p>
@@ -181,21 +180,21 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                     {log.tags.length > 2 && <span> +{log.tags.length - 2}</span>}
                   </div>
                 )}
-                
+
                 {log.location && (
                   <div className="flex items-center">
                     <MapPinIcon className="h-3 w-3 mr-1" />
                     <span>{log.location}</span>
                   </div>
                 )}
-                
+
                 {log.weather && (
                   <div className="flex items-center">
                     <CloudIcon className="h-3 w-3 mr-1" />
                     <span>{log.weather}</span>
                   </div>
                 )}
-                
+
                 {log.attachments.length > 0 && (
                   <div className="flex items-center">
                     <FileIcon className="h-3 w-3 mr-1" />
@@ -269,8 +268,8 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                 <div className="flex items-center text-xs text-purple-600">
                   <AlertCircleIcon className="h-3 w-3 mr-1" />
                   <span>
-                    Seguimiento {log.follow_up_date ? 
-                      `programado para ${format(new Date(log.follow_up_date), 'dd MMM', { locale: es })}` : 
+                    Seguimiento {log.follow_up_date ?
+                      `programado para ${format(new Date(log.follow_up_date), 'dd MMM', { locale: es })}` :
                       'requerido'
                     }
                   </span>
@@ -305,9 +304,9 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
 
         {/* Quick Actions */}
         <div className="mt-4 flex space-x-2">
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            size="sm"
+            variant="outline"
             className="flex-1"
             onClick={() => onViewDetails(log)}
           >
@@ -315,8 +314,8 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
             Ver Completo
           </Button>
           {log.can_edit && (
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="outline"
               onClick={() => onEdit(log)}
             >
@@ -331,11 +330,11 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
 }
 
 interface FiltersBarProps {
-  filters: LogFilters;
-  onFiltersChange: (filters: LogFilters) => void;
-  children: ChildWithRelation[];
-  totalCount: number;
-  filteredCount: number;
+  readonly filters: LogFilters;
+  readonly onFiltersChange: (filters: LogFilters) => void;
+  readonly children: ChildWithRelation[];
+  readonly totalCount: number;
+  readonly filteredCount: number;
 }
 
 function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCount }: FiltersBarProps) {
@@ -352,8 +351,8 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               Mostrando {filteredCount} de {totalCount} registros
             </CardDescription>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => onFiltersChange({})}
           >
@@ -368,18 +367,18 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Buscar en título y contenido..."
-              value={filters.search_term || ''}
+              value={filters.search_term ?? ''}
               onChange={(e) => onFiltersChange({ ...filters, search_term: e.target.value })}
               className="pl-10"
             />
           </div>
 
           {/* Child Filter */}
-          <Select 
-            value={filters.child_id || 'all'} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
-              child_id: value === 'all' ? undefined : value 
+          <Select
+            value={filters.child_id ?? 'all'}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
+              child_id: value === 'all' ? undefined : value
             })}
           >
             <SelectTrigger>
@@ -399,22 +398,22 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
           <Input
             type="date"
             placeholder="Desde"
-            value={filters.date_from || ''}
+            value={filters.date_from ?? ''}
             onChange={(e) => onFiltersChange({ ...filters, date_from: e.target.value })}
           />
 
           <Input
             type="date"
             placeholder="Hasta"
-            value={filters.date_to || ''}
+            value={filters.date_to ?? ''}
             onChange={(e) => onFiltersChange({ ...filters, date_to: e.target.value })}
           />
 
           {/* Review Status */}
-          <Select 
-            value={filters.reviewed_status || 'all'} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
+          <Select
+            value={filters.reviewed_status ?? 'all'}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
               reviewed_status: value === 'all' ? undefined : value as any
             })}
           >
@@ -432,10 +431,10 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
         {/* Additional Filters */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Intensity Level */}
-          <Select 
-            value={filters.intensity_level || 'all'} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
+          <Select
+            value={filters.intensity_level ?? 'all'}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
               intensity_level: value === 'all' ? undefined : value as IntensityLevel
             })}
           >
@@ -457,10 +456,10 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               placeholder="Humor mín"
               min="1"
               max="5"
-              value={filters.mood_score_min || ''}
-              onChange={(e) => onFiltersChange({ 
-                ...filters, 
-                mood_score_min: e.target.value ? parseInt(e.target.value) : undefined 
+              value={filters.mood_score_min ?? ''}
+              onChange={(e) => onFiltersChange({
+                ...filters,
+                mood_score_min: e.target.value ? parseInt(e.target.value) : undefined
               })}
             />
             <Input
@@ -468,20 +467,20 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               placeholder="Humor máx"
               min="1"
               max="5"
-              value={filters.mood_score_max || ''}
-              onChange={(e) => onFiltersChange({ 
-                ...filters, 
-                mood_score_max: e.target.value ? parseInt(e.target.value) : undefined 
+              value={filters.mood_score_max ?? ''}
+              onChange={(e) => onFiltersChange({
+                ...filters,
+                mood_score_max: e.target.value ? parseInt(e.target.value) : undefined
               })}
             />
           </div>
 
           {/* Privacy Filter */}
-          <Select 
-            value={filters.is_private === undefined ? 'all' : filters.is_private.toString()} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
-              is_private: value === 'all' ? undefined : value === 'true' 
+          <Select
+            value={filters.is_private === undefined ? 'all' : filters.is_private.toString()}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
+              is_private: value === 'all' ? undefined : value === 'true'
             })}
           >
             <SelectTrigger>
@@ -495,11 +494,11 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
           </Select>
 
           {/* Follow-up Status */}
-          <Select 
-            value={filters.follow_up_status || 'all'} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
-              follow_up_status: value === 'all' ? undefined : value as any
+          <Select
+            value={filters.follow_up_status ?? 'all'}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
+              reviewed_status: value === 'all' ? undefined : (value as 'reviewed' | 'pending')
             })}
           >
             <SelectTrigger>
@@ -522,28 +521,28 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 // ================================================================
 
 export default function LogsPage() {
-  const { user } = useAuth();
+  useAuth();
   const { children } = useChildren({ includeInactive: false });
-  const { 
-    logs, 
-    stats, 
-    loading, 
-    error, 
+  const {
+    logs,
+    stats,
+    loading,
+    error,
     hasMore,
     filterLogs,
     loadMore,
     refreshLogs,
     togglePrivacy
-  } = useLogs({ 
+  } = useLogs({
     includePrivate: true,
     realtime: true,
-    pageSize: 20 
+    pageSize: 20
   });
 
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<LogFilters>({
-    child_id: searchParams.get('child_id') || undefined,
-    category_id: searchParams.get('category_id') || undefined,
+    child_id: searchParams.get('child_id') ?? undefined,
+    category_id: searchParams.get('category_id') ?? undefined,
   });
 
   // Aplicar filtros
@@ -582,7 +581,7 @@ export default function LogsPage() {
           </div>
           <div className="h-10 w-32 bg-gray-200 rounded animate-pulse" />
         </div>
-        
+
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
             <Card key={i} className="p-6">
@@ -610,8 +609,8 @@ export default function LogsPage() {
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => refreshLogs()} 
+            <Button
+              onClick={() => refreshLogs()}
               className="w-full"
             >
               <RefreshCwIcon className="mr-2 h-4 w-4" />
@@ -635,7 +634,7 @@ export default function LogsPage() {
             Historial completo de observaciones y eventos documentados
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <Button variant="outline" onClick={() => refreshLogs()}>
             <RefreshCwIcon className="mr-2 h-4 w-4" />
@@ -744,7 +743,7 @@ export default function LogsPage() {
                 <p className="text-gray-600 mb-6">
                   No hay registros que coincidan con los filtros seleccionados
                 </p>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setFilters({})}
                 >
@@ -773,8 +772,8 @@ export default function LogsPage() {
           {/* Load More */}
           {hasMore && (
             <div className="text-center">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={loadMore}
                 className="min-w-[200px]"
               >

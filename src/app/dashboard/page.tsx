@@ -2,8 +2,6 @@
 // Dashboard principal ACTUALIZADO con componentes corregidos y diseño responsivo
 
 'use client';
-
-import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,27 +11,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
-import { 
-  Users, 
-  BookOpen, 
-  TrendingUp, 
-  Calendar, 
-  Heart,
+import {
+  Users,
+  BookOpen,
+  TrendingUp,
   AlertCircle,
-  Clock,
-  Eye,
   Plus,
-  BarChart3,
-  Bell,
   Activity,
-  Target,
-  Award,
+  BarChart3,
   ChevronRight,
-  MoreHorizontal
+  Eye,
+  Heart,
 } from 'lucide-react';
 import Link from 'next/link';
-import { format, isToday, isYesterday, startOfWeek, endOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { isToday, isYesterday, format } from 'date-fns';
 
 // ================================================================
 // INTERFACES Y TIPOS
@@ -58,41 +50,41 @@ interface RecentLogsProps {
 // COMPONENTE DE ESTADÍSTICAS RÁPIDAS RESPONSIVO
 // ================================================================
 
-function QuickStats({ stats, loading }: QuickStatsProps) {
+function QuickStats({stats, loading }: QuickStatsProps) {
   const statCards = [
     {
       title: 'Niños',
-      value: stats.total_children || 0,
+      value: stats.total_children ?? 0,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200',
       description: 'En seguimiento',
-      trend: stats.children_growth || 0
+      trend: stats.children_growth ?? 0
     },
     {
       title: 'Registros',
-      value: stats.total_logs || 0,
+      value: stats.total_logs ?? 0,
       icon: BookOpen,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200',
       description: 'Documentados',
-      trend: stats.logs_growth || 0
+      trend: stats.logs_growth ?? 0
     },
     {
       title: 'Esta Semana',
-      value: stats.logs_this_week || 0,
+      value: stats.logs_this_week ?? 0,
       icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
       description: 'Nuevos registros',
-      trend: stats.weekly_growth || 0
+      trend: stats.weekly_growth ?? 0
     },
     {
       title: 'Pendientes',
-      value: stats.pending_reviews || 0,
+      value: stats.pending_reviews ?? 0,
       icon: AlertCircle,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
@@ -213,20 +205,20 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <Avatar className="h-12 w-12 sm:h-16 sm:w-16 border-2 border-gray-100">
-                  <AvatarImage 
-                    src={child.avatar_url} 
+                  <AvatarImage
+                    src={child.avatar_url}
                     alt={child.name}
                   />
                   <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
                     {child.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
                     {child.name}
                   </h4>
-                  
+
                   <div className="flex items-center space-x-2 mt-1">
                     <Badge variant={child.can_edit ? "default" : "secondary"} className="text-xs">
                       {child.can_edit ? "Editor" : "Lectura"}
@@ -235,14 +227,14 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
                       {child.relationship_type}
                     </span>
                   </div>
-                  
+
                   {child.last_log_date && (
                     <p className="text-xs text-gray-500 mt-1">
                       Último registro: {format(new Date(child.last_log_date), 'dd MMM', { locale: es })}
                     </p>
                   )}
                 </div>
-                
+
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button variant="ghost" size="sm" asChild>
                     <Link href={`/dashboard/children/${child.id}`}>
@@ -251,19 +243,19 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
                   </Button>
                 </div>
               </div>
-              
+
               {/* Progress bar de actividad */}
               <div className="mt-4 space-y-2">
                 <div className="flex justify-between text-xs text-gray-500">
                   <span>Actividad semanal</span>
-                  <span>{child.weekly_logs || 0}/7</span>
+                  <span>{child.weekly_logs ?? 0}/7</span>
                 </div>
-                <Progress 
-                  value={((child.weekly_logs || 0) / 7) * 100} 
+                <Progress
+                  value={((child.weekly_logs ?? 0) / 7) * 100}
                   className="h-2"
                   indicatorClassName={
-                    (child.weekly_logs || 0) >= 5 ? "bg-green-500" :
-                    (child.weekly_logs || 0) >= 3 ? "bg-yellow-500" : "bg-red-500"
+                    (child.weekly_logs ?? 0) >= 5 ? "bg-green-500" :
+                      (child.weekly_logs ?? 0) >= 3 ? "bg-yellow-500" : "bg-red-500"
                   }
                 />
               </div>
@@ -271,7 +263,7 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
           </Card>
         ))}
       </div>
-      
+
       {children.length > 6 && (
         <div className="text-center pt-4">
           <Button variant="outline" asChild>
@@ -335,15 +327,15 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
       {logs.slice(0, 5).map((log) => (
         <div key={log.id} className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white hover:bg-gray-50 transition-colors group">
           <Avatar className="h-10 w-10 flex-shrink-0">
-            <AvatarImage 
-              src={log.child_avatar_url} 
+            <AvatarImage
+              src={log.child_avatar_url}
               alt={log.child_name}
             />
             <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
               {log.child_name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between">
               <h4 className="text-sm font-medium text-gray-900 truncate pr-2">
@@ -357,26 +349,26 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
                   </div>
                 )}
                 <Badge variant="outline" className="text-xs">
-                  {log.category_name || 'General'}
+                  {log.category_name ?? 'General'}
                 </Badge>
               </div>
             </div>
-            
+
             <p className="text-sm text-gray-600 mt-1 line-clamp-2">
               {log.content}
             </p>
-            
+
             <div className="flex items-center justify-between mt-2">
               <div className="text-xs text-gray-500">
                 <span className="font-medium">{log.child_name}</span>
                 <span className="mx-1">•</span>
                 <span>
                   {isToday(new Date(log.created_at)) ? 'Hoy' :
-                   isYesterday(new Date(log.created_at)) ? 'Ayer' :
-                   format(new Date(log.created_at), 'dd MMM', { locale: es })}
+                    isYesterday(new Date(log.created_at)) ? 'Ayer' :
+                      format(new Date(log.created_at), 'dd MMM', { locale: es })}
                 </span>
               </div>
-              
+
               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="sm" asChild>
                   <Link href={`/dashboard/logs/${log.id}`}>
@@ -388,7 +380,7 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
           </div>
         </div>
       ))}
-      
+
       <div className="text-center pt-4">
         <Button variant="outline" asChild>
           <Link href="/dashboard/logs">
@@ -407,7 +399,7 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { children, loading: childrenLoading, stats: childrenStats } = useChildren();
+  const { children, loading: childrenLoading } = useChildren();
   const { logs, loading: logsLoading, stats } = useLogs();
 
   const greeting = () => {
@@ -423,13 +415,13 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {greeting()}, {user?.user_metadata?.full_name?.split(' ')[0] || 'Usuario'}
+            {greeting()}, {user?.full_name?.split(' ')[0] || 'Usuario'}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
             Aquí está el resumen de hoy para tus niños en seguimiento
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-2 sm:space-x-3">
           <Button variant="outline" size="sm" asChild className="hidden sm:flex">
             <Link href="/dashboard/reports">
@@ -467,7 +459,7 @@ export default function DashboardPage() {
                     Niños a los que tienes acceso para registrar actividades
                   </CardDescription>
                 </div>
-                
+
                 <Button variant="outline" size="sm" asChild className="self-start sm:self-auto">
                   <Link href="/dashboard/children">
                     <span className="sm:hidden">Ver</span>
@@ -499,7 +491,7 @@ export default function DashboardPage() {
                   {stats.logs_this_week ? Math.round(stats.logs_this_week / 7) : 0} registros/día
                 </span>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Humor promedio</span>
                 <div className="flex items-center">
@@ -509,12 +501,12 @@ export default function DashboardPage() {
                   </span>
                 </div>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Último registro</span>
                 <span className="text-xs text-gray-500">
-                  {stats.last_log_date ? 
-                    format(new Date(stats.last_log_date), 'dd MMM', { locale: es }) : 
+                  {stats.last_log_date ?
+                    format(new Date(stats.last_log_date), 'dd MMM', { locale: es }) :
                     'Ninguno'
                   }
                 </span>
