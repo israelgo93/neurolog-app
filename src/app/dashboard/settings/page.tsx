@@ -13,7 +13,6 @@ import { Switch } from '@/components/ui/switch'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useToast } from '@/components/ui/use-toast'
 import { 
-  Settings, 
   User, 
   Bell, 
   Shield, 
@@ -91,7 +90,7 @@ export default function SettingsPage() {
       console.error('Error updating profile:', error)
       toast({
         title: "Error al actualizar",
-        description: error.message || "No se pudieron guardar los cambios.",
+        description: error.message ?? "No se pudieron guardar los cambios.",
         variant: "destructive"
       })
     } finally {
