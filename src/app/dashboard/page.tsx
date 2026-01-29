@@ -38,7 +38,7 @@ interface QuickStatsProps {
 }
 
 interface AccessibleChildrenProps {
-  readonlychildren: any[];
+  readonly children: any[];
   readonly loading: boolean;
 }
 
