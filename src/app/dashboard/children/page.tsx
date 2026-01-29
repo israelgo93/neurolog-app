@@ -280,15 +280,15 @@ export default function ChildrenPage() {
 
   // Handlers
   const handleEdit = (child: ChildWithRelation) => {
-    window.location.href = `/dashboard/children/${child.id}/edit`;
+    globalThis.location.href = `/dashboard/children/${child.id}/edit`;
   };
 
   const handleViewDetails = (child: ChildWithRelation) => {
-    window.location.href = `/dashboard/children/${child.id}`;
+    globalThis.location.href = `/dashboard/children/${child.id}`;
   };
 
   const handleManageUsers = (child: ChildWithRelation) => {
-    window.location.href = `/dashboard/children/${child.id}/users`;
+    globalThis.location.href = `/dashboard/children/${child.id}/users`;
   };
 
   if (!user) {
@@ -314,7 +314,7 @@ export default function ChildrenPage() {
         </div>
         
         <div className="flex space-x-3">
-          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+          <Button variant="outline" size="sm" onClick={() => globalThis.location.reload()}>
             <RefreshCwIcon className="h-4 w-4 mr-2" />
             Actualizar
           </Button>
@@ -409,7 +409,7 @@ export default function ChildrenPage() {
         <Card className="border-red-200 bg-red-50">
           <CardContent className="text-center py-12">
             <p className="text-red-600 mb-4">Error al cargar los niños: {error}</p>
-            <Button variant="outline" onClick={() => window.location.reload()}>
+            <Button variant="outline" onClick={() => globalThis.location.reload()}>
               <RefreshCwIcon className="h-4 w-4 mr-2" />
               Reintentar
             </Button>

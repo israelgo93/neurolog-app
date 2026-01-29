@@ -64,12 +64,12 @@ export function Header() {
   // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(globalThis.innerWidth < 768);
     };
     
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    globalThis.addEventListener('resize', checkMobile);
+    return () => globalThis.removeEventListener('resize', checkMobile);
   }, []);
 
   const handleSignOut = async () => {

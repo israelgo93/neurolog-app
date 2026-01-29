@@ -39,7 +39,7 @@ function LayoutErrorFallback() {
               Ocurrió un problema al cargar NeuroLog
             </p>
             <button 
-              onClick={() => window.location.reload()}
+              onClick={() => globalThis.location.reload()}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Recargar página
@@ -73,7 +73,7 @@ export default function RootLayout({
                     Problema al cargar la sesión de usuario
                   </p>
                   <button 
-                    onClick={() => window.location.href = '/auth/login'}
+                    onClick={() => globalThis.location.href = '/auth/login'}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                   >
                     Ir a Login

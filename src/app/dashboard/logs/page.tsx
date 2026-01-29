@@ -552,11 +552,11 @@ export default function LogsPage() {
 
   // Handlers
   const handleEdit = (log: LogWithDetails) => {
-    window.location.href = `/dashboard/logs/${log.id}/edit`;
+    globalThis.location.href = `/dashboard/logs/${log.id}/edit`;
   };
 
   const handleViewDetails = (log: LogWithDetails) => {
-    window.location.href = `/dashboard/logs/${log.id}`;
+    globalThis.location.href = `/dashboard/logs/${log.id}`;
   };
 
   const handleTogglePrivacy = async (log: LogWithDetails) => {
@@ -568,7 +568,7 @@ export default function LogsPage() {
   };
 
   const handleAddFeedback = (log: LogWithDetails) => {
-    window.location.href = `/dashboard/logs/${log.id}?action=feedback`;
+    globalThis.location.href = `/dashboard/logs/${log.id}?action=feedback`;
   };
 
   if (loading) {
