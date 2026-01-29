@@ -459,7 +459,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               value={filters.mood_score_min || ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
-                mood_score_min: e.target.value ? parseInt(e.target.value) : undefined 
+                mood_score_min: e.target.value ? Number.parseInt(e.target.value) : undefined 
               })}
             />
             <Input
@@ -470,7 +470,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               value={filters.mood_score_max || ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
-                mood_score_max: e.target.value ? parseInt(e.target.value) : undefined 
+                mood_score_max: e.target.value ? Number.parseInt(e.target.value) : undefined 
               })}
             />
           </div>

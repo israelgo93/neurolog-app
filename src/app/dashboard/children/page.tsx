@@ -249,7 +249,7 @@ function FiltersCard({ filters, onFiltersChange }: FiltersCardProps) {
               value={filters.max_age || ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
-                max_age: e.target.value ? parseInt(e.target.value) : undefined 
+                max_age: e.target.value ? Number.parseInt(e.target.value) : undefined 
               })}
             />
           </div>

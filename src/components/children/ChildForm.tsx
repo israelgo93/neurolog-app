@@ -571,7 +571,7 @@ function PrivacySettingsForm({ settings, onChange }: PrivacySettingsFormProps) {
           value={settings.data_retention_months}
           onChange={(e) => onChange({
             ...settings,
-            data_retention_months: parseInt(e.target.value) || 24
+            data_retention_months: Number.parseInt(e.target.value) || 24
           })}
         />
         <p className="text-sm text-gray-600 mt-1">

@@ -48,7 +48,7 @@ export function TimePatterns({ logs }: TimePatternsProps) {
     if (values.length === 0) return 'N/A';
     
     const max = Math.max(...values);
-    const hour = Object.keys(hourlyPattern).find(h => hourlyPattern[parseInt(h)] === max);
+    const hour = Object.keys(hourlyPattern).find(h => hourlyPattern[Number.parseInt(h)] === max);
     return hour ? `${hour}:00` : 'N/A';
   };
 
@@ -57,8 +57,8 @@ export function TimePatterns({ logs }: TimePatternsProps) {
     if (values.length === 0) return 'N/A';
     
     const max = Math.max(...values);
-    const day = Object.keys(weeklyPattern).find(d => weeklyPattern[parseInt(d)] === max);
-    return day ? dayNames[parseInt(day)] : 'N/A';
+    const day = Object.keys(weeklyPattern).find(d => weeklyPattern[Number.parseInt(d)] === max);
+    return day ? dayNames[Number.parseInt(day)] : 'N/A';
   };
 
   return (
