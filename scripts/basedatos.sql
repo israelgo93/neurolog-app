@@ -238,13 +238,15 @@ $$ LANGUAGE plpgsql;
 -- Función para crear perfil automáticamente cuando se registra usuario
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  co_default_role CONSTANT user_role_type := 'parent';
 BEGIN
   INSERT INTO profiles (id, email, full_name, role)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')
+    COALESCE((NEW.raw_user_meta_data->>'role')::user_role_type, co_default_role)
   );
   RETURN NEW;
 END;
@@ -283,6 +285,8 @@ CREATE TRIGGER on_auth_user_created
 -- Función para verificar acceso a niño
 CREATE OR REPLACE FUNCTION user_can_access_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
+DECLARE
+  co_table_children CONSTANT TEXT := 'children';
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM children 
@@ -295,6 +299,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Función para verificar permisos de edición
 CREATE OR REPLACE FUNCTION user_can_edit_child(child_uuid UUID)
 RETURNS BOOLEAN AS $$
+DECLARE
+  co_table_children CONSTANT TEXT := 'children';
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM children 
@@ -311,6 +317,10 @@ CREATE OR REPLACE FUNCTION audit_sensitive_access(
   action_details TEXT DEFAULT NULL
 )
 RETURNS VOID AS $$
+DECLARE
+  co_table_name CONSTANT TEXT := 'sensitive_access';
+  co_operation CONSTANT operation_type := 'SELECT';
+  co_risk_level CONSTANT risk_level_type := 'medium';
 BEGIN
   INSERT INTO audit_logs (
     table_name,
@@ -321,8 +331,8 @@ BEGIN
     new_values,
     risk_level
   ) VALUES (
-    'sensitive_access',
-    'SELECT',
+    co_table_name,
+    co_operation,
     resource_id,
     auth.uid(),
     (SELECT role FROM profiles WHERE id = auth.uid()),
@@ -331,7 +341,7 @@ BEGIN
       'details', action_details,
       'timestamp', NOW()
     ),
-    'medium'
+    co_risk_level
   );
 EXCEPTION
   WHEN OTHERS THEN
@@ -344,6 +354,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ================================================================
 
 -- Vista para niños accesibles por usuario
+-- Nota: En vistas SQL no se pueden declarar constantes, se usa el valor tipado directamente
 CREATE OR REPLACE VIEW user_accessible_children AS
 SELECT 
   c.*,
@@ -489,20 +500,24 @@ DECLARE
   policy_count INTEGER;
   function_count INTEGER;
   category_count INTEGER;
-  schema_name CONSTANT TEXT := 'public';
+  co_schema_name CONSTANT TEXT := 'public';
+  co_table_children CONSTANT TEXT := 'children';
+  co_expected_tables CONSTANT INTEGER := 6;
+  co_expected_functions CONSTANT INTEGER := 3;
+  co_expected_categories CONSTANT INTEGER := 10;
 BEGIN
   -- Contar tablas
   SELECT COUNT(*) INTO table_count
   FROM information_schema.tables 
-  WHERE table_schema = schema_name 
-    AND table_name IN ('profiles', 'children', 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
+  WHERE table_schema = co_schema_name 
+    AND table_name IN ('profiles', co_table_children, 'user_child_relations', 'daily_logs', 'categories', 'audit_logs');
   
-  result := result || 'Tablas creadas: ' || table_count || '/6' || E'\n';
+  result := result || 'Tablas creadas: ' || table_count || '/' || co_expected_tables || E'\n';
   
   -- Contar políticas
   SELECT COUNT(*) INTO policy_count
   FROM pg_policies 
-  WHERE schemaname = schema_name;
+  WHERE schemaname = co_schema_name;
   
   result := result || 'Políticas RLS: ' || policy_count || E'\n';
   
@@ -511,19 +526,19 @@ BEGIN
   FROM pg_proc 
   WHERE proname IN ('user_can_access_child', 'user_can_edit_child', 'audit_sensitive_access');
   
-  result := result || 'Funciones RPC: ' || function_count || '/3' || E'\n';
+  result := result || 'Funciones RPC: ' || function_count || '/' || co_expected_functions || E'\n';
   
   -- Contar categorías
   SELECT COUNT(*) INTO category_count
   FROM categories WHERE is_active = true;
   
-  result := result || 'Categorías: ' || category_count || '/10' || E'\n';
+  result := result || 'Categorías: ' || category_count || '/' || co_expected_categories || E'\n';
   
   -- Verificar RLS
   IF (SELECT COUNT(*) FROM pg_class c 
       JOIN pg_namespace n ON n.oid = c.relnamespace 
-      WHERE n.nspname = schema_name 
-        AND c.relname = 'children' 
+      WHERE n.nspname = co_schema_name 
+        AND c.relname = co_table_children 
         AND c.relrowsecurity = true) > 0 THEN
     result := result || 'RLS: ✅ Habilitado' || E'\n';
   ELSE
