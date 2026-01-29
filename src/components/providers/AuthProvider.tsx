@@ -13,7 +13,6 @@ import React, {
   useCallback,
   useMemo 
 } from 'react';
-import { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase';
 import type { Profile, UserRole } from '@/types';
 
