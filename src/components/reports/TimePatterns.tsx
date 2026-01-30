@@ -44,7 +44,7 @@ export function TimePatterns({ logs }: TimePatternsProps) {
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
   const getMostActiveHour = () => {
-    const values = Object.values(hourlyPattern);
+    const values: number[] = Object.values(hourlyPattern);
     if (values.length === 0) return 'N/A';
     
     const max = Math.max(...values);
@@ -53,7 +53,7 @@ export function TimePatterns({ logs }: TimePatternsProps) {
   };
 
   const getMostActiveDay = () => {
-    const values = Object.values(weeklyPattern);
+    const values: number[] = Object.values(weeklyPattern);
     if (values.length === 0) return 'N/A';
     
     const max = Math.max(...values);
@@ -94,7 +94,7 @@ export function TimePatterns({ logs }: TimePatternsProps) {
         <div className="flex space-x-1">
           {dayNames.map((day, index) => {
             const count = weeklyPattern[index] || 0;
-            const values = Object.values(weeklyPattern);
+            const values: number[] = Object.values(weeklyPattern);
             const maxCount = values.length > 0 ? Math.max(...values) : 0;
             const intensity = maxCount > 0 ? (count / maxCount) * 100 : 0;
             
@@ -161,7 +161,7 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
     return acc;
   }, {} as Record<string, { total: number; count: number }>);
 
-  const categoryAverages = Object.entries(categoryMoodCorr).map(([category, data]) => ({
+  const categoryAverages = (Object.entries(categoryMoodCorr) as [string, { total: number; count: number }][]).map(([category, data]) => ({
     category,
     avgMood: data.total / data.count,
     count: data.count
@@ -248,75 +248,104 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
 // ADVANCED INSIGHTS COMPONENT
 // ================================================================
 
+type InsightType = 'success' | 'warning' | 'info';
+
+interface Insight {
+  type: InsightType;
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  recommendation: string;
+}
+
+function generateFrequencyInsight(logs: any[]): Insight | null {
+  if (logs.length === 0) return null;
+  
+  const daysWithLogs = new Set(logs.map(log => 
+    new Date(log.created_at).toDateString()
+  )).size;
+  
+  const totalDays = 30; // últimos 30 días
+  const frequency = (daysWithLogs / totalDays) * 100;
+  
+  const type: InsightType = frequency > 80 ? 'success' : frequency > 50 ? 'warning' : 'info';
+  const icon = frequency > 80 ? CheckCircle : frequency > 50 ? Target : AlertTriangle;
+  const recommendation = frequency < 50 
+    ? 'Intenta mantener registros más regulares para obtener mejores insights'
+    : frequency < 80
+    ? 'Buen ritmo de registro, mantén la consistencia'
+    : 'Excelente consistencia en los registros';
+  
+  return {
+    type,
+    icon,
+    title: 'Consistencia en el registro',
+    description: `Registros en ${daysWithLogs} de ${totalDays} días (${frequency.toFixed(0)}%)`,
+    recommendation
+  };
+}
+
+function generateMoodTrendInsight(logs: any[]): Insight | null {
+  const moodLogs = logs.filter(log => log.mood_score);
+  if (moodLogs.length <= 5) return null;
+  
+  const avgMood = moodLogs.reduce((sum, log) => sum + log.mood_score, 0) / moodLogs.length;
+  const recent = moodLogs.slice(0, 7);
+  const recentAvg = recent.reduce((sum, log) => sum + log.mood_score, 0) / recent.length;
+  
+  const trend = recentAvg - avgMood;
+  
+  const type: InsightType = trend > 0.5 ? 'success' : trend < -0.5 ? 'warning' : 'info';
+  const recommendation = trend > 0.5 
+    ? 'Tendencia positiva en el estado de ánimo reciente'
+    : trend < -0.5
+    ? 'Considera revisar factores que puedan estar afectando el bienestar'
+    : 'Estado de ánimo estable';
+  
+  return {
+    type,
+    icon: Brain,
+    title: 'Tendencia del estado de ánimo',
+    description: `Promedio general: ${avgMood.toFixed(1)}/5, últimos 7 días: ${recentAvg.toFixed(1)}/5`,
+    recommendation
+  };
+}
+
+function generateCategoryInsight(logs: any[]): Insight | null {
+  const categoryCount = logs.reduce((acc, log) => {
+    if (log.category_name) {
+      acc[log.category_name] = (acc[log.category_name] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  const categories = Object.entries(categoryCount);
+  if (categories.length === 0) return null;
+  
+  const mostUsedCategory = categories.sort(([,a], [,b]) => (b as number) - (a as number))[0];
+  
+  return {
+    type: 'info',
+    icon: Target,
+    title: 'Área de mayor atención',
+    description: `"${mostUsedCategory[0]}" representa ${(((mostUsedCategory[1] as number) / logs.length) * 100).toFixed(0)}% de los registros`,
+    recommendation: 'Esta categoría requiere mayor atención y seguimiento'
+  };
+}
+
 export function AdvancedInsights({ logs }: AdvancedInsightsProps) {
-  const generateInsights = () => {
-    const insights = [];
+  const generateInsights = (): Insight[] => {
+    const insights: Insight[] = [];
     
-    // Análisis de frecuencia
-    if (logs.length > 0) {
-      const daysWithLogs = new Set(logs.map(log => 
-        new Date(log.created_at).toDateString()
-      )).size;
-      
-      const totalDays = 30; // últimos 30 días
-      const frequency = (daysWithLogs / totalDays) * 100;
-      
-      insights.push({
-        type: frequency > 80 ? 'success' : frequency > 50 ? 'warning' : 'info',
-        icon: frequency > 80 ? CheckCircle : frequency > 50 ? Target : AlertTriangle,
-        title: 'Consistencia en el registro',
-        description: `Registros en ${daysWithLogs} de ${totalDays} días (${frequency.toFixed(0)}%)`,
-        recommendation: frequency < 50 
-          ? 'Intenta mantener registros más regulares para obtener mejores insights'
-          : frequency < 80
-          ? 'Buen ritmo de registro, mantén la consistencia'
-          : 'Excelente consistencia en los registros'
-      });
-    }
-
-    // Análisis de estado de ánimo
-    const moodLogs = logs.filter(log => log.mood_score);
-    if (moodLogs.length > 5) {
-      const avgMood = moodLogs.reduce((sum, log) => sum + log.mood_score, 0) / moodLogs.length;
-      const recent = moodLogs.slice(0, 7);
-      const recentAvg = recent.reduce((sum, log) => sum + log.mood_score, 0) / recent.length;
-      
-      const trend = recentAvg - avgMood;
-      
-      insights.push({
-        type: trend > 0.5 ? 'success' : trend < -0.5 ? 'warning' : 'info',
-        icon: Brain,
-        title: 'Tendencia del estado de ánimo',
-        description: `Promedio general: ${avgMood.toFixed(1)}/5, últimos 7 días: ${recentAvg.toFixed(1)}/5`,
-        recommendation: trend > 0.5 
-          ? 'Tendencia positiva en el estado de ánimo reciente'
-          : trend < -0.5
-          ? 'Considera revisar factores que puedan estar afectando el bienestar'
-          : 'Estado de ánimo estable'
-      });
-    }
-
-    // Análisis de categorías
-    const categoryCount = logs.reduce((acc, log) => {
-      if (log.category_name) {
-        acc[log.category_name] = (acc[log.category_name] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
-
-    const categories = Object.entries(categoryCount);
-    if (categories.length > 0) {
-      const mostUsedCategory = categories.sort(([,a], [,b]) => b - a)[0];
-      
-      insights.push({
-        type: 'info',
-        icon: Target,
-        title: 'Área de mayor atención',
-        description: `"${mostUsedCategory[0]}" representa ${((mostUsedCategory[1] / logs.length) * 100).toFixed(0)}% de los registros`,
-        recommendation: 'Esta categoría requiere mayor atención y seguimiento'
-      });
-    }
-
+    const frequencyInsight = generateFrequencyInsight(logs);
+    if (frequencyInsight) insights.push(frequencyInsight);
+    
+    const moodInsight = generateMoodTrendInsight(logs);
+    if (moodInsight) insights.push(moodInsight);
+    
+    const categoryInsight = generateCategoryInsight(logs);
+    if (categoryInsight) insights.push(categoryInsight);
+    
     return insights;
   };
 
