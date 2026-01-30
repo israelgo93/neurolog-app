@@ -581,7 +581,7 @@ export default function LogsPage() {
         </div>
         
         <div className="space-y-4">
-          {[...new Array(5)].map((_, i) => (
+          {Array.from({ length: 5 }).map((_, i) => (
             <Card key={i} className="p-6">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />

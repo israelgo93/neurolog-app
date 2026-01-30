@@ -98,7 +98,7 @@ function QuickStats({ stats, loading }: QuickStatsProps) {
   if (loading) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-        {[...new Array(4)].map((_, i) => (
+        {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-3 sm:p-4 md:p-6">
               <div className="flex items-center justify-between space-x-2">
@@ -158,7 +158,7 @@ function AccessibleChildren({ children, loading }: AccessibleChildrenProps) {
   if (loading) {
     return (
       <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {[...new Array(3)].map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center space-x-3 sm:space-x-4">
@@ -287,7 +287,7 @@ function RecentLogs({ logs, loading }: RecentLogsProps) {
   if (loading) {
     return (
       <div className="space-y-3 sm:space-y-4">
-        {[...new Array(3)].map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border bg-white animate-pulse">
             <Skeleton className="h-10 w-10 rounded-full" />
             <div className="flex-1 space-y-2">
