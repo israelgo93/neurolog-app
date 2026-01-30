@@ -73,4 +73,3 @@ README.md
 .eslintrc*
 .prettierrc*
 jest.config.js
-tsconfig.json
