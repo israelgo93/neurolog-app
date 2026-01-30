@@ -40,7 +40,7 @@ import {
 import {  subMonths } from 'date-fns';
 
 // ================================================================
-// FUNCIÓN HELPER PARA CALCULAR TENDENCIA DE MEJORA
+// FUNCIONES HELPER
 // ================================================================
 function calculateImprovementTrend(logs: any[]): number {
   if (logs.length < 2) return 0;
@@ -61,21 +61,12 @@ function calculateImprovementTrend(logs: any[]): number {
   return secondAvg - firstAvg;
 }
 
-export default function ReportsPage() {
-  const { user } = useAuth();
-  const { children, loading: childrenLoading } = useChildren();
-  const { logs, stats, loading: logsLoading } = useLogs();
-  
-  const [selectedChild, setSelectedChild] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subMonths(new Date(), 3),
-    to: new Date()
-  });
-  const [activeTab, setActiveTab] = useState('overview');
-  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-
-  // Filtrar logs según selecciones
-  const filteredLogs = logs.filter(log => {
+function filterLogsByChildAndDate(
+  logs: any[],
+  selectedChild: string,
+  dateRange: DateRange | undefined
+): any[] {
+  return logs.filter(log => {
     if (selectedChild !== 'all' && log.child_id !== selectedChild) {
       return false;
     }
@@ -90,6 +81,23 @@ export default function ReportsPage() {
     
     return true;
   });
+}
+
+export default function ReportsPage() {
+  const { user } = useAuth();
+  const { children, loading: childrenLoading } = useChildren();
+  const { logs, stats, loading: logsLoading } = useLogs();
+  
+  const [selectedChild, setSelectedChild] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subMonths(new Date(), 3),
+    to: new Date()
+  });
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+
+  // Filtrar logs según selecciones
+  const filteredLogs = filterLogsByChildAndDate(logs, selectedChild, dateRange);
 
   // Calcular métricas
   const metrics = {
