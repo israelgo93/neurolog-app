@@ -101,10 +101,10 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
             <Avatar className="h-12 w-12">
               <AvatarImage
                 src={log.child_avatar_url}
-                alt={log.child_name}
+                alt={log.child_name || 'Niño'}
               />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
-                {log.child_name.charAt(0).toUpperCase()}
+                {log.child_name?.charAt(0).toUpperCase() || 'N'}
               </AvatarFallback>
             </Avatar>
 
@@ -123,7 +123,7 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
 
               <div className="flex items-center space-x-2 mb-2">
                 <span className="text-sm font-medium text-blue-600">
-                  {log.child_name}
+                  {log.child_name || 'Niño desconocido'}
                 </span>
                 <span className="text-gray-300">•</span>
                 <span className="text-sm text-gray-600">
@@ -385,7 +385,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos los niños</SelectItem>
-              {children.map((child) => (
+              {children?.filter(child => child?.name).map((child) => (
                 <SelectItem key={child.id} value={child.id}>
                   {child.name}
                 </SelectItem>

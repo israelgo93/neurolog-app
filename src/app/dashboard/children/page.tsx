@@ -96,11 +96,11 @@ function ChildCard({ child, onEdit, onViewDetails, onManageUsers }: ChildCardPro
             <Avatar className="h-12 w-12">
               <AvatarImage src={child.avatar_url || undefined} />
               <AvatarFallback className="bg-blue-100 text-blue-600">
-                {child.name.charAt(0).toUpperCase()}
+                {child.name?.charAt(0).toUpperCase() || 'N'}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold text-lg">{child.name}</h3>
+              <h3 className="font-semibold text-lg">{child.name || 'Niño desconocido'}</h3>
               <div className="flex items-center space-x-2">
                 <Badge 
                   variant="secondary" 
