@@ -38,7 +38,7 @@ export function LogCard({ log }: LogCardProps) {
     high: { label: 'Alta', color: 'bg-red-100 text-red-800' }
   }
 
-  const moodStars = log.mood_score ? [...Array(5)].map((_, i) => (
+  const moodStars = log.mood_score ? [...new Array(5)].map((_, i) => (
     <Star
       key={i}
       className={`h-3 w-3 ${
