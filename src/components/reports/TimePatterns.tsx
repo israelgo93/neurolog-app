@@ -306,12 +306,17 @@ function generateMoodTrendInsight(logs: any[]): Insight | null {
   
   const trend = recentAvg - avgMood;
   
-  const type: InsightType = trend > 0.5 ? 'success' : trend < -0.5 ? 'warning' : 'info';
-  const recommendation = trend > 0.5 
-    ? 'Tendencia positiva en el estado de ánimo reciente'
-    : trend < -0.5
-    ? 'Considera revisar factores que puedan estar afectando el bienestar'
-    : 'Estado de ánimo estable';
+  let type: InsightType = 'info';
+  if (trend > 0.5) type = 'success';
+  else if (trend < -0.5) type = 'warning';
+
+  const getRecommendation = (trend: number): string => {
+    if (trend > 0.5) return 'Tendencia positiva en el estado de ánimo reciente';
+    if (trend < -0.5) return 'Considera revisar factores que puedan estar afectando el bienestar';
+    return 'Estado de ánimo estable';
+  };
+
+  const recommendation = getRecommendation(trend);
   
   return {
     type,
