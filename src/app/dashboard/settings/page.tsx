@@ -138,7 +138,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `datos_neurolog_${user.full_name?.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`
+    link.download = `datos_neurolog_${user.full_name?.replaceAll(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`
     link.click()
     URL.revokeObjectURL(url)
 
