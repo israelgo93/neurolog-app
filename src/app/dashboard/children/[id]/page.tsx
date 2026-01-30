@@ -47,7 +47,7 @@ import {
   ClockIcon,
   ArrowLeftIcon
 } from 'lucide-react';
-import { format, differenceInYears, subMonths } from 'date-fns';
+import { format, differenceInYears, subMonths, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export default function ChildDetailPage() {
