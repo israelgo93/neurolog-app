@@ -161,7 +161,7 @@ export function CorrelationAnalysis({ logs }: CorrelationAnalysisProps) {
     return acc;
   }, {} as Record<string, { total: number; count: number }>);
 
-  const categoryAverages = (Object.entries(categoryMoodCorr) as [string, { total: number; count: number }][]).map(([category, data]) => ({
+  const categoryAverages = (Object.entries(categoryMoodCorr)).map(([category, data]) => ({
     category,
     avgMood: data.total / data.count,
     count: data.count
@@ -268,14 +268,25 @@ function generateFrequencyInsight(logs: any[]): Insight | null {
   const totalDays = 30; // últimos 30 días
   const frequency = (daysWithLogs / totalDays) * 100;
   
-  const type: InsightType = frequency > 80 ? 'success' : frequency > 50 ? 'warning' : 'info';
-  const icon = frequency > 80 ? CheckCircle : frequency > 50 ? Target : AlertTriangle;
-  const recommendation = frequency < 50 
-    ? 'Intenta mantener registros más regulares para obtener mejores insights'
-    : frequency < 80
-    ? 'Buen ritmo de registro, mantén la consistencia'
-    : 'Excelente consistencia en los registros';
+  let type: InsightType = 'info';
+  let icon = AlertTriangle;
+
+  if (frequency > 80) {
+    type = 'success';
+    icon = CheckCircle;
+  } else if (frequency > 50) {
+    type = 'warning';
+    icon = Target;
+  }
   
+  const getRecommendation = (freq: number): string => {
+    if (freq < 50) return 'Intenta mantener registros más regulares para obtener mejores insights';
+    if (freq < 80) return 'Buen ritmo de registro, mantén la consistencia';
+    return 'Excelente consistencia en los registros';
+  };
+
+  const recommendation = getRecommendation(frequency);
+
   return {
     type,
     icon,
@@ -322,7 +333,7 @@ function generateCategoryInsight(logs: any[]): Insight | null {
   const categories = Object.entries(categoryCount);
   if (categories.length === 0) return null;
   
-  const mostUsedCategory = categories.sort(([,a], [,b]) => (b as number) - (a as number))[0];
+  const mostUsedCategory = categories.toSorted(([,a], [,b]) => (b as number) - (a as number))[0];
   
   return {
     type: 'info',
