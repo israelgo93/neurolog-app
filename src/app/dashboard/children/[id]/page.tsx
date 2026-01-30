@@ -91,17 +91,6 @@ export default function ChildDetailPage() {
     return differenceInYears(new Date(), new Date(birthDate));
   };
 
-  const getRelationshipColor = (type: string) => {
-    switch (type) {
-      case 'parent': return 'bg-blue-100 text-blue-800';
-      case 'teacher': return 'bg-green-100 text-green-800';
-      case 'specialist': return 'bg-purple-100 text-purple-800';
-      case 'observer': return 'bg-gray-100 text-gray-800';
-      case 'family': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   // Estadísticas del niño
   const childStats = {
     totalLogs: logs.length,
@@ -233,7 +222,7 @@ export default function ChildDetailPage() {
             <div className="flex items-center space-x-2">
               <UsersIcon className="h-5 w-5 text-gray-600" />
               <div>
-                <p className="text-2xl font-bold text-gray-900">{child.user_relations?.length || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">1</p>
                 <p className="text-xs text-gray-600">Usuarios</p>
               </div>
             </div>
@@ -266,7 +255,7 @@ export default function ChildDetailPage() {
                 <CardContent className="space-y-4">
                   <div className="flex items-start space-x-4">
                     <Avatar className="h-16 w-16">
-                      <AvatarImage src={child.avatar_url} alt={child.name} />
+                      <AvatarImage src={child.avatar_url || undefined} alt={child.name} />
                       <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-bold">
                         {child.name.charAt(0)}
                       </AvatarFallback>
@@ -317,13 +306,12 @@ export default function ChildDetailPage() {
                   {logs.slice(0, 5).map((log) => (
                     <div key={log.id} className="flex items-start space-x-3 py-3 border-b border-gray-100 last:border-0">
                       <div 
-                        className="w-3 h-3 rounded-full mt-2"
-                        style={{ backgroundColor: log.category_color }}
+                        className="w-3 h-3 rounded-full mt-2 bg-blue-500"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {log.category_name || 'Sin categoría'}
+                            {log.title}
                           </p>
                           <span className="text-xs text-gray-500">
                             {format(new Date(log.created_at), 'dd MMM, HH:mm', { locale: es })}
@@ -380,44 +368,42 @@ export default function ChildDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {child.user_relations?.map((relation) => (
-                    <div key={`${relation.user_id}-${relation.relationship_type}`} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="text-xs">
-                            {relation.user_email?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {relation.user_name || relation.user_email}
-                          </p>
-                          <Badge 
-                            variant="secondary" 
-                            className={`text-xs ${getRelationshipColor(relation.relationship_type)}`}
-                          >
-                            {relation.relationship_type === 'parent' && 'Padre/Madre'}
-                            {relation.relationship_type === 'teacher' && 'Docente'}
-                            {relation.relationship_type === 'specialist' && 'Especialista'}
-                            {relation.relationship_type === 'observer' && 'Observador'}
-                            {relation.relationship_type === 'family' && 'Familiar'}
-                          </Badge>
-                        </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="text-xs">
+                          {child.creator_name?.charAt(0).toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {child.creator_name || 'Usuario'}
+                        </p>
+                        <Badge 
+                          variant="secondary" 
+                          className="text-xs"
+                        >
+                          {child.relationship_type === 'parent' && 'Padre/Madre'}
+                          {child.relationship_type === 'teacher' && 'Docente'}
+                          {child.relationship_type === 'specialist' && 'Especialista'}
+                          {child.relationship_type === 'observer' && 'Observador'}
+                          {child.relationship_type === 'family' && 'Familiar'}
+                        </Badge>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        {relation.can_edit && (
-                          <Badge variant="outline" className="text-xs">
-                            <EditIcon className="h-3 w-3" />
-                          </Badge>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      {child.can_edit && (
+                        <Badge variant="outline" className="text-xs">
+                          <EditIcon className="h-3 w-3" />
+                        </Badge>
                         )}
-                        {relation.can_export && (
+                        {child.can_export && (
                           <Badge variant="outline" className="text-xs">
                             <DownloadIcon className="h-3 w-3" />
                           </Badge>
                         )}
                       </div>
                     </div>
-                  ))}
                   
                   <Separator />
                   <Button variant="outline" size="sm" className="w-full">
