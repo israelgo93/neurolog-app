@@ -11,14 +11,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -28,15 +28,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
-import type { 
-  LogWithDetails, 
-  LogFilters, 
-  IntensityLevel, 
-  ChildWithRelation 
+import type {
+  LogWithDetails,
+  LogFilters,
+  IntensityLevel,
+  ChildWithRelation
 } from '@/types';
-import { 
-  PlusIcon, 
-  SearchIcon, 
+import {
+  PlusIcon,
+  SearchIcon,
   FilterIcon,
   MoreVerticalIcon,
   EditIcon,
@@ -99,15 +99,15 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
           {/* Log Header */}
           <div className="flex items-start space-x-4 flex-1">
             <Avatar className="h-12 w-12">
-              <AvatarImage 
-                src={log.child_avatar_url} 
+              <AvatarImage
+                src={log.child_avatar_url}
                 alt={log.child_name}
               />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
                 {log.child_name.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
                 <h3 className="text-lg font-semibold text-gray-900 truncate">
@@ -120,7 +120,7 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                   <AlertCircleIcon className="h-4 w-4 text-red-500" title="Marcado para atención" />
                 )}
               </div>
-              
+
               <div className="flex items-center space-x-2 mb-2">
                 <span className="text-sm font-medium text-blue-600">
                   {log.child_name}
@@ -131,27 +131,27 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                 </span>
                 <span className="text-gray-300">•</span>
                 <span className="text-xs text-gray-500">
-                  {formatDistanceToNow(new Date(log.created_at), { 
-                    addSuffix: true, 
-                    locale: es 
+                  {formatDistanceToNow(new Date(log.created_at), {
+                    addSuffix: true,
+                    locale: es
                   })}
                 </span>
               </div>
 
               <div className="flex items-center space-x-2 mb-3">
                 {log.category_name && (
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className="text-xs"
-                    style={{ 
+                    style={{
                       backgroundColor: `${log.category_color}20`,
-                      color: log.category_color 
+                      color: log.category_color
                     }}
                   >
                     {log.category_name}
                   </Badge>
                 )}
-                
+
                 <Badge className={`text-xs ${getIntensityColor(log.intensity_level)}`}>
                   {log.intensity_level === 'low' && 'Bajo'}
                   {log.intensity_level === 'medium' && 'Medio'}
@@ -165,7 +165,7 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                   </div>
                 )}
               </div>
-              
+
               <p className="text-sm text-gray-600 line-clamp-2 mb-3">
                 {log.content}
               </p>
@@ -179,21 +179,21 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                     {log.tags.length > 2 && <span> +{log.tags.length - 2}</span>}
                   </div>
                 )}
-                
+
                 {log.location && (
                   <div className="flex items-center">
                     <MapPinIcon className="h-3 w-3 mr-1" />
                     <span>{log.location}</span>
                   </div>
                 )}
-                
+
                 {log.weather && (
                   <div className="flex items-center">
                     <CloudIcon className="h-3 w-3 mr-1" />
                     <span>{log.weather}</span>
                   </div>
                 )}
-                
+
                 {log.attachments.length > 0 && (
                   <div className="flex items-center">
                     <FileIcon className="h-3 w-3 mr-1" />
@@ -267,8 +267,8 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
                 <div className="flex items-center text-xs text-purple-600">
                   <AlertCircleIcon className="h-3 w-3 mr-1" />
                   <span>
-                    Seguimiento {log.follow_up_date ? 
-                      `programado para ${format(new Date(log.follow_up_date), 'dd MMM', { locale: es })}` : 
+                    Seguimiento {log.follow_up_date ?
+                      `programado para ${format(new Date(log.follow_up_date), 'dd MMM', { locale: es })}` :
                       'requerido'
                     }
                   </span>
@@ -303,9 +303,9 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
 
         {/* Quick Actions */}
         <div className="mt-4 flex space-x-2">
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            size="sm"
+            variant="outline"
             className="flex-1"
             onClick={() => onViewDetails(log)}
           >
@@ -313,8 +313,8 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
             Ver Completo
           </Button>
           {log.can_edit && (
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="outline"
               onClick={() => onEdit(log)}
             >
@@ -350,8 +350,8 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               Mostrando {filteredCount} de {totalCount} registros
             </CardDescription>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => onFiltersChange({})}
           >
@@ -373,11 +373,11 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
           </div>
 
           {/* Child Filter */}
-          <Select 
-            value={filters.child_id || 'all'} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
-              child_id: value === 'all' ? undefined : value 
+          <Select
+            value={filters.child_id || 'all'}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
+              child_id: value === 'all' ? undefined : value
             })}
           >
             <SelectTrigger>
@@ -409,10 +409,10 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
           />
 
           {/* Review Status */}
-          <Select 
-            value={filters.reviewed_status || 'all'} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
+          <Select
+            value={filters.reviewed_status || 'all'}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
               reviewed_status: value === 'all' ? undefined : value as any
             })}
           >
@@ -430,10 +430,10 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
         {/* Additional Filters */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Intensity Level */}
-          <Select 
-            value={filters.intensity_level || 'all'} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
+          <Select
+            value={filters.intensity_level || 'all'}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
               intensity_level: value === 'all' ? undefined : value as IntensityLevel
             })}
           >
@@ -456,9 +456,9 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               min="1"
               max="5"
               value={filters.mood_score_min || ''}
-              onChange={(e) => onFiltersChange({ 
-                ...filters, 
-                mood_score_min: e.target.value ? Number.parseInt(e.target.value) : undefined 
+              onChange={(e) => onFiltersChange({
+                ...filters,
+                mood_score_min: e.target.value ? Number.parseInt(e.target.value) : undefined
               })}
             />
             <Input
@@ -467,19 +467,19 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               min="1"
               max="5"
               value={filters.mood_score_max || ''}
-              onChange={(e) => onFiltersChange({ 
-                ...filters, 
-                mood_score_max: e.target.value ? Number.parseInt(e.target.value) : undefined 
+              onChange={(e) => onFiltersChange({
+                ...filters,
+                mood_score_max: e.target.value ? Number.parseInt(e.target.value) : undefined
               })}
             />
           </div>
 
           {/* Privacy Filter */}
-          <Select 
-            value={filters.is_private === undefined ? 'all' : filters.is_private.toString()} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
-              is_private: value === 'all' ? undefined : value === 'true' 
+          <Select
+            value={filters.is_private === undefined ? 'all' : filters.is_private.toString()}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
+              is_private: value === 'all' ? undefined : value === 'true'
             })}
           >
             <SelectTrigger>
@@ -493,10 +493,10 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
           </Select>
 
           {/* Follow-up Status */}
-          <Select 
-            value={filters.follow_up_status || 'all'} 
-            onValueChange={(value) => onFiltersChange({ 
-              ...filters, 
+          <Select
+            value={filters.follow_up_status || 'all'}
+            onValueChange={(value) => onFiltersChange({
+              ...filters,
               follow_up_status: value === 'all' ? undefined : value as any
             })}
           >
@@ -521,20 +521,20 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 
 export default function LogsPage() {
   const { children } = useChildren({ includeInactive: false });
-  const { 
-    logs, 
-    stats, 
-    loading, 
-    error, 
+  const {
+    logs,
+    stats,
+    loading,
+    error,
     hasMore,
     filterLogs,
     loadMore,
     refreshLogs,
     togglePrivacy
-  } = useLogs({ 
+  } = useLogs({
     includePrivate: true,
     realtime: true,
-    pageSize: 20 
+    pageSize: 20
   });
 
   const searchParams = useSearchParams();
@@ -579,7 +579,7 @@ export default function LogsPage() {
           </div>
           <div className="h-10 w-32 bg-gray-200 rounded animate-pulse" />
         </div>
-        
+
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <Card key={i} className="p-6">
@@ -607,8 +607,8 @@ export default function LogsPage() {
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => refreshLogs()} 
+            <Button
+              onClick={() => refreshLogs()}
               className="w-full"
             >
               <RefreshCwIcon className="mr-2 h-4 w-4" />
@@ -632,7 +632,7 @@ export default function LogsPage() {
             Historial completo de observaciones y eventos documentados
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <Button variant="outline" onClick={() => refreshLogs()}>
             <RefreshCwIcon className="mr-2 h-4 w-4" />
@@ -708,10 +708,11 @@ export default function LogsPage() {
       <FiltersBar
         filters={filters}
         onFiltersChange={setFilters}
-        children={children}
         totalCount={logs.length}
         filteredCount={filteredLogs.length}
-      />
+      >
+        {children}
+      </FiltersBar>
 
       {/* Results */}
       {filteredLogs.length === 0 ? (
@@ -741,7 +742,7 @@ export default function LogsPage() {
                 <p className="text-gray-600 mb-6">
                   No hay registros que coincidan con los filtros seleccionados
                 </p>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setFilters({})}
                 >
@@ -770,8 +771,8 @@ export default function LogsPage() {
           {/* Load More */}
           {hasMore && (
             <div className="text-center">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={loadMore}
                 className="min-w-[200px]"
               >
