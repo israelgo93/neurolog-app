@@ -131,6 +131,65 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
   }, [userId, supabase]);
 
   // ================================================================
+  // FUNCIONES HELPER PARA FETCH LOGS
+  // ================================================================
+
+  const buildLogsQuery = useCallback((accessibleChildrenIds: string[], page: number) => {
+    let query = supabase
+      .from('daily_logs')
+      .select(`
+        *,
+        child:children!inner(id, name, avatar_url),
+        category:categories(id, name, color, icon),
+        logged_by_profile:profiles!daily_logs_logged_by_fkey(id, full_name, avatar_url)
+      `)
+      .in('child_id', accessibleChildrenIds)
+      .eq('is_active', !includeDeleted)
+      .order('created_at', { ascending: false })
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+
+    // Filtrar por niño específico si se proporciona
+    if (childId) {
+      query = query.eq('child_id', childId);
+    }
+
+    // Filtrar por privacidad
+    if (!includePrivate) {
+      query = query.eq('is_private', false);
+    }
+
+    return query;
+  }, [supabase, includeDeleted, pageSize, childId, includePrivate]);
+
+  const transformLogData = useCallback((data: any[]): LogWithDetails[] => {
+    return data.map(log => ({
+      ...log,
+      child: log.child || { id: log.child_id, name: 'Niño desconocido', avatar_url: null },
+      category: log.category || { id: '', name: 'Sin categoría', color: '#gray', icon: 'circle' },
+      logged_by_profile: log.logged_by_profile || { id: log.logged_by, full_name: 'Usuario desconocido', avatar_url: null }
+    })) as LogWithDetails[];
+  }, []);
+
+  const validateChildAccess = useCallback((childId: string, accessibleChildrenIds: string[]): void => {
+    if (!accessibleChildrenIds.includes(childId)) {
+      throw new Error('No tienes acceso a este niño');
+    }
+  }, []);
+
+  const updateLogsState = useCallback((newLogs: LogWithDetails[], append: boolean): void => {
+    if (!mountedRef.current) return;
+
+    if (append) {
+      setLogs(prev => [...prev, ...newLogs]);
+    } else {
+      setLogs(newLogs);
+    }
+    
+    setHasMore(newLogs.length === pageSize);
+    console.log(`✅ Logs fetched successfully: ${newLogs.length}`);
+  }, [pageSize]);
+
+  // ================================================================
   // FUNCIONES DE FETCH ESTABILIZADAS
   // ================================================================
 
@@ -156,54 +215,20 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
         return;
       }
 
-      // Query base
-      let query = supabase
-        .from('daily_logs')
-        .select(`
-          *,
-          child:children!inner(id, name, avatar_url),
-          category:categories(id, name, color, icon),
-          logged_by_profile:profiles!daily_logs_logged_by_fkey(id, full_name, avatar_url)
-        `)
-        .in('child_id', accessibleChildrenIds)
-        .eq('is_active', !includeDeleted)
-        .order('created_at', { ascending: false })
-        .range(page * pageSize, (page + 1) * pageSize - 1);
-
-      // Filtrar por niño específico si se proporciona
+      // Validar acceso si se especifica un niño
       if (childId) {
-        if (!accessibleChildrenIds.includes(childId)) {
-          throw new Error('No tienes acceso a este niño');
-        }
-        query = query.eq('child_id', childId);
+        validateChildAccess(childId, accessibleChildrenIds);
       }
 
-      // Filtrar por privacidad
-      if (!includePrivate) {
-        query = query.eq('is_private', false);
-      }
-
+      // Construir y ejecutar query
+      const query = buildLogsQuery(accessibleChildrenIds, page);
       const { data, error } = await query;
       
       if (error) throw error;
 
-      const newLogs = (data || []).map(log => ({
-        ...log,
-        child: log.child || { id: log.child_id, name: 'Niño desconocido', avatar_url: null },
-        category: log.category || { id: '', name: 'Sin categoría', color: '#gray', icon: 'circle' },
-        logged_by_profile: log.logged_by_profile || { id: log.logged_by, full_name: 'Usuario desconocido', avatar_url: null }
-      })) as LogWithDetails[];
-
-      if (mountedRef.current) {
-        if (append) {
-          setLogs(prev => [...prev, ...newLogs]);
-        } else {
-          setLogs(newLogs);
-        }
-        
-        setHasMore(newLogs.length === pageSize);
-        console.log(`✅ Logs fetched successfully: ${newLogs.length}`);
-      }
+      // Transformar y actualizar datos
+      const newLogs = transformLogData(data || []);
+      updateLogsState(newLogs, append);
 
     } catch (err) {
       console.error('❌ Error fetching logs:', err);
@@ -216,7 +241,7 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
         setLoading(false);
       }
     }
-  }, [userId, childId, includePrivate, includeDeleted, pageSize, getAccessibleChildrenIds, supabase]);
+  }, [userId, childId, getAccessibleChildrenIds, validateChildAccess, buildLogsQuery, transformLogData, updateLogsState]);
 
   const fetchStats = useCallback(async (): Promise<void> => {
     if (!userId) return;
