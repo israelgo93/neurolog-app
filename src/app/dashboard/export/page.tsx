@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, Table, Settings } from 'lucide-react';
+import { Download, FileText, Table as TableIcon, Settings } from 'lucide-react';
 
 export default function ExportPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -39,7 +39,7 @@ export default function ExportPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Table className="h-5 w-5 mr-2" />
+              <TableIcon className="h-5 w-5 mr-2" />
               Exportar CSV
             </CardTitle>
             <CardDescription>
