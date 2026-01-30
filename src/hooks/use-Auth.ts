@@ -5,8 +5,7 @@
 
 'use client';
 
-import { useCallback, useMemo } from 'react';
-import { useContext } from 'react';
+import { useCallback, useMemo, useContext } from 'react';
 import { AuthContext } from '@/components/providers/AuthProvider';
 import type { Profile } from '@/types';
 

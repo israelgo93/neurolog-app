@@ -100,7 +100,6 @@ function getTrendIconAndColor(trend: number) {
 }
 
 export default function ReportsPage() {
-  const { user } = useAuth();
   const { children, loading: childrenLoading } = useChildren();
   const { logs, stats, loading: logsLoading } = useLogs();
   
@@ -118,7 +117,7 @@ export default function ReportsPage() {
   // Calcular métricas
   const metrics = {
     totalLogs: filteredLogs.length,
-    averageMood: filteredLogs.filter(l => l.mood_score).length > 0 
+    averageMood: filteredLogs.some(l => l.mood_score).length > 0 
       ? (filteredLogs.filter(l => l.mood_score).reduce((sum, l) => sum + l.mood_score, 0) / filteredLogs.filter(l => l.mood_score).length)
       : 0,
     improvementTrend: calculateImprovementTrend(filteredLogs),

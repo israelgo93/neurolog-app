@@ -193,7 +193,6 @@ function AttachmentsManager({ attachments, onChange, childId }: AttachmentsManag
       const newAttachments: LogAttachment[] = [];
 
       for (const file of Array.from(files)) {
-        const fileExt = file.name.split('.').pop();
         const fileName = `${childId}/${Date.now()}-${file.name}`;
         
         await uploadFile('attachments', fileName, file);
@@ -388,11 +387,10 @@ function TagsInput({ tags, onChange }: TagsInputProps) {
 // ================================================================
 
 export default function LogForm({ log, childId, mode, onSuccess, onCancel }: LogFormProps) {
-  const { user } = useAuth();
   const { children } = useChildren();
   const { createLog, updateLog } = useLogs();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [ setLoadingCategories ] = useState(true);
   const router = useRouter();
 
   const form = useForm<LogFormData>({

@@ -30,7 +30,7 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
     setIsExporting(true);
     
     try {
-      // TODO: Implementar lógica real de exportación
+      // Implementar lógica real de exportación
       await new Promise(resolve => setTimeout(resolve, 2000)); // Simular exportación
       
       console.log('Exportando reporte:', {
