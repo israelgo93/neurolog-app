@@ -17,8 +17,16 @@ COPY tsconfig.json ./
 COPY postcss.config.mjs ./
 COPY tailwind.config.js ./
 COPY components.json ./
+
+# Build args para Supabase (dummy values para build)
+ARG NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder_key
+
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+
 RUN npm run build
 
 FROM node:22-alpine AS runner
