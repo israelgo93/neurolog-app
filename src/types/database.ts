@@ -3,6 +3,13 @@
 // NOTA: Este es un archivo placeholder. Para obtener los tipos completos ejecuta:
 // npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/types/database.ts
 
+// Type aliases para evitar union types repetidos
+export type UserRole = 'parent' | 'teacher' | 'specialist' | 'admin';
+export type RelationshipType = 'parent' | 'teacher' | 'specialist' | 'observer' | 'family';
+export type IntensityLevel = 'low' | 'medium' | 'high';
+export type AuditOperation = 'INSERT' | 'UPDATE' | 'DELETE' | 'SELECT';
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+
 export interface Database {
   public: {
     Tables: {
@@ -11,7 +18,7 @@ export interface Database {
           id: string
           email: string
           full_name: string
-          role: 'parent' | 'teacher' | 'specialist' | 'admin'
+          role: UserRole
           avatar_url?: string
           phone?: string
           is_active: boolean
@@ -28,7 +35,7 @@ export interface Database {
           id: string
           email: string
           full_name: string
-          role?: 'parent' | 'teacher' | 'specialist' | 'admin'
+          role?: UserRole
           avatar_url?: string
           phone?: string
           is_active?: boolean
@@ -45,7 +52,7 @@ export interface Database {
           id?: string
           email?: string
           full_name?: string
-          role?: 'parent' | 'teacher' | 'specialist' | 'admin'
+          role?: UserRole
           avatar_url?: string
           phone?: string
           is_active?: boolean
@@ -152,7 +159,7 @@ export interface Database {
           title: string
           content: string
           mood_score?: number
-          intensity_level: 'low' | 'medium' | 'high'
+          intensity_level: IntensityLevel
           logged_by: string
           log_date: string
           is_private: boolean
@@ -178,7 +185,7 @@ export interface Database {
           title: string
           content: string
           mood_score?: number
-          intensity_level?: 'low' | 'medium' | 'high'
+          intensity_level?: IntensityLevel
           logged_by: string
           log_date?: string
           is_private?: boolean
@@ -204,7 +211,7 @@ export interface Database {
           title?: string
           content?: string
           mood_score?: number
-          intensity_level?: 'low' | 'medium' | 'high'
+          intensity_level?: IntensityLevel
           logged_by?: string
           log_date?: string
           is_private?: boolean
@@ -265,11 +272,11 @@ export interface Database {
       }
     }
     Enums: {
-      user_role: 'parent' | 'teacher' | 'specialist' | 'admin'
-      relationship_type: 'parent' | 'teacher' | 'specialist' | 'observer' | 'family'
-      intensity_level: 'low' | 'medium' | 'high'
-      audit_operation: 'INSERT' | 'UPDATE' | 'DELETE' | 'SELECT'
-      risk_level: 'low' | 'medium' | 'high' | 'critical'
+      user_role: UserRole
+      relationship_type: RelationshipType
+      intensity_level: IntensityLevel
+      audit_operation: AuditOperation
+      risk_level: RiskLevel
     }
     CompositeTypes: {
       [_ in never]: never
