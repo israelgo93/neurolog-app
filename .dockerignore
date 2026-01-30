@@ -1,0 +1,76 @@
+# ================================================
+# .dockerignore - Archivos a excluir del build
+# ================================================
+
+# Dependencias
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Testing
+coverage
+*.lcov
+.nyc_output
+
+# Next.js
+.next/
+out/
+build
+dist
+
+# Producción
+.vercel
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+*.log
+
+# Variables de entorno locales
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Scripts de desarrollo
+scripts/
+*.md
+README.md
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Otros
+.editorconfig
+.eslintrc*
+.prettierrc*
+jest.config.js
+tsconfig.json
