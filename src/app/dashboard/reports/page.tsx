@@ -83,6 +83,22 @@ function filterLogsByChildAndDate(
   });
 }
 
+function getMoodColor(averageMood: number): 'green' | 'orange' | 'red' {
+  if (averageMood >= 4) return 'green';
+  if (averageMood >= 3) return 'orange';
+  return 'red';
+}
+
+function getTrendIconAndColor(trend: number) {
+  if (trend > 0) {
+    return { icon: TrendingUp, color: 'green' as const, subtitle: 'Mejorando' };
+  }
+  if (trend < 0) {
+    return { icon: TrendingUp, color: 'red' as const, subtitle: 'Necesita atención' };
+  }
+  return { icon: Target, color: 'gray' as const, subtitle: 'Estable' };
+}
+
 export default function ReportsPage() {
   const { user } = useAuth();
   const { children, loading: childrenLoading } = useChildren();
@@ -201,16 +217,16 @@ export default function ReportsPage() {
           value={metrics.averageMood.toFixed(1)}
           suffix="/5"
           icon={Heart}
-          color={metrics.averageMood >= 4 ? 'green' : metrics.averageMood >= 3 ? 'orange' : 'red'}
+          color={getMoodColor(metrics.averageMood)}
           subtitle="Promedio del período"
         />
         
         <MetricCard
           title="Tendencia"
           value={metrics.improvementTrend > 0 ? '+' : ''}
-          icon={metrics.improvementTrend > 0 ? TrendingUp : metrics.improvementTrend < 0 ? TrendingUp : Target}
-          color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
-          subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}
+          icon={getTrendIconAndColor(metrics.improvementTrend).icon}
+          color={getTrendIconAndColor(metrics.improvementTrend).color}
+          subtitle={getTrendIconAndColor(metrics.improvementTrend).subtitle}
         />
         
         <MetricCard
