@@ -483,7 +483,9 @@ export default function ChildrenPage() {
       </div>
 
       {/* Estadísticas rápidas */}
-      <StatsCards children={children} />
+      <StatsCards>
+        {children}
+      </StatsCards>
 
       {/* Filtros */}
       <FiltersCard filters={filters} onFiltersChange={setFilters} />
