@@ -3,7 +3,9 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -519,7 +521,10 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 // COMPONENTE PRINCIPAL
 // ================================================================
 
-export default function LogsPage() {
+// COMPONENTE PRINCIPAL
+// ================================================================
+
+function LogsPageContent() {
   const { children } = useChildren({ includeInactive: false });
   const {
     logs,
@@ -826,5 +831,21 @@ export default function LogsPage() {
         </>
       )}
     </div>
+  );
+}
+
+// Wrapper con Suspense
+export default function LogsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando registros...</p>
+        </div>
+      </div>
+    }>
+      <LogsPageContent />
+    </Suspense>
   );
 }

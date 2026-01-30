@@ -7,6 +7,7 @@ import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import ErrorBoundary from '@/components/layout/ErrorBoundary'
 import { Toaster } from '@/components/ui/toaster'
+import Link from 'next/link'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -38,12 +39,12 @@ function LayoutErrorFallback() {
             <p className="text-gray-600 mb-4">
               Ocurrió un problema al cargar NeuroLog
             </p>
-            <button 
-              onClick={() => globalThis.location.reload()}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            <Link 
+              href="/"
+              className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
-              Recargar página
-            </button>
+              Ir al inicio
+            </Link>
           </div>
         </div>
       </body>
@@ -72,12 +73,12 @@ export default function RootLayout({
                   <p className="text-gray-600 mb-4">
                     Problema al cargar la sesión de usuario
                   </p>
-                  <button 
-                    onClick={() => globalThis.location.href = '/auth/login'}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  <Link 
+                    href="/auth/login"
+                    className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                   >
                     Ir a Login
-                  </button>
+                  </Link>
                 </div>
               </div>
             }
