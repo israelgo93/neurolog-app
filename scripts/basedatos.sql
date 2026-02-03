@@ -9,12 +9,27 @@
 -- ================================================================
 
 -- Deshabilitar RLS temporalmente
-ALTER TABLE IF EXISTS daily_logs DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS user_child_relations DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS children DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS profiles DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS categories DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS audit_logs DISABLE ROW LEVEL SECURITY;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'daily_logs') THEN
+    EXECUTE 'ALTER TABLE daily_logs DISABLE ROW LEVEL SECURITY';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_child_relations') THEN
+    EXECUTE 'ALTER TABLE user_child_relations DISABLE ROW LEVEL SECURITY';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'children') THEN
+    EXECUTE 'ALTER TABLE children DISABLE ROW LEVEL SECURITY';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'profiles') THEN
+    EXECUTE 'ALTER TABLE profiles DISABLE ROW LEVEL SECURITY';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'categories') THEN
+    EXECUTE 'ALTER TABLE categories DISABLE ROW LEVEL SECURITY';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_logs') THEN
+    EXECUTE 'ALTER TABLE audit_logs DISABLE ROW LEVEL SECURITY';
+  END IF;
+END $$;
 
 -- Eliminar vistas
 DROP VIEW IF EXISTS user_accessible_children CASCADE;
@@ -47,23 +62,37 @@ DROP TABLE IF EXISTS profiles CASCADE;
 -- ================================================================
 
 -- TABLA: profiles (usuarios del sistema)
-CREATE TABLE profiles (
-  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  full_name TEXT NOT NULL,
-  role TEXT CHECK (role IN ('parent', 'teacher', 'specialist', 'admin')) DEFAULT 'parent',
-  avatar_url TEXT,
-  phone TEXT,
-  is_active BOOLEAN DEFAULT TRUE,
-  last_login TIMESTAMPTZ,
-  failed_login_attempts INTEGER DEFAULT 0,
-  last_failed_login TIMESTAMPTZ,
-  account_locked_until TIMESTAMPTZ,
-  timezone TEXT DEFAULT 'America/Guayaquil',
-  preferences JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$
+DECLARE
+  rol_default TEXT := 'parent';
+BEGIN
+  EXECUTE '
+    CREATE TABLE profiles (
+      id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      full_name TEXT NOT NULL,
+      role TEXT CHECK (role IN (' || quote_literal(rol_default) || ', ''teacher'', ''specialist'', ''admin'')) DEFAULT ' || quote_literal(rol_default) || ',
+      avatar_url TEXT,
+      phone TEXT,
+      is_active BOOLEAN DEFAULT TRUE,
+      last_login TIMESTAMPTZ,
+      failed_login_attempts INTEGER DEFAULT 0,
+      last_failed_login TIMESTAMPTZ,
+      account_locked_until TIMESTAMPTZ,
+      timezone TEXT DEFAULT ''America/Guayaquil'',
+      preferences JSONB DEFAULT ''{}'',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  ';
+END $$;
+
+  -- Insertar rol por defecto si no existe
+  IF NOT EXISTS (SELECT 1 FROM profiles WHERE role = rol_default) THEN
+    INSERT INTO profiles (id, email, full_name, role)
+    VALUES (auth.uid(), auth.email(), auth.raw_user_meta_data->>'full_name', rol_default);
+  END IF;
+END $$;
 
 -- TABLA: categories (categorías de registros)
 CREATE TABLE categories (
@@ -360,9 +389,9 @@ GROUP BY c.id, c.name;
 
 -- Categorías por defecto
 INSERT INTO categories (name, description, color, icon, sort_order) VALUES
-('Comportamiento', 'Registros sobre comportamiento y conducta', '#3B82F6', 'user', 1),
-('Emociones', 'Estado emocional y regulación', '#EF4444', 'heart', 2),
-('Aprendizaje', 'Progreso académico y educativo', '#10B981', 'book', 3),
+('Comportamiento', 'Registros sobre  comportamiento y conducta', '#3B82F6', 'user', 1),
+('Emociones', 'Estado emocional y regulacion', '#EF4444', 'heart', 2),
+('Aprendizaje', 'Procesos academico y educativo', '#10B981', 'book', 3),
 ('Socialización', 'Interacciones sociales', '#F59E0B', 'users', 4),
 ('Comunicación', 'Habilidades de comunicación', '#8B5CF6', 'message-circle', 5),
 ('Motricidad', 'Desarrollo motor fino y grueso', '#06B6D4', 'activity', 6),
