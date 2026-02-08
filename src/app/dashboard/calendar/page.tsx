@@ -115,7 +115,11 @@ export default function CalendarPage() {
               >
                 {format(day, 'd')}
                 {/* Placeholder for events */}
-                {Math.random() > 0.8 && (
+                {(() => {
+                  // Deterministic "random": same days always get the dot
+                  const hash = format(day, 'yyyy-MM-dd').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                  return (hash % 10) > 8;
+                })() && (
                   <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
                 )}
               </div>

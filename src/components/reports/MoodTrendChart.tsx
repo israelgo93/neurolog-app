@@ -6,11 +6,11 @@
 'use client';
 
 import { Area, AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { format, startOfWeek, endOfWeek, eachWeekOfInterval, subWeeks } from 'date-fns';
+import { format, endOfWeek, eachWeekOfInterval, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 interface MoodTrendChartProps {
-  data: any[];
+  readonly data: any[];
 }
 
 export function MoodTrendChart({ data }: MoodTrendChartProps) {
@@ -51,7 +51,7 @@ export function MoodTrendChart({ data }: MoodTrendChartProps) {
           <XAxis dataKey="week" />
           <YAxis domain={[1, 5]} />
           <Tooltip 
-            formatter={(value, name) => [
+            formatter={(value) => [
               `${value}/5`,
               'Estado de ánimo promedio'
             ]}

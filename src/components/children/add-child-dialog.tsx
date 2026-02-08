@@ -19,8 +19,8 @@ import { useChildren } from '@/hooks/use-children'
 import { Loader2 } from 'lucide-react'
 
 interface AddChildDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
 }
 
 interface FormData {
@@ -88,7 +88,7 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "No se pudo agregar el niño",
+        description: error.message ?? "No se pudo agregar el niño",
         variant: "destructive",
       })
     } finally {

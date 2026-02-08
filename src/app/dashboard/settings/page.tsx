@@ -13,7 +13,6 @@ import { Switch } from '@/components/ui/switch'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useToast } from '@/components/ui/use-toast'
 import { 
-  Settings, 
   User, 
   Bell, 
   Shield, 
@@ -91,7 +90,7 @@ export default function SettingsPage() {
       console.error('Error updating profile:', error)
       toast({
         title: "Error al actualizar",
-        description: error.message || "No se pudieron guardar los cambios.",
+        description: error.message ?? "No se pudieron guardar los cambios.",
         variant: "destructive"
       })
     } finally {
@@ -186,10 +185,15 @@ export default function SettingsPage() {
               </p>
               <p className="text-sm text-gray-600">{user.email}</p>
               <p className="text-xs text-blue-600 capitalize">
-                {user.role === 'parent' ? 'Padre/Madre' :
-                 user.role === 'teacher' ? 'Docente' :
-                 user.role === 'specialist' ? 'Especialista' : 
-                 user.role === 'admin' ? 'Administrador' : 'Usuario'}
+                {(() => {
+                  switch(user.role) {
+                    case 'parent': return 'Padre/Madre';
+                    case 'teacher': return 'Docente';
+                    case 'specialist': return 'Especialista';
+                    case 'admin': return 'Administrador';
+                    default: return 'Usuario';
+                  }
+                })()}
               </p>
             </div>
           </div>
@@ -239,7 +243,7 @@ export default function SettingsPage() {
             <Label htmlFor="role">Rol en la aplicación</Label>
             <Select 
               value={profileData.role} 
-              onValueChange={(value) => setProfileData(prev => ({ ...prev, role: value as any }))}
+              onValueChange={(value) => setProfileData(prev => ({ ...prev, role: value }))}
               disabled={!isEditing}
             >
               <SelectTrigger>
