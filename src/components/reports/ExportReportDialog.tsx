@@ -61,7 +61,7 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
         
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label  htmlFor="search-name" className="text-sm font-medium text-gray-700 mb-2 block">
               Formato
             </label>
             <Select value={format} onValueChange={setFormat}>
@@ -77,7 +77,7 @@ export function ExportReportDialog({ open, onOpenChange, data, metrics }: Export
           </div>
           
           <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-700 block">
+            <label  htmlFor="search-name" className="text-sm font-medium text-gray-700 block">
               Incluir en el reporte
             </label>
             
