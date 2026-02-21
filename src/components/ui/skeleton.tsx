@@ -63,12 +63,12 @@ function SkeletonAvatar() {
   return <Skeleton className="h-8 w-8 rounded-full" />
 }
 
-function SkeletonText({ lines = 3 }: { lines?: number }) {
+function SkeletonText({ lines = 3 }: Readonly<{ lines?: number }>) {
   return (
     <div className="space-y-2">
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton 
-          key={i} 
+          key={`skeleton-line-${i}`} 
           className={cn(
             "h-4",
             i === lines - 1 ? "w-[80%]" : "w-full"
@@ -78,6 +78,7 @@ function SkeletonText({ lines = 3 }: { lines?: number }) {
     </div>
   )
 }
+
 
 export { 
   Skeleton, 

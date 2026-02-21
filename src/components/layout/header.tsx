@@ -299,13 +299,23 @@ export function Header() {
                 </Avatar>
                 <div className="hidden sm:block text-left">
                   <p className="text-xs sm:text-sm font-medium text-gray-900 truncate max-w-24 lg:max-w-32">
-                    {user?.full_name || 'Usuario'}
+                    {user?.full_name ?? 'Usuario'}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {user?.role === 'parent' ? 'Padre/Madre' : 
-                     user?.role === 'teacher' ? 'Docente' :
-                     user?.role === 'specialist' ? 'Especialista' :
-                     user?.role === 'admin' ? 'Admin' : 'Usuario'}
+                    {(() => {
+                      switch (user?.role) {
+                      case 'parent':
+                        return 'Padre/Madre';
+                      case 'teacher':
+                        return 'Docente';
+                      case 'specialist':
+                        return 'Especialista';
+                      case 'admin':
+                        return 'Admin';
+                      default:
+                        return 'Usuario';
+                      }
+                    })()}
                   </p>
                 </div>
                 <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />

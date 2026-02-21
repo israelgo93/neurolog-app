@@ -26,7 +26,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
 import type { 
@@ -43,7 +42,6 @@ import {
   EditIcon,
   EyeIcon,
   EyeOffIcon,
-  HeartIcon,
   ClockIcon,
   TagIcon,
   MapPinIcon,
@@ -65,11 +63,11 @@ import { es } from 'date-fns/locale';
 // ================================================================
 
 interface LogCardProps {
-  log: LogWithDetails;
-  onEdit: (log: LogWithDetails) => void;
-  onViewDetails: (log: LogWithDetails) => void;
-  onTogglePrivacy: (log: LogWithDetails) => void;
-  onAddFeedback: (log: LogWithDetails) => void;
+  readonly log: LogWithDetails;
+  readonly onEdit: (log: LogWithDetails) => void;
+  readonly onViewDetails: (log: LogWithDetails) => void;
+  readonly onTogglePrivacy: (log: LogWithDetails) => void;
+  readonly onAddFeedback: (log: LogWithDetails) => void;
 }
 
 function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }: LogCardProps) {
@@ -331,11 +329,11 @@ function LogCard({ log, onEdit, onViewDetails, onTogglePrivacy, onAddFeedback }:
 }
 
 interface FiltersBarProps {
-  filters: LogFilters;
-  onFiltersChange: (filters: LogFilters) => void;
-  children: ChildWithRelation[];
-  totalCount: number;
-  filteredCount: number;
+  readonly filters: LogFilters;
+  readonly onFiltersChange: (filters: LogFilters) => void;
+  readonly children: ChildWithRelation[];
+  readonly totalCount: number;
+  readonly filteredCount: number;
 }
 
 function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCount }: FiltersBarProps) {
@@ -368,7 +366,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Buscar en título y contenido..."
-              value={filters.search_term || ''}
+              value={filters.search_term ?? ''}
               onChange={(e) => onFiltersChange({ ...filters, search_term: e.target.value })}
               className="pl-10"
             />
@@ -376,7 +374,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 
           {/* Child Filter */}
           <Select 
-            value={filters.child_id || 'all'} 
+            value={filters.child_id ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               child_id: value === 'all' ? undefined : value 
@@ -399,23 +397,23 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
           <Input
             type="date"
             placeholder="Desde"
-            value={filters.date_from || ''}
+            value={filters.date_from ?? ''}
             onChange={(e) => onFiltersChange({ ...filters, date_from: e.target.value })}
           />
 
           <Input
             type="date"
             placeholder="Hasta"
-            value={filters.date_to || ''}
+            value={filters.date_to ?? ''}
             onChange={(e) => onFiltersChange({ ...filters, date_to: e.target.value })}
           />
 
           {/* Review Status */}
           <Select 
-            value={filters.reviewed_status || 'all'} 
+            value={filters.reviewed_status ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
-              reviewed_status: value === 'all' ? undefined : value as any
+              reviewed_status: value === 'all' ? undefined : value as 'all' | 'reviewed' | 'pending'
             })}
           >
             <SelectTrigger>
@@ -433,7 +431,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Intensity Level */}
           <Select 
-            value={filters.intensity_level || 'all'} 
+            value={filters.intensity_level ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               intensity_level: value === 'all' ? undefined : value as IntensityLevel
@@ -457,7 +455,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               placeholder="Humor mín"
               min="1"
               max="5"
-              value={filters.mood_score_min || ''}
+              value={filters.mood_score_min ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 mood_score_min: e.target.value ? parseInt(e.target.value) : undefined 
@@ -468,7 +466,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
               placeholder="Humor máx"
               min="1"
               max="5"
-              value={filters.mood_score_max || ''}
+              value={filters.mood_score_max ?? ''}
               onChange={(e) => onFiltersChange({ 
                 ...filters, 
                 mood_score_max: e.target.value ? parseInt(e.target.value) : undefined 
@@ -496,7 +494,7 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 
           {/* Follow-up Status */}
           <Select 
-            value={filters.follow_up_status || 'all'} 
+            value={filters.follow_up_status ?? 'all'} 
             onValueChange={(value) => onFiltersChange({ 
               ...filters, 
               follow_up_status: value === 'all' ? undefined : value as any
@@ -522,7 +520,6 @@ function FiltersBar({ filters, onFiltersChange, children, totalCount, filteredCo
 // ================================================================
 
 export default function LogsPage() {
-  const { user } = useAuth();
   const { children } = useChildren({ includeInactive: false });
   const { 
     logs, 
@@ -542,8 +539,8 @@ export default function LogsPage() {
 
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<LogFilters>({
-    child_id: searchParams.get('child_id') || undefined,
-    category_id: searchParams.get('category_id') || undefined,
+    child_id: searchParams.get('child_id') ?? undefined,
+    category_id: searchParams.get('category_id') ?? undefined,
   });
 
   // Aplicar filtros
@@ -573,33 +570,35 @@ export default function LogsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex-1 space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
-            <div className="h-4 w-64 bg-gray-200 rounded animate-pulse" />
-          </div>
-          <div className="h-10 w-32 bg-gray-200 rounded animate-pulse" />
+  const skeletonKeys = ['skel1', 'skel2', 'skel3', 'skel4', 'skel5'];
+  return (
+    <div className="flex-1 space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
+          <div className="h-4 w-64 bg-gray-200 rounded animate-pulse" />
         </div>
-        
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i} className="p-6">
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-full" />
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <div className="h-10 w-32 bg-gray-200 rounded animate-pulse" />
       </div>
-    );
-  }
+      
+      <div className="space-y-4">
+        {skeletonKeys.map(key => (
+          <Card key={key} className="p-6">
+            <div className="flex items-start space-x-4">
+              <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-full" />
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
   if (error) {
     return (
