@@ -7,13 +7,12 @@
 
 import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 
 interface ProgressChartProps {
   data: any[];
 }
 
-export function ProgressChart({ data }: ProgressChartProps) {
+export function ProgressChart({ data }: Readonly<ProgressChartProps>) {
   // Procesar datos para el gráfico
   const chartData = data
     .filter(log => log.mood_score)

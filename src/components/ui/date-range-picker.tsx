@@ -28,7 +28,7 @@ export function DatePickerWithRange({
   className,
   date,
   setDate,
-}: DatePickerWithRangeProps) {
+}: Readonly<DatePickerWithRangeProps>) {
   return (
     <div className={cn('grid gap-2', className)}>
       <Popover>

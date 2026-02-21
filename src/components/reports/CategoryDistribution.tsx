@@ -11,11 +11,11 @@ interface CategoryDistributionProps {
   data: any[];
 }
 
-export function CategoryDistribution({ data }: CategoryDistributionProps) {
+export function CategoryDistribution({ data }: Readonly<CategoryDistributionProps>) {
   // Procesar datos para el gráfico
   const categoryCount = data.reduce((acc, log) => {
-    const category = log.category_name || 'Sin categoría';
-    acc[category] = (acc[category] || 0) + 1;
+    const category = log.category_name ?? 'Sin categoría';
+    acc[category] = (acc[category] ?? 0) + 1;
     return acc;
   }, {});
 
