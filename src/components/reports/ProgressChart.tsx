@@ -7,10 +7,9 @@
 
 import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 
 interface ProgressChartProps {
-  data: any[];
+  readonly data: readonly any[];
 }
 
 export function ProgressChart({ data }: ProgressChartProps) {

@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -22,13 +22,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
-import type { 
-  ChildWithRelation
-} from '@/types';
-import { 
+import type { ChildWithRelation as ChildWithRelationBase } from '@/types';
+// Define UserRelation type locally since import was not found
+type UserRelation = {
+  user_id: string;
+  user_email?: string;
+  user_name?: string;
+  relationship_type: string;
+  can_edit?: boolean;
+  can_export?: boolean;
+};
+// Extend ChildWithRelation to include user_relations
+type ChildWithRelation = ChildWithRelationBase & {
+  user_relations?: UserRelation[];
+};
+
+import {
   EditIcon,
   MoreVerticalIcon,
   UserPlusIcon,
@@ -46,26 +57,40 @@ import {
   GraduationCapIcon,
   ShieldIcon,
   ClockIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
 } from 'lucide-react';
-import { format, differenceInYears, subMonths } from 'date-fns';
+import { format, differenceInYears, subMonths, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
+
 
 export default function ChildDetailPage() {
   const params = useParams();
   const router = useRouter();
   const childId = params.id as string;
-  const { user } = useAuth();
-  const { children, loading: childLoading, getChildById } = useChildren();
-  const { logs, loading: logsLoading, stats } = useLogs({ childId });
-  
+  const { loading: childLoading, getChildById } = useChildren();
+  const { logs } = useLogs({ childId });
+
   const [child, setChild] = useState<ChildWithRelation | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Filter state for logs tab
+  const [filterText, setFilterText] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+
+  // Filtered logs logic
+  const filteredLogs = logs.filter((log: typeof logs[number]) => {
+    const matchesText =
+      filterText.trim() === '' ||
+      (log.content?.toLowerCase().includes(filterText.toLowerCase()));
+    const matchesCategory =
+      filterCategory === '' ||
+      (log.category?.name && log.category.name === filterCategory);
+    return matchesText && matchesCategory;
+  });
+
   useEffect(() => {
     if (childId && !childLoading) {
-      const foundChild = getChildById(childId);
-      setChild(foundChild || null);
+      setChild(getChildById(childId) || null);
     }
   }, [childId, childLoading, getChildById]);
 
@@ -235,7 +260,7 @@ export default function ChildDetailPage() {
             <div className="flex items-center space-x-2">
               <UsersIcon className="h-5 w-5 text-gray-600" />
               <div>
-                <p className="text-2xl font-bold text-gray-900">{child.user_relations?.length || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{child.user_relations?.length ?? 0}</p>
                 <p className="text-xs text-gray-600">Usuarios</p>
               </div>
             </div>
@@ -268,7 +293,7 @@ export default function ChildDetailPage() {
                 <CardContent className="space-y-4">
                   <div className="flex items-start space-x-4">
                     <Avatar className="h-16 w-16">
-                      <AvatarImage src={child.avatar_url} alt={child.name} />
+                      <AvatarImage src={child.avatar_url ?? undefined} alt={child.name} />
                       <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-bold">
                         {child.name.charAt(0)}
                       </AvatarFallback>
@@ -310,9 +335,7 @@ export default function ChildDetailPage() {
                     Registros Recientes
                   </CardTitle>
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/logs?child=${childId}`}>
-                      Ver todos
-                    </Link>
+                    <Link href="#logs">Ver todos</Link>
                   </Button>
                 </CardHeader>
                 <CardContent>
@@ -320,12 +343,12 @@ export default function ChildDetailPage() {
                     <div key={log.id} className="flex items-start space-x-3 py-3 border-b border-gray-100 last:border-0">
                       <div 
                         className="w-3 h-3 rounded-full mt-2"
-                        style={{ backgroundColor: log.category_color }}
+                        style={{ backgroundColor: log.category?.color }}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {log.category_name || 'Sin categoría'}
+                            {log.category?.name ?? 'Sin categoría'}
                           </p>
                           <span className="text-xs text-gray-500">
                             {format(new Date(log.created_at), 'dd MMM, HH:mm', { locale: es })}
@@ -382,7 +405,7 @@ export default function ChildDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {child.user_relations?.map((relation) => (
+                  {child.user_relations?.map((relation: UserRelation) => (
                     <div key={`${relation.user_id}-${relation.relationship_type}`} className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
@@ -392,7 +415,7 @@ export default function ChildDetailPage() {
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium text-gray-900">
-                            {relation.user_name || relation.user_email}
+                            {relation.user_name ?? relation.user_email}
                           </p>
                           <Badge 
                             variant="secondary" 
@@ -467,8 +490,90 @@ export default function ChildDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* TODO: Implementar lista detallada de logs con filtros */}
-              <p className="text-gray-500">Vista detallada de registros próximamente...</p>
+              <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0 mb-4">
+                <input
+                  type="text"
+                  placeholder="Buscar por contenido..."
+                  className="border rounded px-2 py-1 text-sm w-full md:w-64"
+                  value={filterText}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilterText(e.target.value)}
+                />
+                <select
+                  className="border rounded px-2 py-1 text-sm w-full md:w-48"
+                  value={filterCategory}
+                  onChange={e => setFilterCategory(e.target.value)}
+                >
+                  <option value="">Todas las categorías</option>
+                  {[...new Set(logs.map(l => l.category?.name).filter(Boolean))].map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-2 text-left font-semibold">Fecha</th>
+                      <th className="px-4 py-2 text-left font-semibold">Categoría</th>
+                      <th className="px-4 py-2 text-left font-semibold">Contenido</th>
+                      <th className="px-4 py-2 text-left font-semibold">Privado</th>
+                      <th className="px-4 py-2 text-left font-semibold">Seguimiento</th>
+                      <th className="px-4 py-2 text-left font-semibold">Revisado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="text-center py-6 text-gray-500">
+                          No hay registros que coincidan con los filtros.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredLogs.map(log => (
+                        <tr key={log.id} className="border-b last:border-0">
+                          <td className="px-4 py-2">
+                            {format(new Date(log.created_at), 'dd MMM yyyy, HH:mm', { locale: es })}
+                          </td>
+                          <td className="px-4 py-2">
+                            <span className="inline-flex items-center">
+                              <span
+                                className="w-3 h-3 rounded-full mr-2"
+                                style={{ backgroundColor: log.category?.color }}
+                              />
+                              {log.category?.name ?? 'Sin categoría'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2">{log.content}</td>
+                          <td className="px-4 py-2">
+                            {log.is_private ? (
+                              <Badge variant="secondary" className="text-xs">
+                                <EyeIcon className="h-3 w-3 mr-1" />
+                                Sí
+                              </Badge>
+                            ) : 'No'}
+                          </td>
+                          <td className="px-4 py-2">
+                            {log.follow_up_required ? (
+                              <Badge variant="outline" className="text-xs text-orange-600">
+                                <ClockIcon className="h-3 w-3 mr-1" />
+                                Sí
+                              </Badge>
+                            ) : 'No'}
+                          </td>
+                    <td className="px-4 py-2">
+                      {log.reviewed_by ? (
+                        <Badge variant="outline" className="text-xs text-green-600">
+                          <CheckCircleIcon className="h-3 w-3 mr-1" />
+                          Sí
+                        </Badge>
+                      ) : 'No'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -483,7 +588,6 @@ export default function ChildDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* TODO: Implementar gráficos de progreso */}
               <p className="text-gray-500">Gráficos de progreso próximamente...</p>
             </CardContent>
           </Card>
@@ -499,8 +603,54 @@ export default function ChildDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* TODO: Implementar gestión de equipo */}
-              <p className="text-gray-500">Gestión de equipo próximamente...</p>
+              <div className="space-y-4">
+                {child.user_relations && child.user_relations.length > 0 ? (
+                  child.user_relations.map((relation: UserRelation) => (
+                    <div key={`${relation.user_id}-${relation.relationship_type}`} className="flex items-center justify-between border-b pb-2 last:border-0">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="text-xs">
+                            {relation.user_email?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {relation.user_name ?? relation.user_email}
+                          </p>
+                          <Badge 
+                            variant="secondary" 
+                            className={`text-xs ${getRelationshipColor(relation.relationship_type)}`}
+                          >
+                            {relation.relationship_type === 'parent' && 'Padre/Madre'}
+                            {relation.relationship_type === 'teacher' && 'Docente'}
+                            {relation.relationship_type === 'specialist' && 'Especialista'}
+                            {relation.relationship_type === 'observer' && 'Observador'}
+                            {relation.relationship_type === 'family' && 'Familiar'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        {relation.can_edit && (
+                          <Badge variant="outline" className="text-xs">
+                            <EditIcon className="h-3 w-3" />
+                          </Badge>
+                        )}
+                        {relation.can_export && (
+                          <Badge variant="outline" className="text-xs">
+                            <DownloadIcon className="h-3 w-3" />
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No hay miembros en el equipo aún.</p>
+                )}
+                <Button variant="outline" size="sm" className="w-full mt-2">
+                  <UserPlusIcon className="h-4 w-4 mr-2" />
+                  Agregar persona al equipo
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -515,8 +665,30 @@ export default function ChildDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* TODO: Implementar configuración específica */}
-              <p className="text-gray-500">Configuración específica próximamente...</p>
+              <form
+                className="space-y-4"
+                onSubmit={e => {
+                  e.preventDefault();
+                  // Aquí iría la lógica para guardar la configuración
+                  alert('Configuración guardada (simulado)');
+                }}
+              >
+                <div>
+                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+                    Notas adicionales
+                  </label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    className="mt-1 block w-full border rounded px-3 py-2 text-sm"
+                    rows={3}
+                    defaultValue={child.notes ?? ''}
+                  />
+                </div>
+                <Button type="submit" size="sm">
+                  Guardar configuración
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>

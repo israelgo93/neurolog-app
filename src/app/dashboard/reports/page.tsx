@@ -1,14 +1,13 @@
 // ================================================================
 // src/app/dashboard/reports/page.tsx
-// Página principal de reportes y análisis - CORREGIDA
+// Página principal de reportes y análisis - REFACTORIZADA Y LIMPIA
 // ================================================================
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Select,
@@ -18,63 +17,74 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useChildren } from '@/hooks/use-children';
 import { useLogs } from '@/hooks/use-logs';
 import { ProgressChart } from '@/components/reports/ProgressChart';
 import { CategoryDistribution } from '@/components/reports/CategoryDistribution';
 import { MoodTrendChart } from '@/components/reports/MoodTrendChart';
 import { ExportReportDialog } from '@/components/reports/ExportReportDialog';
-// ✅ ARREGLO: Importar todos los componentes desde TimePatterns.tsx
 import { TimePatterns, CorrelationAnalysis, AdvancedInsights } from '@/components/reports/TimePatterns';
 import type { DateRange } from 'react-day-picker';
 import { 
-  BarChart3,
   TrendingUp,
   Calendar,
   Download,
   FileText,
   PieChart,
-  LineChart,
-  Users,
-  Activity,
   Heart,
   Target,
-  Award,
-  AlertTriangle,
-  CheckCircle,
-  Clock
+  AlertTriangle
 } from 'lucide-react';
-import { format, subDays, subWeeks, subMonths } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { subMonths } from 'date-fns';
 
 // ================================================================
-// FUNCIÓN HELPER PARA CALCULAR TENDENCIA DE MEJORA
+// HELPERS
 // ================================================================
 function calculateImprovementTrend(logs: any[]): number {
   if (logs.length < 2) return 0;
-  
-  const moodLogs = logs.filter(log => log.mood_score).sort((a, b) => 
+  const moodLogs = logs.filter(log => log.mood_score).sort((a, b) =>
     new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
-  
   if (moodLogs.length < 2) return 0;
-  
   const midpoint = Math.floor(moodLogs.length / 2);
   const firstHalf = moodLogs.slice(0, midpoint);
   const secondHalf = moodLogs.slice(midpoint);
-  
   const firstAvg = firstHalf.reduce((sum, log) => sum + log.mood_score, 0) / firstHalf.length;
   const secondAvg = secondHalf.reduce((sum, log) => sum + log.mood_score, 0) / secondHalf.length;
-  
   return secondAvg - firstAvg;
 }
 
+function filterLogs(logs: any[], selectedChild: string, dateRange: DateRange | undefined) {
+  return logs.filter(log => {
+    if (selectedChild !== 'all' && log.child_id !== selectedChild) return false;
+    if (dateRange?.from && new Date(log.created_at) < dateRange.from) return false;
+    if (dateRange?.to && new Date(log.created_at) > dateRange.to) return false;
+    return true;
+  });
+}
+
+function calculateMetrics(filteredLogs: any[]) {
+  const averageMoodLogs = filteredLogs.filter(l => l.mood_score);
+  const averageMood = averageMoodLogs.length
+    ? (averageMoodLogs.reduce((sum, l) => sum + l.mood_score, 0) / averageMoodLogs.length)
+    : 0;
+  return {
+    totalLogs: filteredLogs.length,
+    averageMood,
+    improvementTrend: calculateImprovementTrend(filteredLogs),
+    activeCategories: new Set(filteredLogs.map(l => l.category_name).filter(Boolean)).size,
+    followUpsRequired: filteredLogs.filter(l => l.follow_up_required).length,
+    activeDays: new Set(filteredLogs.map(l => new Date(l.created_at).toDateString())).size
+  };
+}
+
+// ================================================================
+// COMPONENTE PRINCIPAL
+// ================================================================
 export default function ReportsPage() {
-  const { user } = useAuth();
   const { children, loading: childrenLoading } = useChildren();
-  const { logs, stats, loading: logsLoading } = useLogs();
-  
+  const { logs, loading: logsLoading } = useLogs();
+
   const [selectedChild, setSelectedChild] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subMonths(new Date(), 3),
@@ -83,34 +93,40 @@ export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
-  // Filtrar logs según selecciones
-  const filteredLogs = logs.filter(log => {
-    if (selectedChild !== 'all' && log.child_id !== selectedChild) {
-      return false;
-    }
-    
-    if (dateRange?.from && new Date(log.created_at) < dateRange.from) {
-      return false;
-    }
-    
-    if (dateRange?.to && new Date(log.created_at) > dateRange.to) {
-      return false;
-    }
-    
-    return true;
-  });
+  // Helpers refactorizados
+  const filteredLogs = filterLogs(logs, selectedChild, dateRange);
+  const metrics = calculateMetrics(filteredLogs);
 
-  // Calcular métricas
-  const metrics = {
-    totalLogs: filteredLogs.length,
-    averageMood: filteredLogs.filter(l => l.mood_score).length > 0 
-      ? (filteredLogs.filter(l => l.mood_score).reduce((sum, l) => sum + l.mood_score, 0) / filteredLogs.filter(l => l.mood_score).length)
-      : 0,
-    improvementTrend: calculateImprovementTrend(filteredLogs),
-    activeCategories: new Set(filteredLogs.map(l => l.category_name).filter(Boolean)).size,
-    followUpsRequired: filteredLogs.filter(l => l.follow_up_required).length,
-    activeDays: new Set(filteredLogs.map(l => new Date(l.created_at).toDateString())).size
-  };
+  // --- Tendencia (Evita ternarios anidados) ---
+  // Icono
+  let trendIcon;
+  if (metrics.improvementTrend > 0) {
+    trendIcon = TrendingUp;
+  } else if (metrics.improvementTrend < 0) {
+    trendIcon = TrendingUp; // Puedes cambiarlo a otro icono si prefieres diferenciar "baja"
+  } else {
+    trendIcon = Target;
+  }
+
+  // Color
+  let trendColor: 'green' | 'red' | 'gray';
+  if (metrics.improvementTrend > 0) {
+    trendColor = 'green';
+  } else if (metrics.improvementTrend < 0) {
+    trendColor = 'red';
+  } else {
+    trendColor = 'gray';
+  }
+
+  // Subtítulo
+  let trendSubtitle: string;
+  if (metrics.improvementTrend > 0) {
+    trendSubtitle = 'Mejorando';
+  } else if (metrics.improvementTrend < 0) {
+    trendSubtitle = 'Necesita atención';
+  } else {
+    trendSubtitle = 'Estable';
+  }
 
   if (childrenLoading || logsLoading) {
     return (
@@ -144,9 +160,11 @@ export default function ReportsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Niño</label>
+              <label htmlFor="child-select" className="text-sm font-medium mb-2 block">
+                Niño
+              </label>
               <Select value={selectedChild} onValueChange={setSelectedChild}>
-                <SelectTrigger>
+                <SelectTrigger id="child-select">
                   <SelectValue placeholder="Seleccionar niño" />
                 </SelectTrigger>
                 <SelectContent>
@@ -159,17 +177,19 @@ export default function ReportsPage() {
                 </SelectContent>
               </Select>
             </div>
-            
             <div>
-              <label className="text-sm font-medium mb-2 block">Período</label>
-              <DatePickerWithRange 
+              <label htmlFor="period-picker" className="text-sm font-medium mb-2 block">
+                Período
+              </label>
+              {/* El DatePickerWithRange NO acepta id directamente, pero mantenemos accesibilidad con el label */}
+              <DatePickerWithRange
                 date={dateRange}
-                onDateChange={setDateRange}
+                setDate={setDateRange}
+                // id="period-picker" // No soportado, pero el label es solo visual
               />
             </div>
-
             <div className="flex items-end">
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => {
                   setSelectedChild('all');
@@ -195,24 +215,39 @@ export default function ReportsPage() {
           color="blue"
           subtitle="En el período seleccionado"
         />
-        
-        <MetricCard
-          title="Estado de Ánimo"
-          value={metrics.averageMood.toFixed(1)}
-          suffix="/5"
-          icon={Heart}
-          color={metrics.averageMood >= 4 ? 'green' : metrics.averageMood >= 3 ? 'orange' : 'red'}
-          subtitle="Promedio del período"
-        />
-        
+
+        {/*
+          Extraemos la lógica del color a una variable para evitar ternarios anidados
+        */}
+        {(() => {
+          let moodColor: 'green' | 'orange' | 'red';
+          if (metrics.averageMood >= 4) {
+            moodColor = 'green';
+          } else if (metrics.averageMood >= 3) {
+            moodColor = 'orange';
+          } else {
+            moodColor = 'red';
+          }
+          return (
+            <MetricCard
+              title="Estado de Ánimo"
+              value={metrics.averageMood.toFixed(1)}
+              suffix="/5"
+              icon={Heart}
+              color={moodColor}
+              subtitle="Promedio del período"
+            />
+          );
+        })()}
+
         <MetricCard
           title="Tendencia"
-          value={metrics.improvementTrend > 0 ? '+' : ''}
-          icon={metrics.improvementTrend > 0 ? TrendingUp : metrics.improvementTrend < 0 ? TrendingUp : Target}
-          color={metrics.improvementTrend > 0 ? 'green' : metrics.improvementTrend < 0 ? 'red' : 'gray'}
-          subtitle={metrics.improvementTrend > 0 ? 'Mejorando' : metrics.improvementTrend < 0 ? 'Necesita atención' : 'Estable'}
+          value={metrics.improvementTrend > 0 ? `+${metrics.improvementTrend.toFixed(2)}` : metrics.improvementTrend.toFixed(2)}
+          icon={trendIcon}
+          color={trendColor}
+          subtitle={trendSubtitle}
         />
-        
+
         <MetricCard
           title="Categorías"
           value={metrics.activeCategories}
@@ -220,7 +255,7 @@ export default function ReportsPage() {
           color="purple"
           subtitle="Diferentes áreas"
         />
-        
+
         <MetricCard
           title="Seguimientos"
           value={metrics.followUpsRequired}
@@ -228,7 +263,7 @@ export default function ReportsPage() {
           color={metrics.followUpsRequired > 0 ? 'orange' : 'green'}
           subtitle="Pendientes"
         />
-        
+
         <MetricCard
           title="Días Activos"
           value={metrics.activeDays}
@@ -337,7 +372,7 @@ export default function ReportsPage() {
       </Tabs>
 
       {/* Export Dialog */}
-      <ExportReportDialog 
+      <ExportReportDialog
         open={isExportDialogOpen}
         onOpenChange={setIsExportDialogOpen}
         data={filteredLogs}
@@ -348,16 +383,16 @@ export default function ReportsPage() {
 }
 
 // ================================================================
-// COMPONENTES AUXILIARES
+// COMPONENTE AUXILIAR
 // ================================================================
 
 interface MetricCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ComponentType<{ className?: string }>;
-  color: 'blue' | 'red' | 'purple' | 'green' | 'orange' | 'gray';
-  subtitle: string;
-  suffix?: string;
+  readonly title: string;
+  readonly value: string | number;
+  readonly icon: React.ComponentType<{ className?: string }>;
+  readonly color: 'blue' | 'red' | 'purple' | 'green' | 'orange' | 'gray';
+  readonly subtitle: string;
+  readonly suffix?: string;
 }
 
 function MetricCard({ title, value, icon: Icon, color, subtitle, suffix }: MetricCardProps) {

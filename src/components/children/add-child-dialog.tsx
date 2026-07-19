@@ -30,7 +30,7 @@ interface FormData {
   notes: string
 }
 
-export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
+export function AddChildDialog({ open, onOpenChange }: Readonly<AddChildDialogProps>) {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     birth_date: '',
@@ -38,7 +38,7 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
     notes: ''
   })
   const [loading, setLoading] = useState(false)
-  const { addChild } = useChildren()
+  const { createChild } = useChildren()
   const { toast } = useToast()
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -76,7 +76,7 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
         ...(formData.notes.trim() && { notes: formData.notes.trim() })
       }
 
-      await addChild(childData)
+      await createChild(childData)
       
       toast({
         title: "¡Éxito!",
@@ -88,7 +88,7 @@ export function AddChildDialog({ open, onOpenChange }: AddChildDialogProps) {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "No se pudo agregar el niño",
+        description: error.message ?? "No se pudo agregar el niño",
         variant: "destructive",
       })
     } finally {

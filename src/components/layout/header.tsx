@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar} from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -106,15 +106,6 @@ export function Header() {
     return title || 'NeuroLog';
   };
 
-  const getUserInitials = () => {
-    if (!user?.full_name) return 'U';
-    return user.full_name
-      .split(' ')
-      .map(name => name.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   const quickActions = [
     { 
@@ -145,6 +136,18 @@ export function Header() {
     { name: 'Calendario', href: '/dashboard/calendar', icon: Calendar },
     { name: 'Exportar', href: '/dashboard/export', icon: Download },
   ];
+
+  // Extract user role label to avoid nested ternary in JSX
+  let userRoleLabel = 'Usuario';
+  if (user?.role === 'parent') {
+    userRoleLabel = 'Padre/Madre';
+  } else if (user?.role === 'teacher') {
+    userRoleLabel = 'Docente';
+  } else if (user?.role === 'specialist') {
+    userRoleLabel = 'Especialista';
+  } else if (user?.role === 'admin') {
+    userRoleLabel = 'Admin';
+  }
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200">
@@ -286,28 +289,24 @@ export function Header() {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
-          {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center space-x-2 h-8 sm:h-10 px-2 sm:px-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center space-x-2"
+              >
                 <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
-                  <AvatarImage src={user?.avatar_url} />
-                  <AvatarFallback className="text-xs sm:text-sm">
-                    {getUserInitials()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden sm:block text-left">
+                  <p className="text-xs text-gray-500 capitalize">
+                    {userRoleLabel}
+                  </p>
                   <p className="text-xs sm:text-sm font-medium text-gray-900 truncate max-w-24 lg:max-w-32">
-                    {user?.full_name || 'Usuario'}
+                    {user?.full_name ?? 'Usuario'}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {user?.role === 'parent' ? 'Padre/Madre' : 
-                     user?.role === 'teacher' ? 'Docente' :
-                     user?.role === 'specialist' ? 'Especialista' :
-                     user?.role === 'admin' ? 'Admin' : 'Usuario'}
+                    {userRoleLabel}
                   </p>
-                </div>
+                </Avatar>
                 <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
               </Button>
             </DropdownMenuTrigger>
